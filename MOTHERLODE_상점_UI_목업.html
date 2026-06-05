@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MOTHERLODE — 상점·장비 UI 목업</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0f0d; --bg2:#0a0c0a;
+  --panel:rgba(20,24,20,0.94); --panel2:rgba(34,40,34,0.92); --panel3:rgba(46,54,44,0.55);
+  --border:#36402f; --border2:#586348; --border3:#2a3224;
+  --text:#e8ede2; --sub:#929a89; --dim:#6a7263;
+  --info:#5fa8e8; --good:#7ac95a; --warn:#e2a93c; --bad:#e85c47; --teal:#8ad6b0;
+  --gold:#d8b15a; --purple:#b07ad6;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;height:100%;background:
+  radial-gradient(1200px 700px at 70% -10%, rgba(40,52,38,0.35), transparent 60%),
+  radial-gradient(900px 600px at -5% 110%, rgba(30,42,52,0.25), transparent 55%),
+  var(--bg);
+  font-family:'Chakra Petch',system-ui,sans-serif;color:var(--text);
+  -webkit-font-smoothing:antialiased;}
+body{padding:0;overflow-x:hidden;}
+
+/* grid texture */
+body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.05;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:48px 48px;}
+
+.wrap{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:18px 22px 60px;}
+
+/* ── top mode switch ── */
+.modeswitch{display:flex;align-items:center;gap:14px;margin-bottom:16px;flex-wrap:wrap;}
+.title{font-size:15px;letter-spacing:2px;color:var(--sub);font-weight:600;text-transform:uppercase;}
+.title b{color:var(--gold);}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:3px;gap:3px;margin-left:auto;}
+.seg button{font-family:inherit;font-size:12.5px;font-weight:500;letter-spacing:.4px;color:var(--sub);background:transparent;border:0;border-radius:6px;padding:7px 15px;cursor:pointer;transition:.15s;}
+.seg button.on{background:var(--panel2);color:var(--text);box-shadow:inset 0 0 0 1px var(--border2);}
+.seg button:hover:not(.on){color:var(--text);}
+
+.scene{display:none;}
+.scene.on{display:block;animation:fade .25s ease;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+/* ════════ SHOP SCENE ════════ */
+.shopbar{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.loc{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:13px;color:var(--sub);}
+.loc .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 8px var(--teal);}
+.loc b{color:var(--text);font-weight:600;}
+.cur{margin-left:auto;display:inline-flex;align-items:center;gap:8px;background:rgba(50,40,14,0.6);border:1px solid #6b551f;border-radius:8px;padding:7px 14px;font-size:14px;color:var(--gold);font-weight:600;letter-spacing:.5px;}
+.cur .lab{color:var(--dim);font-weight:400;font-size:12px;letter-spacing:0;}
+.warnflag{font-size:11.5px;color:var(--warn);background:rgba(60,46,16,0.5);border:1px solid #6b551f;border-radius:7px;padding:6px 11px;}
+
+.grid3{display:grid;grid-template-columns:188px 1fr 350px;gap:14px;align-items:start;}
+
+/* panel base */
+.pn{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.pn h3{margin:0 0 11px;font-size:11px;letter-spacing:1.4px;color:var(--dim);text-transform:uppercase;font-weight:600;}
+
+/* soul rail */
+.soul{display:flex;align-items:center;gap:10px;padding:9px;border:1px solid var(--border);border-radius:9px;margin-bottom:8px;cursor:pointer;background:var(--panel2);transition:.14s;position:relative;}
+.soul:hover{border-color:var(--border2);}
+.soul.sel{border-color:var(--info);box-shadow:0 0 0 1px var(--info), 0 0 14px rgba(95,168,232,0.18);}
+.soul.empty{border-style:dashed;opacity:.5;cursor:default;}
+.por{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;}
+.soul .nm{font-size:13px;font-weight:500;}
+.soul .rl{font-size:10.5px;color:var(--dim);margin-top:1px;}
+.hpmini{height:4px;border-radius:2px;background:rgba(0,0,0,.4);margin-top:5px;overflow:hidden;}
+.hpmini i{display:block;height:100%;background:var(--good);}
+.badge{position:absolute;top:7px;right:8px;font-size:9px;letter-spacing:.5px;color:var(--info);border:1px solid var(--info);border-radius:4px;padding:1px 5px;background:rgba(95,168,232,0.12);}
+
+/* equip board */
+.boardhead{display:flex;align-items:center;gap:11px;margin-bottom:14px;}
+.boardhead .por{width:46px;height:46px;border-radius:9px;font-size:20px;}
+.boardhead .nm{font-size:16px;font-weight:600;}
+.boardhead .rl{font-size:11.5px;color:var(--sub);margin-top:2px;}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:6px;}
+.slot{aspect-ratio:1;border:1.5px dashed var(--border2);border-radius:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--dim);font-size:10.5px;cursor:pointer;transition:.14s;position:relative;background:rgba(0,0,0,0.16);}
+.slot.full{border-style:solid;cursor:pointer;}
+.slot.full:hover{box-shadow:0 0 0 1px var(--bad);}
+.slot.full:hover::after{content:"해제";position:absolute;bottom:6px;font-size:9px;color:var(--bad);}
+.slot .ic{width:42px;height:42px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;border:1px solid rgba(255,255,255,.08);}
+.slot .inm{font-size:10px;color:var(--sub);text-align:center;line-height:1.2;padding:0 4px;}
+.slot .keytag{position:absolute;top:5px;left:7px;font-size:9px;color:var(--dim);}
+.slotnote{font-size:11px;color:var(--dim);margin:10px 0 16px;line-height:1.5;}
+.slotnote b{color:var(--sub);}
+.relichead{display:flex;align-items:center;gap:8px;margin:2px 0 9px;}
+.relichead h4{margin:0;font-size:10.5px;letter-spacing:1.2px;color:var(--purple);text-transform:uppercase;}
+.relichead .tagdrop{font-size:9px;color:var(--dim);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;}
+.relicslots{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:16px;}
+.rslot{border:1.5px dashed var(--purple);border-radius:10px;display:flex;align-items:center;gap:9px;padding:9px 11px;color:var(--dim);font-size:10.5px;cursor:pointer;transition:.14s;background:rgba(176,122,214,0.05);min-height:54px;}
+.rslot.full{border-style:solid;}
+.rslot.full:hover{box-shadow:0 0 0 1px var(--bad);}
+.rslot .ric{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;border:1px solid rgba(176,122,214,.3);background:rgba(176,122,214,.12);color:var(--purple);}
+.rslot .rinfo .rn{font-size:11.5px;font-weight:600;color:var(--text);}
+.rslot .rinfo .rd{font-size:10px;color:var(--sub);line-height:1.3;margin-top:2px;}
+
+.statsum{border-top:1px solid var(--border3);padding-top:13px;}
+.statsum h4{margin:0 0 9px;font-size:10.5px;letter-spacing:1.2px;color:var(--dim);text-transform:uppercase;}
+.stgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px;}
+.st{display:flex;justify-content:space-between;font-size:12.5px;border-bottom:1px solid var(--border3);padding-bottom:4px;}
+.st .k{color:var(--sub);}
+.st .v{font-weight:600;font-variant-numeric:tabular-nums;}
+.st .v.up{color:var(--good);}
+.pipe{margin-top:14px;background:var(--bg2);border:1px solid var(--border3);border-radius:9px;padding:11px 13px;}
+.pipe .pt{font-size:10.5px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;margin-bottom:8px;}
+.pipe .row{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--sub);margin-bottom:3px;}
+.pipe .row b{color:var(--text);font-weight:600;}
+.pipe .arrow{color:var(--dim);}
+.dealbig{font-size:23px;font-weight:700;color:var(--warn);font-variant-numeric:tabular-nums;}
+
+/* shop column */
+.tabs{display:flex;gap:4px;margin-bottom:12px;background:var(--panel2);padding:3px;border-radius:8px;border:1px solid var(--border);}
+.tabs button{flex:1;font-family:inherit;font-size:12px;font-weight:500;color:var(--sub);background:transparent;border:0;border-radius:6px;padding:7px;cursor:pointer;transition:.14s;}
+.tabs button.on{background:var(--panel3);color:var(--text);}
+.hint{background:linear-gradient(90deg,rgba(60,46,16,0.5),rgba(60,46,16,0.15));border:1px solid #6b551f;border-radius:9px;padding:9px 12px;font-size:11.5px;color:var(--warn);margin-bottom:13px;line-height:1.45;}
+.hint b{color:var(--text);}
+.hint .sm{color:var(--dim);font-size:10.5px;}
+
+.itemlist{display:flex;flex-direction:column;gap:7px;max-height:540px;overflow-y:auto;padding-right:3px;}
+.itemlist::-webkit-scrollbar{width:6px;}
+.itemlist::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+.card{display:flex;gap:11px;align-items:center;border:1px solid var(--border);border-radius:10px;padding:9px 10px;cursor:pointer;background:var(--panel2);transition:.14s;}
+.card:hover{border-color:var(--border2);transform:translateX(2px);}
+.card.locked{opacity:.45;}
+.card .ic{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;border:1px solid rgba(255,255,255,.08);}
+.card .body{flex:1;min-width:0;}
+.card .cn{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;}
+.card .tier{font-size:8.5px;letter-spacing:.5px;border-radius:4px;padding:1px 5px;font-weight:600;}
+.tier.t1{color:var(--dim);border:1px solid var(--border2);}
+.tier.t2{color:var(--gold);border:1px solid var(--gold);}
+.tier.uni{color:var(--info);border:1px solid var(--info);}
+.card .cs{font-size:11px;color:var(--sub);margin-top:2px;line-height:1.35;}
+.card .uniq{font-size:10.5px;color:var(--teal);margin-top:3px;line-height:1.35;}
+.card .recipe{font-size:9.5px;color:var(--dim);margin-top:3px;}
+.card .price{font-size:13px;font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap;align-self:flex-start;margin-top:2px;}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:10px;color:var(--dim);margin-top:11px;}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block;}
+
+/* ════════ BATTLE HUD SCENE ════════ */
+.hudstage{position:relative;height:660px;border-radius:14px;overflow:hidden;border:1px solid var(--border);
+  background:radial-gradient(900px 600px at 60% 40%, rgba(36,46,34,0.5), var(--bg2));}
+.hudstage::before{content:"";position:absolute;inset:0;opacity:.13;
+  background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:64px 64px;}
+.ring{position:absolute;border:1px solid var(--border);border-radius:50%;opacity:.35;left:50%;top:46%;transform:translate(-50%,-50%);}
+.hq{position:absolute;left:50%;top:46%;transform:translate(-50%,-50%);width:30px;height:30px;border-radius:50%;background:var(--teal);box-shadow:0 0 18px rgba(138,214,176,.5);}
+.unit{position:absolute;width:18px;height:18px;border-radius:50%;background:var(--info);box-shadow:0 0 10px rgba(95,168,232,.5);}
+.unit.e{background:var(--bad);box-shadow:0 0 10px rgba(232,92,71,.4);border-radius:3px;}
+.stagecap{position:absolute;top:12px;left:14px;font-size:11px;color:var(--dim);letter-spacing:.5px;background:var(--panel);border:1px solid var(--border);border-radius:7px;padding:5px 11px;}
+
+/* command panel (bottom center) */
+.cmd{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);width:360px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:11px;}
+.cmd .top{display:flex;gap:10px;align-items:center;margin-bottom:9px;}
+.cmd .por{width:42px;height:42px;border-radius:8px;font-size:18px;}
+.cmd .nm{font-size:13px;font-weight:600;}
+.cmd .bar{height:7px;border-radius:4px;background:rgba(0,0,0,.4);overflow:hidden;margin-top:5px;}
+.cmd .bar i{display:block;height:100%;}
+
+.itembar{position:absolute;top:12px;right:14px;display:flex;align-items:stretch;gap:6px;background:rgba(20,24,20,0.5);border:1px solid rgba(88,99,72,0.45);border-radius:10px;padding:7px 9px;opacity:.6;transition:opacity .2s;backdrop-filter:blur(3px);z-index:5;}
+.itembar:hover{opacity:1;}
+.itembar .lab{font-size:8px;color:var(--dim);writing-mode:vertical-rl;text-orientation:mixed;letter-spacing:1px;display:flex;align-items:center;}
+.islot{width:30px;height:30px;border:1px solid var(--border);border-radius:7px;background:rgba(34,40,34,0.55);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;position:relative;cursor:default;}
+.islot.empty{border-style:dashed;color:var(--dim);font-size:11px;font-weight:400;}
+.islot.flash{animation:flash 1.8s infinite;}
+@keyframes flash{0%,100%{box-shadow:none;}40%{box-shadow:0 0 0 2px var(--good),0 0 12px rgba(122,201,90,.5);}}
+.islot .ft{position:absolute;bottom:-13px;left:50%;transform:translateX(-50%);font-size:8px;color:var(--good);white-space:nowrap;opacity:0;}
+.islot.flash .ft{animation:fttxt 1.8s infinite;}
+@keyframes fttxt{0%,30%,70%,100%{opacity:0;}45%{opacity:1;}}
+.itembar .div{width:1px;background:var(--border2);opacity:.5;margin:0 1px;}
+.itembar .rislot{width:24px;height:24px;border:1px solid rgba(176,122,214,.45);border-radius:6px;background:rgba(176,122,214,.1);color:var(--purple);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;align-self:center;}
+.itembar .rislot.empty{border-style:dashed;opacity:.4;}
+
+.skillrow{display:flex;gap:7px;}
+.sk{flex:1;aspect-ratio:1;background:var(--panel2);border:1px solid var(--border);border-radius:9px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;overflow:hidden;}
+.sk .key{font-size:13px;font-weight:700;}
+.sk .skn{font-size:9.5px;color:var(--sub);}
+.sk .cdov{position:absolute;left:0;right:0;top:0;background:rgba(0,0,0,.62);}
+
+/* roster (bottom right) */
+.rost{position:absolute;bottom:16px;right:16px;width:176px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:11px;}
+.rost h3{margin:0 0 9px;font-size:9.5px;letter-spacing:1px;color:var(--dim);text-transform:uppercase;}
+.rc{border:1px solid var(--border);border-radius:9px;padding:7px 8px;margin-bottom:7px;background:var(--panel2);}
+.rc.sel{border-color:var(--info);}
+.rc .rt{display:flex;align-items:center;gap:7px;}
+.rc .rp{width:22px;height:22px;border-radius:5px;font-size:11px;display:flex;align-items:center;justify-content:center;font-weight:700;}
+.rc .rn{font-size:11px;font-weight:500;}
+.rc .role{font-size:9px;color:var(--dim);margin-left:auto;}
+.rc .miniitems{display:flex;gap:4px;margin-top:7px;}
+.mi{flex:1;height:15px;border-radius:4px;border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;}
+.mi.empty{border-style:dashed;opacity:.4;}
+
+.callout{position:absolute;background:var(--panel);border:1px solid var(--border2);border-radius:9px;padding:9px 12px;font-size:11px;color:var(--sub);line-height:1.5;max-width:230px;box-shadow:0 6px 22px rgba(0,0,0,.4);}
+.callout b{color:var(--text);}
+.callout::after{content:"";position:absolute;width:9px;height:9px;background:var(--panel);border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);}
+.co1{right:14px;top:62px;}
+.co1::after{right:30px;top:-5px;transform:rotate(225deg);}
+.co2{right:210px;bottom:120px;}
+.co2::after{right:-5px;top:24px;transform:rotate(-45deg);}
+
+.foot{margin-top:14px;font-size:11px;color:var(--dim);line-height:1.6;}
+.foot b{color:var(--sub);}
+@media(max-width:1100px){.grid3{grid-template-columns:1fr;}.hudstage{height:560px;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="modeswitch">
+    <span class="title">MOTHERLODE · <b>아이템·상점 UI</b> 목업 v0.1</span>
+    <div class="seg">
+      <button id="b-shop" class="on" onclick="show('shop')">상점·장비 (정산)</button>
+      <button id="b-hud" onclick="show('hud')">전투 HUD 표시</button>
+    </div>
+  </div>
+
+  <!-- ════════ SHOP SCENE ════════ -->
+  <div class="scene on" id="scene-shop">
+    <div class="shopbar">
+      <span class="loc"><span class="dot"></span>접근: <b>아군 본부</b> · 풀 상점</span>
+      <span class="warnflag">교두보 상점에서 사면 빠르나 함락 시 소실 — 본부는 안전</span>
+      <span class="cur"><span class="lab">일반재화</span> ₲ 1,240</span>
+    </div>
+
+    <div class="grid3">
+      <!-- LEFT: soul rail -->
+      <div class="pn">
+        <h3>소울 4 · 정산 열람</h3>
+        <div id="rail"></div>
+        <p class="slotnote" style="margin-top:4px;">정산 모드라 <b>4소울 동시 열람</b> 허용. "한 번에 한 몸"은 전투 중 조작에만 거는 제약.</p>
+      </div>
+
+      <!-- MID: equip board -->
+      <div class="pn">
+        <div class="boardhead">
+          <div class="por" id="bd-por"></div>
+          <div>
+            <div class="nm" id="bd-nm"></div>
+            <div class="rl" id="bd-rl"></div>
+          </div>
+        </div>
+        <div class="slots" id="slots"></div>
+        <p class="slotnote"><b>아이템 4칸</b> — 재화로 사는 가역 빌드. 신발 슬롯 없음(이속도 한 칸 기회비용). 빈 칸엔 컴포넌트만 끼워도 OK.</p>
+
+        <div class="relichead">
+          <h4>유물 2칸</h4>
+          <span class="tagdrop">맵 드랍 · 보너스 변주 · 상점에서 못 삼</span>
+        </div>
+        <div class="relicslots" id="relics"></div>
+
+        <div class="statsum">
+          <h4>합산 스탯</h4>
+          <div class="stgrid" id="stgrid"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: shop -->
+      <div class="pn">
+        <div class="tabs">
+          <button id="t-comp" class="on" onclick="shopTab('comp')">컴포넌트 9</button>
+          <button id="t-mid" onclick="shopTab('mid')">중위템 7</button>
+          <button id="t-fin" onclick="shopTab('fin')">완성템</button>
+        </div>
+        <div class="hint">
+          <b>이 지역 미니보스 = 역병(도트 전염)</b> → 정화·생존 계열 권장.
+          <div class="sm">권장이지 강제 아님 — 어떤 빌드로도 길은 있다(헌법 8 다중해).</div>
+        </div>
+        <div class="itemlist" id="shoplist"></div>
+        <div class="legend">
+          <span><i style="background:var(--dim)"></i>컴포넌트(T1)</span>
+          <span><i style="background:var(--gold)"></i>직업 특화 완성템</span>
+          <span><i style="background:var(--info)"></i>범용 완성템</span>
+        </div>
+      </div>
+    </div>
+
+    <p class="foot">
+      <b>읽는 법:</b> 좌측에서 소울을 고르면 중앙 4칸과 우측 권장이 그 소울 기준으로 바뀐다. 우측 아이템을 클릭하면 빈 칸에 장착(데모), 중앙 채워진 칸을 클릭하면 해제. ·
+      <b>액티브 버튼 없음:</b> 모든 고유효과는 패시브·조건자동·온히트 — 전투 중 발동키가 없다(실행압력 0).
+    </p>
+  </div>
+
+  <!-- ════════ BATTLE HUD SCENE ════════ -->
+  <div class="scene" id="scene-hud">
+    <div class="hudstage">
+      <div class="stagecap">전투 중 HUD — 아이템은 <b style="color:var(--sub)">표시 전용</b> · 조작 0 (실행압력 0)</div>
+
+      <!-- top-right translucent item bar (separate from skill bar) -->
+      <div class="itembar">
+        <span class="lab">장비</span>
+        <div class="islot flash" style="border-color:var(--bad);color:var(--bad);">갈<span class="ft">흡혈</span></div>
+        <div class="islot" style="border-color:var(--warn);color:var(--warn);">처</div>
+        <div class="islot" style="color:var(--good);">신</div>
+        <div class="islot empty">＋</div>
+        <div class="div"></div>
+        <span class="lab">유물</span>
+        <div class="rislot">룬</div>
+        <div class="rislot empty">◇</div>
+      </div>
+
+      <div class="ring" style="width:300px;height:300px;"></div>
+      <div class="ring" style="width:540px;height:540px;"></div>
+      <div class="hq"></div>
+      <div class="unit" style="left:54%;top:42%;"></div>
+      <div class="unit" style="left:58%;top:50%;"></div>
+      <div class="unit e" style="left:70%;top:34%;"></div>
+      <div class="unit e" style="left:74%;top:40%;"></div>
+      <div class="unit e" style="left:67%;top:58%;"></div>
+
+      <!-- callouts -->
+      <div class="callout co1"><b>아이템 4칸 — 우상단·반투명</b><br>스킬바와 <b>분리</b>. 지금 누를 것 아님(액티브 없음). 평소 배경에 가라앉아 있다가 조건자동 발동 시 <b style="color:var(--good)">1회 점멸</b>로만 또렷.</div>
+      <div class="callout co2"><b>편성패널</b><br>흩어둔 아바타가 뭘 끼고 있는지 미니 아이콘으로 한눈에.</div>
+
+      <!-- command panel -->
+      <div class="cmd">
+        <div class="top">
+          <div class="por" style="background:rgba(95,168,232,.16);border:1px solid var(--border2);color:var(--info);">전</div>
+          <div style="flex:1;">
+            <div class="nm">전사 · 빙의 중</div>
+            <div class="bar"><i style="width:78%;background:var(--good);"></i></div>
+            <div class="bar"><i style="width:100%;background:var(--info);"></i></div>
+          </div>
+        </div>
+        <div class="itemrow" style="display:none;"></div>
+        <div class="skillrow">
+          <div class="sk"><span class="key" style="color:var(--info)">Q</span><span class="skn">강타</span></div>
+          <div class="sk"><span class="key" style="color:var(--good)">W</span><span class="skn">장악</span><div class="cdov" style="height:30%;"></div></div>
+          <div class="sk"><span class="key" style="color:var(--info)">E</span><span class="skn">돌진</span><div class="cdov" style="height:55%;"></div></div>
+          <div class="sk"><span class="key" style="color:var(--bad)">R</span><span class="skn">혈투</span><div class="cdov" style="height:80%;"></div></div>
+        </div>
+      </div>
+
+      <!-- roster -->
+      <div class="rost">
+        <h3>편성 1~4</h3>
+        <div class="rc sel">
+          <div class="rt"><div class="rp" style="background:rgba(95,168,232,.16);color:var(--info)">전</div><span class="rn">전사</span><span class="role">빙의</span></div>
+          <div class="miniitems"><div class="mi" style="color:var(--bad);border-color:var(--bad)">갈</div><div class="mi" style="color:var(--warn);border-color:var(--warn)">처</div><div class="mi" style="color:var(--good);border-color:var(--good)">신</div><div class="mi empty">·</div></div>
+        </div>
+        <div class="rc">
+          <div class="rt"><div class="rp" style="background:rgba(176,122,214,.16);color:var(--purple)">마</div><span class="rn">마법사</span><span class="role">아바타</span></div>
+          <div class="miniitems"><div class="mi" style="color:var(--purple);border-color:var(--purple)">법</div><div class="mi" style="color:var(--sub);border-color:var(--border2)">톱</div><div class="mi empty">·</div><div class="mi empty">·</div></div>
+        </div>
+        <div class="rc">
+          <div class="rt"><div class="rp" style="background:rgba(122,201,90,.16);color:var(--good)">궁</div><span class="rn">궁수</span><span class="role">수비</span></div>
+          <div class="miniitems"><div class="mi" style="color:var(--good);border-color:var(--good)">사</div><div class="mi" style="color:var(--info);border-color:var(--info)">관</div><div class="mi empty">·</div><div class="mi empty">·</div></div>
+        </div>
+        <div class="rc" style="opacity:.5;border-style:dashed;">
+          <div class="rt"><div class="rp" style="background:var(--panel2);color:var(--dim)">4</div><span class="rn" style="color:var(--dim)">미충원</span></div>
+        </div>
+      </div>
+    </div>
+    <p class="foot">
+      <b>전투 중 아이템 = 읽기만, 조작 없음.</b> 새 능동 입력 0개 추가 → 실행압력 불변. 모든 구매·장착·재구성은 안전지대 상점(정산 모드)으로 격리. ·
+      좌하 명령패널: 빙의 중 소울의 4칸 + QWER. 우하 편성: 아바타 장비를 미니 아이콘으로.
+    </p>
+  </div>
+
+</div>
+
+<script>
+/* ── data ── */
+var COMP={
+  ad:{n:'강철검',ab:'강',c:'var(--info)',cs:'공격력 +45',price:380,stat:{ad:45}},
+  ap:{n:'법서',ab:'법',c:'var(--purple)',cs:'주문력 +55',price:380,stat:{ap:55}},
+  cr:{n:'사냥칼',ab:'사',c:'var(--good)',cs:'공속 +20% · 치명률 +12%',price:420,stat:{crit:12}},
+  pen:{n:'천공침',ab:'천',c:'var(--teal)',cs:'관통 +20',price:400,stat:{pen:20}},
+  cdr:{n:'가속의 톱니',ab:'톱',c:'var(--sub)',cs:'쿨감 +12% / 마나효율',price:350,stat:{}},
+  arm:{n:'사슬갑옷',ab:'갑',c:'var(--info)',cs:'방어도 +45 · HP +100',price:400,stat:{}},
+  mr:{n:'비단망토',ab:'망',c:'var(--purple)',cs:'마저 +45 · HP +100',price:400,stat:{}},
+  vit:{n:'활력석',ab:'활',c:'var(--good)',cs:'HP +200 · 상태저항 +20%',price:420,stat:{}},
+  ms:{n:'신속화',ab:'신',c:'var(--good)',cs:'이동속도 +35',price:300,stat:{}}
+};
+var MID={
+  rage:{n:'광폭의 검',ab:'광',c:'var(--bad)',recipe:'강철검 + 사냥칼',cs:'AD +45 · 공속 +20% · 치명 +12%',uniq:'평타 시 5% 추가 물리',price:820,stat:{ad:45,crit:12}},
+  fang:{n:'흡혈 송곳니',ab:'송',c:'var(--bad)',recipe:'강철검 + 천공침',cs:'AD +45 · 관통 +20 · 흡혈 +8%',uniq:'\u2014',price:800,stat:{ad:45,pen:20}},
+  arc:{n:'마력 응집체',ab:'응',c:'var(--purple)',recipe:'법서 + 가속의 톱니',cs:'AP +55 · 쿨감 +12% · 마나효율',uniq:'스킬 적중 시 소량 추가 마법',price:760,stat:{ap:55}},
+  plate:{n:'수호의 판금',ab:'판',c:'var(--info)',recipe:'사슬갑옷 + 활력석',cs:'방어 +45 · HP +300 · 상태저항 +20%',uniq:'\u2014',price:820,stat:{}},
+  hood:{n:'현자의 두건',ab:'현',c:'var(--purple)',recipe:'비단망토 + 가속의 톱니',cs:'마저 +45 · HP +100 · 쿨감 +12%',uniq:'\u2014',price:760,stat:{}},
+  boots:{n:'추적자의 부츠',ab:'부',c:'var(--good)',recipe:'신속화 + 사냥칼',cs:'이속 +35 · 공속 +20% · 치명 +12%',uniq:'비전투 시 이속 추가',price:720,stat:{crit:12}},
+  bsig:{n:'광전사의 인장',ab:'인',c:'var(--bad)',recipe:'활력석 + 가속의 톱니',cs:'HP +200 · 쿨감 +12% · 상태저항',uniq:'HP 비례 소량 재생',price:780,stat:{}}
+};
+var FIN={
+  thirst:{n:'갈증의 대검',ab:'갈',c:'var(--bad)',tier:'t2',job:'warrior',recipe:'흡혈 송곳니 + 사냥칼',
+    cs:'AD +90 · 관통 +20 · 공속 +20% · 흡혈 +8%',uniq:'근접·평타 30% 흡혈, 초과분 방어막 축적. R 혈투 중 흡혈 2배 (빙의 100%/아바타 50%)',price:1550,stat:{ad:90,pen:20,crit:12}},
+  exec:{n:'처형자의 도끼',ab:'처',c:'var(--warn)',tier:'t2',job:'warrior',recipe:'광폭의 검 + 천공침',
+    cs:'AD +90 · 공속 +20% · 치명 +12% · 관통 +20',uniq:'HP 30%↓ 피해 +60%. 처치 시 전 스킬 쿨 40% 환급 + Q 강타 즉시 재발동',price:1520,stat:{ad:90,crit:12,pen:20}},
+  spur:{n:'돌격병의 박차',ab:'박',c:'var(--good)',tier:'t2',job:'warrior',recipe:'추적자의 부츠 + 강철검',
+    cs:'이속 +35 · 공속 +20% · 치명 +12% · AD +45',uniq:'E 돌진베기 2충전제 + 적중 시 1충전 즉시 환급 → 맞히는 한 연속 돌진',price:1450,stat:{ad:45,crit:12}},
+  bulwark:{n:'수호자의 성벽',ab:'성',c:'var(--info)',tier:'t2',job:'warrior',recipe:'수호의 판금 + 비단망토',
+    cs:'방어 +90 · 마저 +45 · HP +400 · 상태저항 +40%',uniq:'W 도발 범위 아군 전체에 방어막 분배 + 도발 중 본인 CC 면역 (아바타도 풀발현)',price:1550,stat:{}},
+  heart:{n:'광전사의 심장',ab:'심',c:'var(--bad)',tier:'t2',job:'warrior',recipe:'광전사의 인장 + 활력석',
+    cs:'HP +400 · 쿨감 +12% · 상태저항 +40%',uniq:'R 혈투 자해 −50% + 혈투 중 입힌 피해 10% 즉시 회복(자립 엔진). 무한 루프는 진화가 완성',price:1600,stat:{}},
+  pierce:{n:'관통의 표창',ab:'관',c:'var(--info)',tier:'uni',job:'any',recipe:'흡혈 송곳니 + 천공침',
+    cs:'AD +45 · 관통 +40 · 흡혈 +8%',uniq:'대상 방어/마저 비례 관통 증가(탱일수록 더 뚫음) + 처치 시 5초 관통 2배',price:1480,stat:{ad:45,pen:40}},
+  cleanse:{n:'정화의 성수',ab:'정',c:'var(--info)',tier:'uni',job:'any',recipe:'현자의 두건 + 활력석',
+    cs:'마저 +45 · HP +300 · 쿨감 +12% · 상태저항 +20%',uniq:'3초마다 디버프 전부 자동 정화 + 정화한 수만큼 방어막(많이 걸릴수록 단단)',price:1500,stat:{}},
+  bind:{n:'속박의 인장',ab:'속',c:'var(--info)',tier:'uni',job:'any',recipe:'마력 응집체 + 현자의 두건',
+    cs:'AP +55 · 쿨감 +24% · 마저 +45 · HP +100',uniq:'CC 적중 시 받피 +25%(취약 낙인) + CC 길이 +25%, 중첩 시 둔화 장판',price:1500,stat:{ap:55}}
+};
+
+var RELIC={
+  rune:{n:'광폭의 룬',ab:'룬',d:'R 혈투 지속 +1.5s'},
+  mark:{n:'추격자 표식',ab:'표',d:'처치 후 3초 이속 +15%'},
+  echo:{n:'잔향석',ab:'잔',d:'아바타 자동기 쿨 −10%'},
+  ward:{n:'수호 부적',ab:'부',d:'피격 후 1초 받피 −8%'}
+};
+
+var SOULS=[
+  {k:'warrior',n:'전사',ab:'전',c:'var(--info)',role:'쿨 · 근접 물리',hp:78,sel:true,poss:true,
+    equip:['thirst','exec','ms',null], relics:['rune',null], hint:'역병 → <b>정화의 성수</b> / 처형 폭딜'},
+  {k:'mage',n:'마법사',ab:'마',c:'var(--purple)',role:'마나 · 원거리 마법',hp:92,poss:false,
+    equip:['ap','cdr',null,null], relics:[null,null], hint:'역병 → <b>정화의 성수</b> / 원소 반응'},
+  {k:'archer',n:'궁수',ab:'궁',c:'var(--good)',role:'쿨 · 원거리 물리',hp:64,poss:false,
+    equip:['cr','pierce',null,null], relics:['mark',null], hint:'고방어 → <b>관통의 표창</b> 유지'},
+  {k:null,n:'미충원',ab:'4',c:'var(--dim)',role:'코어로 소울 제작',empty:true,equip:[null,null,null,null],relics:[null,null]}
+];
+var SLOTKEYS=['α','β','γ','δ'];
+var sel=0, curTab='comp';
+
+function item(id){return COMP[id]||MID[id]||FIN[id];}
+function poss(soul){return soul.poss;}
+
+function renderRail(){
+  var h='';
+  SOULS.forEach(function(s,i){
+    if(s.empty){h+='<div class="soul empty"><div class="por" style="background:var(--panel2);color:var(--dim)">4</div><div><div class="nm" style="color:var(--dim)">미충원</div><div class="rl">코어로 제작</div></div></div>';return;}
+    h+='<div class="soul '+(i===sel?'sel':'')+'" onclick="pick('+i+')">'
+      +(s.poss?'<span class="badge">빙의</span>':'')
+      +'<div class="por" style="background:'+rgba(s.c)+';color:'+s.c+'">'+s.ab+'</div>'
+      +'<div style="flex:1;"><div class="nm">'+s.n+'</div><div class="rl">'+s.role+'</div>'
+      +'<div class="hpmini"><i style="width:'+s.hp+'%"></i></div></div></div>';
+  });
+  document.getElementById('rail').innerHTML=h;
+}
+function rgba(c){ // turn var color into translucent bg
+  var map={'var(--info)':'rgba(95,168,232,.16)','var(--purple)':'rgba(176,122,214,.16)','var(--good)':'rgba(122,201,90,.16)','var(--bad)':'rgba(232,92,71,.16)','var(--warn)':'rgba(226,169,60,.16)','var(--teal)':'rgba(138,214,176,.16)','var(--sub)':'rgba(146,154,137,.16)'};
+  return map[c]||'rgba(146,154,137,.16)';
+}
+
+function renderBoard(){
+  var s=SOULS[sel];
+  document.getElementById('bd-por').style.background=rgba(s.c);
+  document.getElementById('bd-por').style.color=s.c;
+  document.getElementById('bd-por').textContent=s.ab;
+  document.getElementById('bd-nm').textContent=s.n+(s.poss?' · 빙의 중':' · 아바타');
+  document.getElementById('bd-rl').textContent=s.role;
+  var h='';
+  s.equip.forEach(function(id,si){
+    if(id){var it=item(id);
+      h+='<div class="slot full" onclick="unequip('+si+')"><span class="keytag">'+SLOTKEYS[si]+'</span>'
+        +'<div class="ic" style="background:'+rgba(it.c)+';color:'+it.c+'">'+it.ab+'</div>'
+        +'<div class="inm">'+it.n+'</div></div>';
+    } else {
+      h+='<div class="slot"><span class="keytag">'+SLOTKEYS[si]+'</span><div style="font-size:22px;color:var(--border2)">＋</div><div class="inm">빈 칸</div></div>';
+    }
+  });
+  document.getElementById('slots').innerHTML=h;
+  // relics (2)
+  var rh='';
+  (s.relics||[null,null]).forEach(function(rid,ri){
+    if(rid){var r=RELIC[rid];
+      rh+='<div class="rslot full" onclick="unequipRelic('+ri+')"><div class="ric">'+r.ab+'</div>'
+        +'<div class="rinfo"><div class="rn">'+r.n+'</div><div class="rd">'+r.d+'</div></div></div>';
+    } else {
+      rh+='<div class="rslot"><div class="ric" style="background:rgba(176,122,214,.06);color:var(--purple);opacity:.5">◇</div><div class="rinfo"><div class="rn" style="color:var(--dim)">빈 유물칸</div><div class="rd">맵에서 주워 채움</div></div></div>';
+    }
+  });
+  document.getElementById('relics').innerHTML=rh;
+  renderStats();
+}
+
+function renderStats(){
+  var s=SOULS[sel],agg={ad:0,ap:0,crit:0,pen:0};
+  s.equip.forEach(function(id){if(id){var it=item(id);if(it.stat)for(var k in it.stat)agg[k]=(agg[k]||0)+it.stat[k];}});
+  var rows=[['공격력 AD',agg.ad],['주문력 AP',agg.ap],['치명률',agg.crit?agg.crit+'%':0],['관통',agg.pen]];
+  var h='';rows.forEach(function(r){h+='<div class="st"><span class="k">'+r[0]+'</span><span class="v '+(r[1]?'up':'')+'">'+(r[1]?'+'+r[1]:'—')+'</span></div>';});
+  document.getElementById('stgrid').innerHTML=h;
+}
+function unequipRelic(ri){var s=SOULS[sel];if(s.relics)s.relics[ri]=null;renderBoard();}
+
+function shopTab(t){curTab=t;
+  document.getElementById('t-comp').classList.toggle('on',t==='comp');
+  document.getElementById('t-mid').classList.toggle('on',t==='mid');
+  document.getElementById('t-fin').classList.toggle('on',t==='fin');
+  renderShop();
+}
+function renderShop(){
+  var s=SOULS[sel];var h='';
+  if(curTab==='comp'){
+    for(var id in COMP){var c=COMP[id];
+      h+='<div class="card" onclick="equip(\''+id+'\')">'
+        +'<div class="ic" style="background:'+rgba(c.c)+';color:'+c.c+'">'+c.ab+'</div>'
+        +'<div class="body"><div class="cn">'+c.n+' <span class="tier t1">T1</span></div>'
+        +'<div class="cs">'+c.cs+'</div></div>'
+        +'<div class="price">₲'+c.price+'</div></div>';
+    }
+  } else if(curTab==='mid'){
+    for(var mid in MID){var m=MID[mid];
+      h+='<div class="card" onclick="equip(\''+mid+'\')">'
+        +'<div class="ic" style="background:'+rgba(m.c)+';color:'+m.c+'">'+m.ab+'</div>'
+        +'<div class="body"><div class="cn">'+m.n+' <span class="tier t2" style="color:var(--teal);border-color:var(--teal)">T2 중위</span></div>'
+        +'<div class="cs">'+m.cs+'</div>'
+        +(m.uniq&&m.uniq!=='\u2014'?'<div class="uniq" style="color:var(--sub)">◇ '+m.uniq+'</div>':'')
+        +'<div class="recipe">합성: '+m.recipe+'</div></div>'
+        +'<div class="price">₲'+m.price+'</div></div>';
+    }
+  } else {
+    for(var fid in FIN){var f=FIN[fid];
+      var jobOk = (f.job==='any'||f.job===s.k);
+      var cls = jobOk?'':'locked';
+      var tcls = f.tier==='uni'?'uni':'t2';
+      h+='<div class="card '+cls+'" onclick="'+(jobOk?'equip(\''+fid+'\')':'')+'">'
+        +'<div class="ic" style="background:'+rgba(f.c)+';color:'+f.c+'">'+f.ab+'</div>'
+        +'<div class="body"><div class="cn">'+f.n+' <span class="tier '+tcls+'">'+(f.tier==='uni'?'T3 범용':'T3 특화')+'</span></div>'
+        +'<div class="cs">'+f.cs+'</div>'
+        +'<div class="uniq">◆ '+f.uniq+'</div>'
+        +'<div class="recipe">합성: '+f.recipe+(jobOk?'':' · <span style="color:var(--bad)">'+s.n+' 귀속 불가</span>')+'</div></div>'
+        +'<div class="price">₲'+f.price+'</div></div>';
+    }
+  }
+  document.getElementById('shoplist').innerHTML=h;
+  document.querySelector('.hint').innerHTML='<b>'+( SOULS[sel].empty?'소울 미충원':'권장 ('+SOULS[sel].n+'): '+SOULS[sel].hint )
+    +'</b><div class="sm">권장이지 강제 아님 — 어떤 빌드로도 길은 있다(헌법 8 다중해).</div>';
+}
+
+function pick(i){if(SOULS[i].empty)return;sel=i;renderRail();renderBoard();renderShop();}
+function equip(id){var s=SOULS[sel];if(s.empty)return;
+  var f=FIN[id];if(f&&f.job!=='any'&&f.job!==s.k)return;
+  var slot=s.equip.indexOf(null);if(slot<0){flashFull();return;}
+  s.equip[slot]=id;renderBoard();
+}
+function unequip(si){var s=SOULS[sel];s.equip[si]=null;renderBoard();}
+function flashFull(){var sl=document.getElementById('slots');sl.style.transition='.1s';sl.style.opacity=.5;setTimeout(function(){sl.style.opacity=1;},120);}
+
+function show(which){
+  document.getElementById('scene-shop').classList.toggle('on',which==='shop');
+  document.getElementById('scene-hud').classList.toggle('on',which==='hud');
+  document.getElementById('b-shop').classList.toggle('on',which==='shop');
+  document.getElementById('b-hud').classList.toggle('on',which==='hud');
+}
+
+renderRail();renderBoard();renderShop();
+</script>
+</body>
+</html>
