@@ -157,7 +157,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
   <span class="chip" id="modetag">명령 대기</span>
 </div>
 
-<div class="hud" id="help">스킬 자동시전(F) · QWER=수동 · 우클릭=이동/공격 · A→좌클릭=공격이동 · S=정지 · B=귀환(5초) · Space=시점(홀드=추적) · 휠=줌 · MMB=맵끌기 · Tab=순환 · P=상점 · Shift=상세</div>
+<div class="hud" id="help">빙의체: 우클릭=이동/공격 · QWER=스킬 · A=공격이동 · S=정지 · B=귀환 │ 아바타 클릭=빙의 전환(가까이) · 1=호위 2=진격 3=수비 │ Tab=시점순환 · 휠=줌 · MMB=맵끌기 · P=상점</div>
 
 <div class="hud" id="minimap">
   <div class="lab">미니맵 · 좌클릭 시점 / 우클릭 이동</div>
@@ -566,6 +566,7 @@ function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||6
   range:K.range,speed:92,ad:K.ad,ap:K.ap,def:K.def,mr:K.mr,crit:K.crit,critMult:K.critMult,flatPen:0,pctPen:0,tenacity:0,cdr:0,shield:0,
   minMax:80,minAd:7,minAtk:1.0,minCount:4,
   dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:clone(K.skills),mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},recall:null,
+  cmd:'escort',downed:false,downT:0,holdPt:null, // 빙의 프레임: 아바타 커맨드 + 다운 상태
   hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:K.label};
   for(var i=0;i<4;i++)m.minions.push(mkMinion(m,i));
   applyUpgrades(m);
@@ -573,7 +574,20 @@ function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||6
 
 // 시작: 전사 1기(설계 §7 개막 1기). 코어로 최대 4기까지 충원.
 var MLS=[mkML('warrior',HQX,HQY)];
-var sel=0;
+var sel=0;        // 빙의체(possessed) 인덱스 — 직접 조작하는 한 몸
+var viewIdx=0;    // Tab 카메라 순환용(조작권 이전 아님)
+// ── 빙의 프레임(기획서 §3): 한 번에 한 몸 + 나머지 AI 아바타 ──
+var swapCD=0,SWAP_RANGE=240,overlordDead=false,rushT=0,rushAcc=0;
+function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타에게 가서 빙의.
+  if(overlordDead){toast('사망 중 — 빙의 불가');return;}
+  if(swapCD>0){toast('빙의 쿨 '+swapCD.toFixed(1)+'s — 이 몸에 묶임');return;}
+  var p=MLS[sel],a=MLS[i];if(a.downed)return;
+  if(Math.hypot(p.x-a.x,p.y-a.y)>SWAP_RANGE){toast('너무 멀다 — 아바타에 더 가까이 가서 빙의');return;}
+  sel=i;swapCD=2.2;snapTo(camT,a.x,a.y);toast('빙의 → '+a.name);sfx('cast',0.1);}
+function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;MLS[i].cmd=c;if(c==='hold')MLS[i].holdPt={x:MLS[i].x,y:MLS[i].y};n++;}
+  toast(n?('아바타 '+n+'기 → '+(c==='escort'?'호위':c==='push'?'진격(보스 방면)':'수비(현 위치)')):'아바타 없음');}
+function reviveSoul(m){m.downed=false;m.hp=m.max;m.x=myHQ.x+(Math.random()*44-22);m.y=myHQ.y+(Math.random()*44-22);m.mods=[];m.shield=0;m.dest=m.tgt=m.amove=null;
+  if(MLS.indexOf(m)===sel){overlordDead=false;toast('부활 — '+m.name+'에 다시 빙의');}else toast(m.name+' 재소환');}
 var myHQ={x:HQX,y:HQY,hp:1600,max:1600,r:24,def:20,mr:20,shield:0,mods:[],hitT:0,lungeT:0,name:'본부'};
 
 /* ============================================================
@@ -778,7 +792,7 @@ function autoCastTick(m){if(!AUTO_SKILLS)return;if(modHas(m,'stun')||modHas(m,'s
       else if(s.fx==='shield'){if(m.hp<m.max*0.8||m.hitT>0)executeCast(m,i,m.x,m.y,null);}
       else executeCast(m,i,m.x,m.y,null);}
   }}
-function pressSkill(si){if(paused||gameOver)return;var m=MLS[sel];var s=m.skills[si];
+function pressSkill(si){if(paused||gameOver||overlordDead)return;var m=MLS[sel];if(m.downed)return;var s=m.skills[si];
   if(s.type==='self'){executeCast(m,si,m.x,m.y,null);order=null;}
   else if(s.type==='auto'){executeCast(m,si,0,0,lowestHpAlly());order=null;}
   else order={type:(s.type==='ally'?'skillAlly':'skill'),mi:sel,si:si};}
@@ -787,12 +801,12 @@ function pressSkill(si){if(paused||gameOver)return;var m=MLS[sel];var s=m.skills
    입력
    ============================================================ */
 function nearestML(x,y,rng){var b=null,bd=1e9;for(var i=0;i<MLS.length;i++){var d=Math.hypot(MLS[i].x-x,MLS[i].y-y);if(d<bd&&(!rng||d<=rng)){bd=d;b=MLS[i];}}return b;}
-cv.addEventListener('contextmenu',function(e){e.preventDefault();if(paused||gameOver)return;var wx=wX(e.clientX),wy=wY(e.clientY);var m=MLS[sel];m.recall=null;var en=nearestEnemy(wx,wy,28);if(en){m.tgt=en;m.dest=null;m.amove=null;}else{m.dest={x:wx,y:wy};m.tgt=null;m.amove=null;}order=null;});
+cv.addEventListener('contextmenu',function(e){e.preventDefault();if(paused||gameOver||overlordDead)return;var wx=wX(e.clientX),wy=wY(e.clientY);var m=MLS[sel];m.recall=null;var en=nearestEnemy(wx,wy,28);if(en){m.tgt=en;m.dest=null;m.amove=null;}else{m.dest={x:wx,y:wy};m.tgt=null;m.amove=null;}order=null;});
 cv.addEventListener('click',function(e){if(paused||gameOver)return;var wx=wX(e.clientX),wy=wY(e.clientY);var m=MLS[sel];
  if(order&&order.type==='skill'){var s=m.skills[order.si];if(s.type==='enemy'){var en=nearestEnemy(wx,wy,34);if(en)executeCast(m,order.si,en.x,en.y,en);}else executeCast(m,order.si,wx,wy,null);order=null;return;}
  if(order&&order.type==='skillAlly'){var al=nearestML(wx,wy,40)||m;executeCast(m,order.si,al.x,al.y,al);order=null;return;}
  if(order&&order.type==='amove'){var en2=nearestEnemy(wx,wy,28);if(en2){m.tgt=en2;m.amove=null;m.dest=null;}else{m.amove={x:wx,y:wy};m.tgt=null;m.dest=null;}order=null;return;}
- for(var i=0;i<MLS.length;i++){if(Math.hypot(MLS[i].x-wx,MLS[i].y-wy)<20){sel=i;return;}}
+ for(var i=0;i<MLS.length;i++){if(i!==sel&&!MLS[i].downed&&Math.hypot(MLS[i].x-wx,MLS[i].y-wy)<24){tryPossess(i);return;}} // 아바타 클릭=빙의 전환
 });
 window.addEventListener('mousemove',function(e){mouse.x=e.clientX;mouse.y=e.clientY;mouse.on=(e.clientX>=0&&e.clientX<=VW&&e.clientY>=0&&e.clientY<=VH);});
 // 커서 중심 휠 줌(§2.3) — deltaY 누적, 커서 아래 월드점 고정
@@ -814,9 +828,10 @@ window.addEventListener('keydown',function(e){var k=e.key.toLowerCase();
  if(paused||gameOver)return;
  if(k===' '){e.preventDefault();held[' ']=1;return;}
  if(k==='escape'){order=null;return;}
- if(k==='tab'){e.preventDefault();sel=(sel+1)%MLS.length;return;}
- if(k>='1'&&k<='4'){var n=parseInt(k)-1;if(n<MLS.length)sel=n;}
- else if(k==='q'){pressSkill(0);}else if(k==='w'){pressSkill(1);}else if(k==='e'){pressSkill(2);}else if(k==='r'){pressSkill(3);}
+ if(k==='tab'){e.preventDefault();viewIdx=(viewIdx+1)%MLS.length;snapTo(camT,MLS[viewIdx].x,MLS[viewIdx].y);return;} // 카메라만 순환(빙의 이전 X)
+ if(k>='1'&&k<='3'){setAvatarCmd(['escort','push','hold'][parseInt(k)-1]);return;}  // 아바타 커맨드
+ if(overlordDead)return; // 사망 중 빙의체 명령 불가
+ if(k==='q'){pressSkill(0);}else if(k==='w'){pressSkill(1);}else if(k==='e'){pressSkill(2);}else if(k==='r'){pressSkill(3);}
  else if(k==='a'){order={type:'amove'};}
  else if(k==='s'){var mm=MLS[sel];mm.dest=null;mm.tgt=null;mm.amove=null;mm.recall=null;order=null;}
 });
@@ -979,7 +994,8 @@ function update(dt){
  clampCam(cam);
 
  // 웨이브: 각성한 미니보스 중 하나가 부대를 본부로 보냄
- waveT-=dt;if(waveT<=0){var src=awakenedMbs();if(src.length){var s=src[(Math.random()*src.length)|0];var cnt=4+Math.min(4,s.ring+1);for(var i=0;i<cnt;i++)enemies.push(mkEm(s.x+(Math.random()*36-18),s.y+(Math.random()*36-18),1+s.ring*0.3));sfx('wave',0.5);}waveN++;waveT=waveInterval();}
+ if(rushT>0){rushT-=dt;rushAcc+=dt;if(rushAcc>=0.7){rushAcc=0;var aw=awakenedMbs();for(var ri=0;ri<aw.length;ri++){var ss=aw[ri];enemies.push(mkEm(ss.x+(Math.random()*30-15),ss.y+(Math.random()*30-15),1+ss.ring*0.25));}}} // 사망 러쉬(§4.3)
+ waveT-=dt;if(waveT<=0){var src=awakenedMbs();if(src.length){var s=src[(Math.random()*src.length)|0];var cnt=4+Math.min(4,s.ring+1);for(var i=0;i<cnt;i++)enemies.push(mkEm(s.x+(Math.random()*36-18),s.y+(Math.random()*36-18),1+s.ring*0.3));sfx('wave',0.5);}waveN++;waveT=waveInterval()*(rushT>0?0.45:1);}
 
  // 투사체
  for(var pi=projs.length-1;pi>=0;pi--){var p=projs[pi];if(!p.tgt||p.tgt.hp<=0){projs.splice(pi,1);continue;}p.px=p.x;p.py=p.y;var d=Math.hypot(p.tgt.x-p.x,p.tgt.y-p.y);
@@ -990,16 +1006,25 @@ function update(dt){
    var st=p.spd*dt;p.x+=(p.tgt.x-p.x)/d*st;p.y+=(p.tgt.y-p.y)/d*st;}
 
  // 마더로드 + 미니언
- for(var i=0;i<MLS.length;i++){var m=MLS[i];decay(m,dt);tickMods(m,dt);
+ if(swapCD>0)swapCD=Math.max(0,swapCD-dt);
+ for(var i=0;i<MLS.length;i++){var m=MLS[i];
+  if(m.downed){m.downT-=dt;if(m.downT<=0)reviveSoul(m);continue;}
+  var isP=(i===sel&&!overlordDead);  // 빙의체 = 사람 손, 그 외 = AI 아바타
+  decay(m,dt);tickMods(m,dt);
   if(m.shield>0&&!modHas(m,'guard'))m.shield=Math.max(0,m.shield-26*dt);
   for(var s=0;s<m.skills.length;s++)if(m.skills[s].cdLeft>0)m.skills[s].cdLeft=Math.max(0,m.skills[s].cdLeft-dt);
   if(m.K.res==='mana')m.mana=Math.min(m.maxMana,m.mana+m.manaRegen*dt);
   if(Math.hypot(m.x-myHQ.x,m.y-myHQ.y)<HEAL_R)m.hp=Math.min(m.max,m.hp+m.max*HEAL_RATE*dt); // 본부 근처 자동회복
   if(m.recall!=null){m.recall-=dt;if(m.recall<=0)doRecall(m);}
   var chan=(m.recall!=null);
-  if(!chan)autoCastTick(m);
+  if(!chan&&!isP)autoCastTick(m);   // 빙의체=수동(QWER만), 아바타=자동시전
   var stun=modHas(m,'stun'),root=modHas(m,'root');
   if(m.dash){advDash(m,dt);}
+  if(!isP&&!m.dash&&!stun&&!chan){  // 아바타 커맨드(호위/진격/수비) → 목표 주입
+   var gp=(m.cmd==='hold'&&m.holdPt)?m.holdPt:(m.cmd==='push'?((BOSS&&BOSS.hp>0)?BOSS:GEN.boss):MLS[sel]);
+   var anear=nearestEnemy(m.x,m.y,m.cmd==='escort'?320:260,true);
+   if(anear){m.tgt=anear;m.amove=null;m.dest=null;}else{m.tgt=null;m.dest=null;m.amove={x:gp.x,y:gp.y};}
+  }
   var eng=null;
   if(m.tgt){if(m.tgt.hp<=0)m.tgt=null;else eng=m.tgt;}
   if(!eng&&m.amove)eng=nearestEnemy(m.x,m.y,m.range+44,true);
@@ -1065,7 +1090,10 @@ function update(dt){
  }
 
  // 리스폰(임시): 마더로드 사망 → 본부 근처 50% 부활
- for(var k2=0;k2<MLS.length;k2++){var mm=MLS[k2];if(mm.hp<=0){mm.hp=mm.max*0.5;mm.x=myHQ.x+(Math.random()*44-22);mm.y=myHQ.y+(Math.random()*44-22);mm.dest=null;mm.tgt=null;mm.amove=null;mm.mods=[];mm.shield=0;toast(mm.K.gly+' 사망 — 본부에서 재편성');}
+ for(var k2=0;k2<MLS.length;k2++){var mm=MLS[k2];
+  if(!mm.downed&&mm.hp<=0){mm.downed=true;mm.hp=0;mm.dest=mm.tgt=mm.amove=null;mm.dash=null;mm.mods=[];mm.shield=0;mm.recall=null;
+   if(k2===sel){overlordDead=true;var fr=Math.min(1,gameTime/1800);mm.downT=5+35*fr;rushT=30;rushAcc=0;toast('⚠ 오버로드 사망 — 빙의 봉인, 적 거점 개떼 러쉬!');sfx('fall',0.2);addShake(12);} // §4.2 부활 5~40s
+   else{mm.downT=10;toast(mm.name+' 쓰러짐 — 재소환 대기');}}
   mm.minions.forEach(function(x){if(x.hp<=0){x.hp=x.max;x.x=mm.x;x.y=mm.y;x.mods=[];}});}
 
  // 패배: 본부 파괴
@@ -1151,14 +1179,18 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
 
  // 미니언 + 마더로드
  for(var i=0;i<MLS.length;i++){var m=MLS[i];
+  if(m.downed){ctx.save();ctx.globalAlpha=0.5;ctx.setLineDash([3,4]);ring(m.x,m.y,12,COL.dim,1.5);ctx.setLineDash([]);label(m.x,m.y-20,(i===sel?'부활 ':'재소환 ')+Math.ceil(m.downT)+'s',COL.dim);ctx.restore();continue;}
   m.minions.forEach(function(mn){var mx=mn.x+offX(mn),my=mn.y+offY(mn);disc(mx,my,4.5,m.K.col);flashDisc(mn,4.5);ccRing(mn,5);bars(mn,13,-9);});
-  if(i===sel){ctx.save();ctx.globalAlpha=0.4;ring(m.x,m.y,m.range,COL.info,1);ctx.restore();ring(m.x,m.y,15,m.K.col,2);
+  var poss=(i===sel&&!overlordDead);
+  if(poss){ctx.save();ctx.globalAlpha=0.4;ring(m.x,m.y,m.range,COL.info,1);ctx.restore();ring(m.x,m.y,15,m.K.col,2);ring(m.x,m.y,19,COL.info,2);
    var marker=m.dest||m.amove;if(marker){ctx.save();ctx.globalAlpha=0.65;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(dX(m.x),dY(m.y));ctx.lineTo(dX(marker.x),dY(marker.y));ctx.strokeStyle=m.amove?COL.bad:COL.info;ctx.lineWidth=1.2;ctx.stroke();ctx.setLineDash([]);ring(marker.x,marker.y,5,m.amove?COL.bad:COL.info,1.4);ctx.restore();}}
   var px=m.x+offX(m),py=m.y+offY(m);disc(px,py,11,m.K.col);flashDisc(m,11);ccRing(m,11);
   emoji(px,py,MLEMO[m.kind]||'❓',17);
   var bc=null;if(m.mods)for(var z=0;z<m.mods.length;z++){if(m.mods[z].tags&&m.mods[z].tags.indexOf('buff')>=0){bc=m.mods[z].col;break;}}
   if(bc){ctx.save();ctx.globalAlpha=0.85;ring(m.x,m.y,14,bc,1.6);ctx.restore();}
   bars(m,30,-20);
+  if(poss)label(m.x,m.y-32,'◆ 빙의체',COL.info);
+  else{var _cl=m.cmd==='escort'?'호위':m.cmd==='push'?'진격':'수비';label(m.x,m.y-32,'아바타·'+_cl,COL.sub);}
   if(m.recall!=null){var rp=(RECALL_TIME-m.recall)/RECALL_TIME;ctx.save();ctx.globalAlpha=0.9;ring(m.x,m.y,16+4*Math.sin(gameTime*6),COL.teal,2);
     var bw=34,bx=dX(m.x)-bw/2,by=dY(m.y)-30;ctx.fillStyle=COL.track;ctx.fillRect(bx,by,bw,4);ctx.fillStyle=COL.teal;ctx.fillRect(bx,by,bw*rp,4);label(m.x,m.y-33,'귀환 '+Math.ceil(m.recall)+'s',COL.teal);ctx.restore();}
  }
@@ -1461,7 +1493,7 @@ function buildRoster(){var rl=EL.rlist;rl.innerHTML='';rosterCard=[];rosterHp=[]
  for(var r=0;r<4;r++){var c=document.createElement('div');
   if(r<MLS.length){c.className='rcard';
    c.innerHTML='<span class="rnum">'+(r+1)+'</span><span class="rgly">'+MLS[r].K.gly+'</span><div class="track" style="flex:1;height:6px;"><div class="fill rhp" style="background:var(--good);width:100%;"></div></div><span class="rtx"></span>';
-   c.addEventListener('click',(function(idx){return function(){sel=idx;};})(r));
+   c.addEventListener('click',(function(idx){return function(){snapTo(camT,MLS[idx].x,MLS[idx].y);};})(r));
    rosterCard.push(c);rosterHp.push(c.querySelector('.rhp'));rosterTx.push(c.querySelector('.rtx'));}
   else{c.className='rcard empty';c.innerHTML='<span class="rnum">'+(r+1)+'</span>미충원';rosterCard.push(c);rosterHp.push(null);rosterTx.push(null);}
   rl.appendChild(c);}
@@ -1475,7 +1507,8 @@ function syncUI(){var m=MLS[sel];
  if(rosterDirty)buildRoster();
  for(var r2=0;r2<MLS.length;r2++){rosterCard[r2].style.borderColor=r2===sel?'var(--info)':'';rosterHp[r2].style.width=Math.round(MLS[r2].hp/MLS[r2].max*100)+'%';rosterTx[r2].textContent=Math.round(MLS[r2].hp);}
  EL.wave.textContent='다음 웨이브 0:'+(waveT<10?'0':'')+Math.ceil(waveT);
- EL.modetag.textContent=order?(order.type==='amove'?'공격 이동 — 좌클릭 지정':(order.type==='skillAlly'?'아군 지정 — 좌클릭':'조준: '+MLS[order.mi].skills[order.si].name)):(paused?'정비 중 (P)':'명령 대기');
+ var pmode=overlordDead?('⚠ 오버로드 사망 — 부활 '+Math.ceil(MLS[sel].downT)+'s · 빙의 봉인'):(swapCD>0?('빙의 쿨 '+swapCD.toFixed(1)+'s — 이 몸에 묶임'):null);
+ EL.modetag.textContent=pmode||(order?(order.type==='amove'?'공격 이동 — 좌클릭 지정':(order.type==='skillAlly'?'아군 지정 — 좌클릭':'조준: '+MLS[order.mi].skills[order.si].name)):(paused?'정비 중 (P)':'◆ 빙의: '+m.K.label));
  updateTip();}
 
 /* ============================================================
