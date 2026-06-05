@@ -302,12 +302,15 @@ var mrng=mulberry32(MAPSEED);
    ============================================================ */
 // 유기적 방사 블롭 반경(원 아님): 각도별 굴곡. 충돌·렌더 공용 = "엣지가 일한다"(§6)
 function blobR(b,ang){return b.base*(1+b.irr*(0.55*Math.sin(ang*3+b.p1)+0.28*Math.sin(ang*5+b.p2)+0.17*Math.sin(ang*2+b.p0)));}
-var TERRAIN=[];   // 렌더용 전 지형(7종)
-var OBST=[];      // 충돌(불통과 지형 solid만 — 폴리곤 t:'p' / 원 'c' / 사각 'r'). buildTerrain이 채움.
+// 선분 최근접점 — 절벽 벽(캡슐) 충돌·스티어링 공용
+function segClosest(px,py,x1,y1,x2,y2){var dx=x2-x1,dy=y2-y1,L=dx*dx+dy*dy||1,tt=((px-x1)*dx+(py-y1)*dy)/L;tt=tt<0?0:tt>1?1:tt;return{x:x1+dx*tt,y:y1+dy*tt};}
+var TERRAIN=[];   // 렌더용 전 지형(벽·방 지형)
+var OBST=[];      // 충돌: 벽 캡슐 t:'seg' / 불통과 블롭 t:'p' / 원 'c' / 사각 'r'. buildTerrain이 채움.
 // 엔티티를 장애물 밖으로 밀어냄(이동 후 호출 → 표면을 따라 미끄러짐)
 function collide(o){var rad=(o.r||11);for(var i=0;i<OBST.length;i++){var b=OBST[i];
   if(b.t==='c'){var dx=o.x-b.x,dy=o.y-b.y,d=Math.hypot(dx,dy),mn=b.r+rad;if(d<mn){var n=d||0.001;o.x=b.x+dx/n*mn;o.y=b.y+dy/n*mn;}}
   else if(b.t==='p'){var px=o.x-b.x,py=o.y-b.y,pd=Math.hypot(px,py),pr=blobR(b,Math.atan2(py,px))+rad;if(pd<pr){var pn=pd||0.001;o.x=b.x+px/pn*pr;o.y=b.y+py/pn*pr;}}
+  else if(b.t==='seg'){var cp=segClosest(o.x,o.y,b.x1,b.y1,b.x2,b.y2),sx=o.x-cp.x,sy=o.y-cp.y,sd=Math.hypot(sx,sy),sr=b.r+rad;if(sd<sr){var sn=sd||0.001;o.x=cp.x+sx/sn*sr;o.y=cp.y+sy/sn*sr;}}
   else{var lx=b.x-rad,ly=b.y-rad,rx=b.x+b.w+rad,ry=b.y+b.h+rad;
     if(o.x>lx&&o.x<rx&&o.y>ly&&o.y<ry){var dl=o.x-lx,dr=rx-o.x,du=o.y-ly,db=ry-o.y,m=Math.min(dl,dr,du,db);
       if(m===dl)o.x=lx;else if(m===dr)o.x=rx;else if(m===du)o.y=ly;else o.y=ry;}}}}
@@ -608,36 +611,58 @@ var BOSS;
 
 // ── 지형 셰이프그래머(맵_탐험 §2): 7종 전략 프리미티브 배치. 루트 회랑 예약 + 노드 클리어런스 ──
 // 지형 = 도형이 아니라 전략 동사. 불통과(solid)는 폴리곤 충돌로 엔진 연결, 통과는 시각·전략값.
+var WALLR=32, gapPts=[];
 (function buildTerrain(){
   var rng=mulberry32(MAPSEED^0x51ED2701);
   function rr(a){return (rng()-0.5)*a;}
-  function reg(type,t,u,base,solid,irr,ys){irr=(irr==null?0.32:irr);ys=ys||1;var p=rhoPlace(t,u);
-    // 마름모 containment: 블롭 극단이 경계 밖이면 base 축소(구조적 보장)
+  var routePts=[rhoPlace(0.04,0)]; // 메인 루트(A→길목들→B) 폴리라인 — solid 금지로 연결성 보장
+  function nearRoute(x,y,pad){for(var i=0;i<routePts.length-1;i++){var cp=segClosest(x,y,routePts[i].x,routePts[i].y,routePts[i+1].x,routePts[i+1].y);if(Math.hypot(x-cp.x,y-cp.y)<pad)return true;}return false;}
+  // ── 방 안 블롭 지형(통과=시각/전략값, solid=불통과) ──
+  function blob(type,t,u,base,solid,irr,ys){irr=(irr==null?0.32:irr);ys=ys||1;var p=rhoPlace(t,u);
     var gd=0;while(gd<24){var bad=false,rmax=base*(1+irr);for(var a=0;a<6.283;a+=0.5){var ex=p.x+Math.cos(a)*rmax,ey=p.y+Math.sin(a)*rmax*ys;if(Math.abs(ex-RHO.cx)/RHO.hx+Math.abs(ey-RHO.cy)/RHO.hy>0.97){bad=true;break;}}if(!bad)break;base*=0.9;gd++;}
-    var b={type:type,x:p.x,y:p.y,base:base,irr:irr,ys:ys,
-           p0:rng()*6.283,p1:rng()*6.283,p2:rng()*6.283,solid:!!solid,seed:(rng()*1e9)|0};
-    TERRAIN.push(b);if(solid){b.t='p';OBST.push(b);}return b;}
-  function clearN(x,y,pad){for(var i=0;i<enemies.length;i++){var e=enemies[i]; // 노드만 회피
+    var b={type:type,x:p.x,y:p.y,base:base,irr:irr,ys:ys,p0:rng()*6.283,p1:rng()*6.283,p2:rng()*6.283,solid:!!solid,seed:(rng()*1e9)|0};
+    if(solid)b.t='p';TERRAIN.push(b);if(solid)OBST.push(b);return b;}
+  function clearN(x,y,pad){for(var i=0;i<enemies.length;i++){var e=enemies[i];
     if((e.kind==='mb'||e.kind==='boss')&&e.hp>0&&Math.hypot(e.x-x,e.y-y)<(e.r||22)+pad)return false;}return true;}
-  function clearNA(x,y,pad){return clearN(x,y,pad)&&Math.hypot(x-RHO.A.x,y-RHO.A.y)>=300;} // 노드+본부
-  // ① 본부 앞 협로(깔때기) — 중앙 회랑 사이 두 덩어리. 노드 클리어 위치 탐색.
-  (function(){for(var s=-1;s<=1;s+=2){var tries=0;while(tries<30){tries++;var uu=s*0.58+rr(0.06),p=rhoPlace(0.10,uu);if(clearN(p.x,p.y,150)){reg('choke',0.10,uu,118,true,0.22);break;}}}})();
-  // ② 엄폐물 — band0~1 측면(주축 회랑 |u|<0.34 밖). pad ≥ 블롭 최대반경.
-  var cn=0,tr=0;while(cn<3&&tr<240){tr++;var t=0.24+rng()*0.26,u=(rng()<0.5?-1:1)*(0.52+rng()*0.34),p=rhoPlace(t,u);
-    if(Math.abs(u)<0.34||!clearNA(p.x,p.y,200)){continue;}reg('cover',t,u,70+rng()*30,true,0.46);cn++;}
-  // ③ 허리 개활 격전지(통과·변주쿼터 ≥1) — 중앙 넓은 다대다 전장.
-  reg('open',0.50,rr(0.06),360,false,0.20,0.80);
-  // ④ 고지대 통제점(통과·시각강조 = 통제권 다툼) — 허리 측면.
-  reg('high',0.45,-0.50+rr(0.05),170,false,0.28);
-  reg('high',0.59, 0.50+rr(0.05),170,false,0.28);
-  // ⑤ 위험지형(불통과 자연벽·일렁임) — 외곽 band3, 죽음의 도하.
-  var hn=0;tr=0;while(hn<2&&tr<240){tr++;var t=0.66+rng()*0.14,u=(rng()<0.5?-1:1)*(0.40+rng()*0.30),p=rhoPlace(t,u);
-    if(!clearNA(p.x,p.y,270)){continue;}reg('hazard',t,u,120+rng()*40,true,0.38);hn++;}
-  // ⑥ 파괴지형(균열 덩어리·지름길 뉘앙스) — B 접근 측면.
-  (function(){var k=0;while(k<60){k++;var u=(rng()<0.5?-1:1)*(0.22+rng()*0.16),p=rhoPlace(0.72,u);
-    if(clearNA(p.x,p.y,190)){reg('crack',0.72,u,110,true,0.26);break;}}})();
-  // ⑦ 교두보(통과 거점 마커·전진 앵커) — 회랑 중간.
-  reg('beachhead',0.33,rr(0.03),64,false,0.18);
+  function blobClear(x,y,pad){if(!clearN(x,y,pad))return false; // 노드 + 메인루트 + 길목 + 본부 회피
+    if(nearRoute(x,y,pad+60))return false;
+    for(var g=0;g<gapPts.length;g++){if(Math.hypot(x-gapPts[g].x,y-gapPts[g].y)<pad+120)return false;}
+    return Math.hypot(x-RHO.A.x,y-RHO.A.y)>=pad+110;}
+  function placeSolid(type,tlo,thi,umin,umax,base,irr){for(var k=0;k<90;k++){var t=tlo+rng()*(thi-tlo),u=(rng()<0.5?-1:1)*(umin+rng()*(umax-umin)),p=rhoPlace(t,u);if(blobClear(p.x,p.y,base*(1+irr)+24))return blob(type,t,u,base,true,irr);}return null;}
+  // ── 절벽 벽: 마름모 폭을 가로지르는 캡슐 체인. gaps(길목)만 통행. 방을 나눈다. ──
+  function gw(tw,px){return Math.max(0.075, px/(2*rhoHalfW(tw)*0.9));}    // 길목 폭(물리 ≥ px)
+  function gap(tw,u){return {u:u,hw:gw(tw,230)};}   // 라운드캡(WALLR) 보정 포함 = 실효 통로 ~166px
+  function wall(tw,gaps){
+    routePts.push(rhoPlace(tw,gaps[0].u)); // 메인 길목 = 루트 경유점
+    for(var k=0;k<gaps.length;k++){var gp=rhoPlace(tw,gaps[k].u);gapPts.push(gp);}
+    var pts=[],phase=rng()*6.283;
+    for(var u=-1.07;u<=1.071;u+=0.085){var tn=tw+0.014*Math.sin(u*2.3+phase);pts.push(Object.assign({u:u},rhoPlace(tn,u)));}
+    var segs=[];
+    for(var i=0;i<pts.length-1;i++){var um=(pts[i].u+pts[i+1].u)/2,open=false;
+      for(var g=0;g<gaps.length;g++){if(Math.abs(um-gaps[g].u)<gaps[g].hw){open=true;break;}}
+      if(open)continue;
+      var s={t:'seg',x1:pts[i].x,y1:pts[i].y,x2:pts[i+1].x,y2:pts[i+1].y,r:WALLR,x:(pts[i].x+pts[i+1].x)/2,y:(pts[i].y+pts[i+1].y)/2};
+      OBST.push(s);segs.push(s);}
+    TERRAIN.push({type:'wall',tw:tw,r:WALLR,ph:phase,pts:pts,gaps:gaps,segs:segs,solid:false});
+  }
+  // 5개 절벽 = 6개 방(A실·방1~4·B실). 길목 지그재그 + 측면 우회(다중루트 I5).
+  wall(0.12, [gap(0.12,-0.18+rr(0.10))]);                              // 본부 앞 빗장(1 길목)
+  wall(0.30, [gap(0.30, 0.32+rr(0.08)), gap(0.30,-0.56+rr(0.06))]);    // 2 길목(주축+측면 우회)
+  wall(0.485,[gap(0.485,-0.12+rr(0.08)), gap(0.485,0.60+rr(0.06))]);   // 허리 입구(2 길목)
+  wall(0.665,[gap(0.665, 0.40+rr(0.08)), gap(0.665,-0.50+rr(0.06))]);  // 2 길목
+  wall(0.83, [gap(0.83,  0.0+rr(0.12))]);                              // 보스 앞 빗장(1 길목)
+  routePts.push(rhoPlace(0.965,0)); // B 도달점
+  // ── 방 안 지형 ──
+  blob('open',0.40,rr(0.06),300,false,0.20,0.82);    // 방2 개활
+  blob('open',0.575,rr(0.06),320,false,0.20,0.82);   // 허리 개활 격전지(변주쿼터)
+  blob('high',0.40,-0.62+rr(0.05),150,false,0.28);   // 방 고지 통제점
+  blob('high',0.575,0.62+rr(0.05),150,false,0.28);
+  placeSolid('hazard',0.70,0.80,0.34,0.62,135,0.38); // 외곽 위험(불통과 자연 험지)
+  placeSolid('hazard',0.70,0.80,0.34,0.62,135,0.38);
+  placeSolid('cover',0.33,0.46,0.40,0.70,72,0.46);   // 방 안 엄폐(매복·시야차단)
+  placeSolid('cover',0.52,0.64,0.40,0.70,72,0.46);
+  placeSolid('crack',0.18,0.24,0.35,0.60,108,0.26);  // 파괴지형(지름길 뉘앙스)
+  blob('beachhead',0.21,rr(0.04),58,false,0.18);     // 교두보(전진 앵커)
 })();
 
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
@@ -824,11 +849,15 @@ document.getElementById('fsbtn').addEventListener('click',function(){if(document
 function obstAt(x,y,rad){for(var i=0;i<OBST.length;i++){var b=OBST[i];
   if(b.t==='c'){if(Math.hypot(x-b.x,y-b.y)<b.r+rad)return b;}
   else if(b.t==='p'){if(Math.hypot(x-b.x,y-b.y)<blobR(b,Math.atan2(y-b.y,x-b.x))+rad)return b;}
+  else if(b.t==='seg'){var cp=segClosest(x,y,b.x1,b.y1,b.x2,b.y2);if(Math.hypot(x-cp.x,y-cp.y)<b.r+rad)return b;}
   else{if(x>b.x-rad&&x<b.x+b.w+rad&&y>b.y-rad&&y<b.y+b.h+rad)return b;}}return null;}
 function moveTo(o,gx,gy,sp,dt,stopAt){var ddx=gx-o.x,ddy=gy-o.y,d=Math.hypot(ddx,ddy);var s=stopAt||1;if(d<=s)return true;
   var st=Math.min(d-s,sp*dt),ux=ddx/d,uy=ddy/d,rad=(o.r||11);
   var nx=o.x+ux*st,ny=o.y+uy*st,hit=obstAt(nx,ny,rad);
-  if(hit){var cx=hit.t==='c'?hit.x:hit.x+hit.w/2,cy=hit.t==='c'?hit.y:hit.y+hit.h/2; // 접선으로 비껴 간다(스티어링)
+  if(hit){var cx,cy; // 접선으로 비껴 간다(스티어링). 벽=최근접점 기준 → 벽 타고 길목으로 흐름
+    if(hit.t==='seg'){var hp=segClosest(o.x,o.y,hit.x1,hit.y1,hit.x2,hit.y2);cx=hp.x;cy=hp.y;}
+    else if(hit.t==='c'||hit.t==='p'){cx=hit.x;cy=hit.y;}
+    else{cx=hit.x+hit.w/2;cy=hit.y+hit.h/2;}
     var rx=o.x-cx,ry=o.y-cy,t1x=-ry,t1y=rx,t2x=ry,t2y=-rx,l1=Math.hypot(t1x,t1y)||1,l2=Math.hypot(t2x,t2y)||1;
     t1x/=l1;t1y/=l1;t2x/=l2;t2y/=l2;var pick=(t1x*ux+t1y*uy>=t2x*ux+t2y*uy);
     nx=o.x+(pick?t1x:t2x)*st;ny=o.y+(pick?t1y:t2y)*st;}
@@ -1112,13 +1141,16 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  function traceBlob(b,n,rs){ctx.beginPath();for(var i=0;i<=n;i++){var a=i/n*6.283,r=blobR(b,a)*(rs||1),x=b.x+Math.cos(a)*r,y=b.y+Math.sin(a)*r*(b.ys||1);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();}
  var Z=1/cam.z;
  TERRAIN.forEach(function(b){ctx.save();
-   if(b.type==='open'){ // 개활지 — 빈 바닥(대비로 위험 전달) + 점선 경계
+   if(b.type==='wall'){ // 절벽 벽 — 어두운 면 + 밝은 능선(실루엣). 끊긴 곳 = 길목.
+     ctx.lineCap='round';ctx.lineJoin='round';var wr=b.r;
+     b.segs.forEach(function(s){ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.lineWidth=wr*2;ctx.strokeStyle='#12160e';ctx.stroke();});
+     b.segs.forEach(function(s){ctx.beginPath();ctx.moveTo(s.x1,s.y1);ctx.lineTo(s.x2,s.y2);ctx.lineWidth=wr*2-7*Z;ctx.strokeStyle='#222a1b';ctx.stroke();});
+     b.segs.forEach(function(s){ctx.beginPath();ctx.moveTo(s.x1,s.y1-wr*0.55);ctx.lineTo(s.x2,s.y2-wr*0.55);ctx.lineWidth=3*Z;ctx.strokeStyle='#8a9a6e';ctx.stroke();});}
+   else if(b.type==='open'){ // 개활지 — 빈 바닥(대비로 위험 전달) + 점선 경계
      traceBlob(b,44);ctx.fillStyle='rgba(58,70,52,0.10)';ctx.fill();ctx.globalAlpha=0.55;ctx.setLineDash([11*Z,8*Z]);ctx.lineWidth=1.4*Z;ctx.strokeStyle='#3a4632';ctx.stroke();ctx.setLineDash([]);}
    else if(b.type==='high'){ // 고지대 — 밝은 채움 + 또렷한 절벽선(이중) + 램프 notch
      traceBlob(b,36);ctx.fillStyle='#2d3b2a';ctx.fill();ctx.lineWidth=2.6*Z;ctx.strokeStyle='#84946a';ctx.stroke();ctx.lineWidth=1*Z;ctx.strokeStyle='#46543c';ctx.stroke();
      var ra=b.p1,rx=b.x+Math.cos(ra)*b.base*0.96,ry=b.y+Math.sin(ra)*b.base*0.96*(b.ys||1);ctx.fillStyle='#3c4c32';ctx.beginPath();ctx.arc(rx,ry,16,0,7);ctx.fill();}
-   else if(b.type==='choke'){ // 협로 덩어리 — 어두운 불통과 매스 + 발광 엣지(음의 공간=길)
-     traceBlob(b,32);ctx.fillStyle='#151a14';ctx.fill();ctx.lineWidth=2.8*Z;ctx.strokeStyle='#5b6a48';ctx.stroke();ctx.globalAlpha=0.5;ctx.lineWidth=1*Z;ctx.strokeStyle='#84946a';ctx.stroke();}
    else if(b.type==='cover'){ // 엄폐물 — 점묘 패치 + 부서진(점선) 외곽
      traceBlob(b,28);ctx.fillStyle='rgba(28,34,26,0.85)';ctx.fill();ctx.setLineDash([5*Z,5*Z]);ctx.lineWidth=1.4*Z;ctx.strokeStyle='#586348';ctx.stroke();ctx.setLineDash([]);
      var sr=mulberry32(b.seed);ctx.fillStyle='#454f38';for(var s=0;s<16;s++){var aa=sr()*6.283,r2=sr()*b.base*0.78,px=b.x+Math.cos(aa)*r2,py=b.y+Math.sin(aa)*r2*(b.ys||1);ctx.fillRect(px-1.3,py-1.3,2.6,2.6);}}
@@ -1206,7 +1238,8 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
   mctx.beginPath();mctx.moveTo(A.x*sxr,A.y*syr);mctx.lineTo(R.x*sxr,R.y*syr);mctx.lineTo(B.x*sxr,B.y*syr);mctx.lineTo(L.x*sxr,L.y*syr);mctx.closePath();mctx.stroke();
   for(var b=0;b<4;b++){var on=ringAwake[b];var pl=rhoPlace(BANDT[b],-1),pr=rhoPlace(BANDT[b],1);mctx.globalAlpha=on?0.45:0.2;mctx.strokeStyle=on?'#5b6a48':COL.border;mctx.beginPath();mctx.moveTo(pl.x*sxr,pl.y*syr);mctx.lineTo(pr.x*sxr,pr.y*syr);mctx.stroke();}
   mctx.globalAlpha=1;mctx.fillStyle=COL.teal;mctx.fillRect(A.x*sxr-3,A.y*syr-3,6,6);mctx.fillStyle=COL.bad;mctx.fillRect(B.x*sxr-3,B.y*syr-3,6,6);mctx.restore();})();
- TERRAIN.forEach(function(b){var col=b.type==='hazard'?'#6a9a8a':b.type==='high'?'#7a8a63':b.type==='open'?'#3a4632':b.type==='beachhead'?COL.teal:'#454f38';mctx.fillStyle=col;mctx.globalAlpha=b.solid?0.8:0.4;var rr2=Math.max(2,b.base*sxr*0.7);mctx.beginPath();mctx.arc(b.x*sxr,b.y*syr,rr2,0,7);mctx.fill();});mctx.globalAlpha=1;
+ TERRAIN.forEach(function(b){if(b.type==='wall'){mctx.strokeStyle='#6a7256';mctx.globalAlpha=0.85;mctx.lineWidth=2;b.segs.forEach(function(s){mctx.beginPath();mctx.moveTo(s.x1*sxr,s.y1*syr);mctx.lineTo(s.x2*sxr,s.y2*syr);mctx.stroke();});}
+   else{var col=b.type==='hazard'?'#6a9a8a':b.type==='high'?'#7a8a63':b.type==='open'?'#3a4632':b.type==='beachhead'?COL.teal:'#566048';mctx.fillStyle=col;mctx.globalAlpha=b.solid?0.8:0.35;var rr2=Math.max(1.5,b.base*sxr*0.7);mctx.beginPath();mctx.arc(b.x*sxr,b.y*syr,rr2,0,7);mctx.fill();}});mctx.globalAlpha=1;
  enemies.forEach(function(e){if(e.hp<=0)return;var ex=e.x*sxr,ey=e.y*syr;if(e.kind==='em'){mctx.fillStyle=COL.bad;mctx.beginPath();mctx.arc(ex,ey,1.4,0,7);mctx.fill();}else if(e.kind==='mb'){mctx.fillStyle=e.awake?(e.guardian?COL.shield:COL.warn):COL.dim;mctx.fillRect(ex-3,ey-3,6,6);}else{mctx.fillStyle=COL.bad;mctx.fillRect(ex-4,ey-4,8,8);}});
  MLS.forEach(function(m,idx){mctx.fillStyle=idx===sel?COL.text:COL.info;mctx.beginPath();mctx.arc(m.x*sxr,m.y*syr,idx===sel?3.5:2.5,0,7);mctx.fill();});
  mctx.strokeStyle=COL.info;mctx.lineWidth=1;mctx.strokeRect(cam.x*sxr,cam.y*syr,(VW/cam.z)*sxr,(VH/cam.z)*syr);
