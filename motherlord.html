@@ -577,7 +577,7 @@ var MLS=[mkML('warrior',HQX,HQY)];
 var sel=0;        // 빙의체(possessed) 인덱스 — 직접 조작하는 한 몸
 var viewIdx=0;    // Tab 카메라 순환용(조작권 이전 아님)
 // ── 빙의 프레임(기획서 §3): 한 번에 한 몸 + 나머지 AI 아바타 ──
-var swapCD=0,SWAP_RANGE=240,overlordDead=false,rushT=0,rushAcc=0;
+var swapCD=0,SWAP_RANGE=240,ESCORT_R=110,overlordDead=false,rushT=0,rushAcc=0;
 function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타에게 가서 빙의.
   if(overlordDead){toast('사망 중 — 빙의 불가');return;}
   if(swapCD>0){toast('빙의 쿨 '+swapCD.toFixed(1)+'s — 이 몸에 묶임');return;}
@@ -1021,8 +1021,11 @@ function update(dt){
   var stun=modHas(m,'stun'),root=modHas(m,'root');
   if(m.dash){advDash(m,dt);}
   if(!isP&&!m.dash&&!stun&&!chan){  // 아바타 커맨드(호위/진격/수비) → 목표 주입
-   var gp=(m.cmd==='hold'&&m.holdPt)?m.holdPt:(m.cmd==='push'?((BOSS&&BOSS.hp>0)?BOSS:GEN.boss):MLS[sel]);
-   var anear=nearestEnemy(m.x,m.y,m.cmd==='escort'?320:260,true);
+   var gp;
+   if(m.cmd==='hold'&&m.holdPt)gp=m.holdPt;
+   else if(m.cmd==='push')gp=(BOSS&&BOSS.hp>0)?BOSS:GEN.boss;
+   else{var P=MLS[sel],ea=i*2.39996;gp={x:P.x+Math.cos(ea)*ESCORT_R,y:P.y+Math.sin(ea)*ESCORT_R};} // 호위: 빙의체 주변 반경 분산(딱 붙지 않게)
+   var anear=nearestEnemy(m.x,m.y,m.cmd==='escort'?300:260,true);
    if(anear){m.tgt=anear;m.amove=null;m.dest=null;}else{m.tgt=null;m.dest=null;m.amove={x:gp.x,y:gp.y};}
   }
   var eng=null;
