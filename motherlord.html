@@ -300,23 +300,14 @@ var mrng=mulberry32(MAPSEED);
    스티어링이 오목 코너에 갇히지 않게 함. 본부 동쪽(외곽 방면)에
    기둥 5개로 길목(초크포인트)을 만들어 잡몹 웨이브를 채널링.
    ============================================================ */
-var OBST=(function(){var a=[];var rng=mulberry32(MAPSEED^0x9E3779B9);
-  // 본부(A) 앞 방어 길목 — A→B 방향으로 기둥 띠, 사이가 초크포인트
-  [-0.5,-0.25,0,0.25,0.5].forEach(function(uu){var p=rhoPlace(0.12,uu);a.push({t:'r',x:p.x-34,y:p.y-34,w:68,h:68});});
-  // 산개 엄폐물(Poisson 비슷) — 마름모 내부, 주축 회랑(|u|<0.16)은 비워 루트 보장(단순판)
-  var tries=0,placed=0;while(placed<9&&tries<400){tries++;
-    var t=0.20+rng()*0.60,u=(rng()*2-1);
-    if(Math.abs(u)<0.16)continue;
-    var p=rhoPlace(t,u),ok=true;
-    for(var i=0;i<a.length;i++){var dx=a[i].x-p.x,dy=a[i].y-p.y;if(dx*dx+dy*dy<210*210){ok=false;break;}}
-    if(!ok)continue;a.push({t:'c',x:p.x,y:p.y,r:52+rng()*28});placed++;}
-  // B 앞 빗장(보스 접근로) — 좌우 벽, 가운데만 통로
-  var lb=rhoPlace(0.80,-0.30),rb=rhoPlace(0.80,0.30);
-  a.push({t:'r',x:lb.x-30,y:lb.y-120,w:60,h:240});a.push({t:'r',x:rb.x-30,y:rb.y-120,w:60,h:240});
-  return a;})();
+// 유기적 방사 블롭 반경(원 아님): 각도별 굴곡. 충돌·렌더 공용 = "엣지가 일한다"(§6)
+function blobR(b,ang){return b.base*(1+b.irr*(0.55*Math.sin(ang*3+b.p1)+0.28*Math.sin(ang*5+b.p2)+0.17*Math.sin(ang*2+b.p0)));}
+var TERRAIN=[];   // 렌더용 전 지형(7종)
+var OBST=[];      // 충돌(불통과 지형 solid만 — 폴리곤 t:'p' / 원 'c' / 사각 'r'). buildTerrain이 채움.
 // 엔티티를 장애물 밖으로 밀어냄(이동 후 호출 → 표면을 따라 미끄러짐)
 function collide(o){var rad=(o.r||11);for(var i=0;i<OBST.length;i++){var b=OBST[i];
   if(b.t==='c'){var dx=o.x-b.x,dy=o.y-b.y,d=Math.hypot(dx,dy),mn=b.r+rad;if(d<mn){var n=d||0.001;o.x=b.x+dx/n*mn;o.y=b.y+dy/n*mn;}}
+  else if(b.t==='p'){var px=o.x-b.x,py=o.y-b.y,pd=Math.hypot(px,py),pr=blobR(b,Math.atan2(py,px))+rad;if(pd<pr){var pn=pd||0.001;o.x=b.x+px/pn*pr;o.y=b.y+py/pn*pr;}}
   else{var lx=b.x-rad,ly=b.y-rad,rx=b.x+b.w+rad,ry=b.y+b.h+rad;
     if(o.x>lx&&o.x<rx&&o.y>ly&&o.y<ry){var dl=o.x-lx,dr=rx-o.x,du=o.y-ly,db=ry-o.y,m=Math.min(dl,dr,du,db);
       if(m===dl)o.x=lx;else if(m===dr)o.x=rx;else if(m===du)o.y=ly;else o.y=ry;}}}}
@@ -615,6 +606,40 @@ var BOSS;
   var bp=rhoPlace(BOSST,0);BOSS=mkBoss(bp.x,bp.y);enemies.push(BOSS);
 })();
 
+// ── 지형 셰이프그래머(맵_탐험 §2): 7종 전략 프리미티브 배치. 루트 회랑 예약 + 노드 클리어런스 ──
+// 지형 = 도형이 아니라 전략 동사. 불통과(solid)는 폴리곤 충돌로 엔진 연결, 통과는 시각·전략값.
+(function buildTerrain(){
+  var rng=mulberry32(MAPSEED^0x51ED2701);
+  function rr(a){return (rng()-0.5)*a;}
+  function reg(type,t,u,base,solid,irr,ys){irr=(irr==null?0.32:irr);ys=ys||1;var p=rhoPlace(t,u);
+    // 마름모 containment: 블롭 극단이 경계 밖이면 base 축소(구조적 보장)
+    var gd=0;while(gd<24){var bad=false,rmax=base*(1+irr);for(var a=0;a<6.283;a+=0.5){var ex=p.x+Math.cos(a)*rmax,ey=p.y+Math.sin(a)*rmax*ys;if(Math.abs(ex-RHO.cx)/RHO.hx+Math.abs(ey-RHO.cy)/RHO.hy>0.97){bad=true;break;}}if(!bad)break;base*=0.9;gd++;}
+    var b={type:type,x:p.x,y:p.y,base:base,irr:irr,ys:ys,
+           p0:rng()*6.283,p1:rng()*6.283,p2:rng()*6.283,solid:!!solid,seed:(rng()*1e9)|0};
+    TERRAIN.push(b);if(solid){b.t='p';OBST.push(b);}return b;}
+  function clearN(x,y,pad){for(var i=0;i<enemies.length;i++){var e=enemies[i]; // 노드만 회피
+    if((e.kind==='mb'||e.kind==='boss')&&e.hp>0&&Math.hypot(e.x-x,e.y-y)<(e.r||22)+pad)return false;}return true;}
+  function clearNA(x,y,pad){return clearN(x,y,pad)&&Math.hypot(x-RHO.A.x,y-RHO.A.y)>=300;} // 노드+본부
+  // ① 본부 앞 협로(깔때기) — 중앙 회랑 사이 두 덩어리. 노드 클리어 위치 탐색.
+  (function(){for(var s=-1;s<=1;s+=2){var tries=0;while(tries<30){tries++;var uu=s*0.58+rr(0.06),p=rhoPlace(0.10,uu);if(clearN(p.x,p.y,150)){reg('choke',0.10,uu,118,true,0.22);break;}}}})();
+  // ② 엄폐물 — band0~1 측면(주축 회랑 |u|<0.34 밖). pad ≥ 블롭 최대반경.
+  var cn=0,tr=0;while(cn<3&&tr<240){tr++;var t=0.24+rng()*0.26,u=(rng()<0.5?-1:1)*(0.52+rng()*0.34),p=rhoPlace(t,u);
+    if(Math.abs(u)<0.34||!clearNA(p.x,p.y,200)){continue;}reg('cover',t,u,70+rng()*30,true,0.46);cn++;}
+  // ③ 허리 개활 격전지(통과·변주쿼터 ≥1) — 중앙 넓은 다대다 전장.
+  reg('open',0.50,rr(0.06),360,false,0.20,0.80);
+  // ④ 고지대 통제점(통과·시각강조 = 통제권 다툼) — 허리 측면.
+  reg('high',0.45,-0.50+rr(0.05),170,false,0.28);
+  reg('high',0.59, 0.50+rr(0.05),170,false,0.28);
+  // ⑤ 위험지형(불통과 자연벽·일렁임) — 외곽 band3, 죽음의 도하.
+  var hn=0;tr=0;while(hn<2&&tr<240){tr++;var t=0.66+rng()*0.14,u=(rng()<0.5?-1:1)*(0.40+rng()*0.30),p=rhoPlace(t,u);
+    if(!clearNA(p.x,p.y,270)){continue;}reg('hazard',t,u,120+rng()*40,true,0.38);hn++;}
+  // ⑥ 파괴지형(균열 덩어리·지름길 뉘앙스) — B 접근 측면.
+  (function(){var k=0;while(k<60){k++;var u=(rng()<0.5?-1:1)*(0.22+rng()*0.16),p=rhoPlace(0.72,u);
+    if(clearNA(p.x,p.y,190)){reg('crack',0.72,u,110,true,0.26);break;}}})();
+  // ⑦ 교두보(통과 거점 마커·전진 앵커) — 회랑 중간.
+  reg('beachhead',0.33,rr(0.03),64,false,0.18);
+})();
+
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
 var coreExposed=false;
 var waveT=20,waveN=1;
@@ -798,6 +823,7 @@ document.getElementById('fsbtn').addEventListener('click',function(){if(document
 
 function obstAt(x,y,rad){for(var i=0;i<OBST.length;i++){var b=OBST[i];
   if(b.t==='c'){if(Math.hypot(x-b.x,y-b.y)<b.r+rad)return b;}
+  else if(b.t==='p'){if(Math.hypot(x-b.x,y-b.y)<blobR(b,Math.atan2(y-b.y,x-b.x))+rad)return b;}
   else{if(x>b.x-rad&&x<b.x+b.w+rad&&y>b.y-rad&&y<b.y+b.h+rad)return b;}}return null;}
 function moveTo(o,gx,gy,sp,dt,stopAt){var ddx=gx-o.x,ddy=gy-o.y,d=Math.hypot(ddx,ddy);var s=stopAt||1;if(d<=s)return true;
   var st=Math.min(d-s,sp*dt),ux=ddx/d,uy=ddy/d,rad=(o.r||11);
@@ -1082,10 +1108,30 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
    ctx.beginPath();ctx.moveTo(pl.x,pl.y);ctx.lineTo(pr.x,pr.y);ctx.stroke();}
   ctx.globalAlpha=1;ctx.restore();})();
 
- // 지형지물(바위·차폐벽)
- OBST.forEach(function(b){ctx.save();ctx.fillStyle='#23291f';ctx.strokeStyle='#454f38';ctx.lineWidth=1.5;
-   if(b.t==='c'){ctx.beginPath();ctx.arc(dX(b.x),dY(b.y),b.r,0,7);ctx.fill();ctx.stroke();}
-   else{ctx.fillRect(dX(b.x),dY(b.y),b.w,b.h);ctx.strokeRect(dX(b.x),dY(b.y),b.w,b.h);}ctx.restore();});
+ // 지형(TERRAIN) — 타입별 제한그래픽 문법. 채움보다 엣지·실루엣이 일한다(§6).
+ function traceBlob(b,n,rs){ctx.beginPath();for(var i=0;i<=n;i++){var a=i/n*6.283,r=blobR(b,a)*(rs||1),x=b.x+Math.cos(a)*r,y=b.y+Math.sin(a)*r*(b.ys||1);i?ctx.lineTo(x,y):ctx.moveTo(x,y);}ctx.closePath();}
+ var Z=1/cam.z;
+ TERRAIN.forEach(function(b){ctx.save();
+   if(b.type==='open'){ // 개활지 — 빈 바닥(대비로 위험 전달) + 점선 경계
+     traceBlob(b,44);ctx.fillStyle='rgba(58,70,52,0.10)';ctx.fill();ctx.globalAlpha=0.55;ctx.setLineDash([11*Z,8*Z]);ctx.lineWidth=1.4*Z;ctx.strokeStyle='#3a4632';ctx.stroke();ctx.setLineDash([]);}
+   else if(b.type==='high'){ // 고지대 — 밝은 채움 + 또렷한 절벽선(이중) + 램프 notch
+     traceBlob(b,36);ctx.fillStyle='#2d3b2a';ctx.fill();ctx.lineWidth=2.6*Z;ctx.strokeStyle='#84946a';ctx.stroke();ctx.lineWidth=1*Z;ctx.strokeStyle='#46543c';ctx.stroke();
+     var ra=b.p1,rx=b.x+Math.cos(ra)*b.base*0.96,ry=b.y+Math.sin(ra)*b.base*0.96*(b.ys||1);ctx.fillStyle='#3c4c32';ctx.beginPath();ctx.arc(rx,ry,16,0,7);ctx.fill();}
+   else if(b.type==='choke'){ // 협로 덩어리 — 어두운 불통과 매스 + 발광 엣지(음의 공간=길)
+     traceBlob(b,32);ctx.fillStyle='#151a14';ctx.fill();ctx.lineWidth=2.8*Z;ctx.strokeStyle='#5b6a48';ctx.stroke();ctx.globalAlpha=0.5;ctx.lineWidth=1*Z;ctx.strokeStyle='#84946a';ctx.stroke();}
+   else if(b.type==='cover'){ // 엄폐물 — 점묘 패치 + 부서진(점선) 외곽
+     traceBlob(b,28);ctx.fillStyle='rgba(28,34,26,0.85)';ctx.fill();ctx.setLineDash([5*Z,5*Z]);ctx.lineWidth=1.4*Z;ctx.strokeStyle='#586348';ctx.stroke();ctx.setLineDash([]);
+     var sr=mulberry32(b.seed);ctx.fillStyle='#454f38';for(var s=0;s<16;s++){var aa=sr()*6.283,r2=sr()*b.base*0.78,px=b.x+Math.cos(aa)*r2,py=b.y+Math.sin(aa)*r2*(b.ys||1);ctx.fillRect(px-1.3,py-1.3,2.6,2.6);}}
+   else if(b.type==='hazard'){ // 위험지형 — 일렁이는 셰이드(알파 펄스) + 수축 내부 링
+     var pu=0.10+0.10*Math.sin(gameTime*2.2+b.p0);traceBlob(b,34);ctx.fillStyle='rgba(40,74,68,'+(0.45+pu).toFixed(3)+')';ctx.fill();ctx.lineWidth=2*Z;ctx.strokeStyle='rgba(138,214,176,'+(0.55+pu).toFixed(3)+')';ctx.stroke();
+     ctx.globalAlpha=0.4;traceBlob(b,26,0.62+0.05*Math.sin(gameTime*1.7+b.p2));ctx.stroke();}
+   else if(b.type==='crack'){ // 파괴지형 — 금 간 덩어리 + 균열선
+     traceBlob(b,26);ctx.fillStyle='#241f17';ctx.fill();ctx.lineWidth=2*Z;ctx.strokeStyle='#6b551f';ctx.stroke();
+     var cr=mulberry32(b.seed);ctx.strokeStyle='#9a7a30';ctx.lineWidth=1.2*Z;for(var c=0;c<5;c++){var a0=cr()*6.283,a1=a0+(cr()-0.5),r3=b.base*(0.45+cr()*0.5);ctx.beginPath();ctx.moveTo(b.x+Math.cos(a0)*6,b.y+Math.sin(a0)*6);ctx.lineTo(b.x+Math.cos(a1)*r3,b.y+Math.sin(a1)*r3);ctx.stroke();}}
+   else if(b.type==='beachhead'){ // 교두보 — 부서진 사각 외곽 + 재건 게이지
+     ctx.setLineDash([6*Z,5*Z]);ctx.lineWidth=1.6*Z;ctx.strokeStyle=COL.teal;ctx.strokeRect(b.x-b.base*0.7,b.y-b.base*0.7,b.base*1.4,b.base*1.4);ctx.setLineDash([]);
+     ctx.globalAlpha=0.55;ctx.lineWidth=2*Z;ctx.beginPath();ctx.arc(b.x,b.y,b.base*0.5,-1.57,-1.57+4.2);ctx.strokeStyle=COL.teal;ctx.stroke();}
+   ctx.restore();});
 
  // 지면 위험: 독 지대 + 예고
  hazards.forEach(function(z){var a=Math.min(1,z.life);ctx.save();ctx.globalAlpha=0.14*a;disc(z.x,z.y,z.r,COL.poison);ctx.globalAlpha=0.5*a;ring(z.x,z.y,z.r,COL.poison,1.2);ctx.restore();});
@@ -1160,7 +1206,7 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
   mctx.beginPath();mctx.moveTo(A.x*sxr,A.y*syr);mctx.lineTo(R.x*sxr,R.y*syr);mctx.lineTo(B.x*sxr,B.y*syr);mctx.lineTo(L.x*sxr,L.y*syr);mctx.closePath();mctx.stroke();
   for(var b=0;b<4;b++){var on=ringAwake[b];var pl=rhoPlace(BANDT[b],-1),pr=rhoPlace(BANDT[b],1);mctx.globalAlpha=on?0.45:0.2;mctx.strokeStyle=on?'#5b6a48':COL.border;mctx.beginPath();mctx.moveTo(pl.x*sxr,pl.y*syr);mctx.lineTo(pr.x*sxr,pr.y*syr);mctx.stroke();}
   mctx.globalAlpha=1;mctx.fillStyle=COL.teal;mctx.fillRect(A.x*sxr-3,A.y*syr-3,6,6);mctx.fillStyle=COL.bad;mctx.fillRect(B.x*sxr-3,B.y*syr-3,6,6);mctx.restore();})();
- mctx.fillStyle='#454f38';OBST.forEach(function(b){if(b.t==='c')mctx.fillRect(b.x*sxr-1.5,b.y*syr-1.5,3,3);else mctx.fillRect(b.x*sxr,b.y*syr,Math.max(2,b.w*sxr),Math.max(2,b.h*syr));});
+ TERRAIN.forEach(function(b){var col=b.type==='hazard'?'#6a9a8a':b.type==='high'?'#7a8a63':b.type==='open'?'#3a4632':b.type==='beachhead'?COL.teal:'#454f38';mctx.fillStyle=col;mctx.globalAlpha=b.solid?0.8:0.4;var rr2=Math.max(2,b.base*sxr*0.7);mctx.beginPath();mctx.arc(b.x*sxr,b.y*syr,rr2,0,7);mctx.fill();});mctx.globalAlpha=1;
  enemies.forEach(function(e){if(e.hp<=0)return;var ex=e.x*sxr,ey=e.y*syr;if(e.kind==='em'){mctx.fillStyle=COL.bad;mctx.beginPath();mctx.arc(ex,ey,1.4,0,7);mctx.fill();}else if(e.kind==='mb'){mctx.fillStyle=e.awake?(e.guardian?COL.shield:COL.warn):COL.dim;mctx.fillRect(ex-3,ey-3,6,6);}else{mctx.fillStyle=COL.bad;mctx.fillRect(ex-4,ey-4,8,8);}});
  MLS.forEach(function(m,idx){mctx.fillStyle=idx===sel?COL.text:COL.info;mctx.beginPath();mctx.arc(m.x*sxr,m.y*syr,idx===sel?3.5:2.5,0,7);mctx.fill();});
  mctx.strokeStyle=COL.info;mctx.lineWidth=1;mctx.strokeRect(cam.x*sxr,cam.y*syr,(VW/cam.z)*sxr,(VH/cam.z)*syr);
