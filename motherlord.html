@@ -279,29 +279,40 @@ function toggleSfx(){AUD.sfxOn=!AUD.sfxOn;document.getElementById('btnSfx').clas
    월드 / 카메라 — 4링 + 코어를 담는 더 넓은 맵
    ============================================================ */
 var WW=4200,WH=3000,VW=window.innerWidth,VH=window.innerHeight,dpr=1;
-var HQX=2100,HQY=1500;
-var RINGS=[430,820,1250,1700];   // 동심원 반경(설계 §3.1)
+// ── 마름모 진격 지오메트리(맵_탐험 §0): A(본부)→B(보스) 대각 = access-level 구배 ──
+var RHO={cx:2100,cy:1500,hx:1950,hy:1380};
+RHO.A={x:RHO.cx,y:RHO.cy+RHO.hy};          // 아군 본부(아래 꼭짓점, access 0)
+RHO.B={x:RHO.cx,y:RHO.cy-RHO.hy};          // 적 보스(위 꼭짓점, 최고 access)
+RHO.L={x:RHO.cx-RHO.hx,y:RHO.cy};RHO.R={x:RHO.cx+RHO.hx,y:RHO.cy};
+function inRho(x,y){return Math.abs(x-RHO.cx)/RHO.hx+Math.abs(y-RHO.cy)/RHO.hy<=1;}
+function rhoHalfW(t){return RHO.hx*(1-Math.abs(2*t-1));}        // 꼭짓점0 ↔ 허리 최대
+function rhoPlace(t,u){return{x:RHO.cx+u*rhoHalfW(t)*0.9,y:RHO.A.y+(RHO.B.y-RHO.A.y)*t};}
+var HQX=RHO.A.x,HQY=RHO.A.y;               // 본부 = A 꼭짓점
+var BANDT=[0.20,0.40,0.58,0.75];           // 밴드 access-level t-중심(단조 ↑)
+var GUARDT=0.86,BOSST=0.95;
+// 시드 RNG(절차생성 결정성, 절차생성 §7)
+var MAPSEED=(Math.random()*1e9)|0;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+var mrng=mulberry32(MAPSEED);
 
 /* ============================================================
    지형지물 — 이동/접근을 제한·이용. 충돌은 볼록 도형(원/사각)만 써
    스티어링이 오목 코너에 갇히지 않게 함. 본부 동쪽(외곽 방면)에
    기둥 5개로 길목(초크포인트)을 만들어 잡몹 웨이브를 채널링.
    ============================================================ */
-var OBST=(function(){var a=[];
-  // 본부 방어 기둥 — 반경 360, 동쪽 아크(-56°~56°)에 5개, 사이가 길목
-  [-56,-28,0,28,56].forEach(function(deg){var r=360,rad=deg*Math.PI/180;
-    a.push({t:'r',x:HQX+Math.cos(rad)*r-34,y:HQY+Math.sin(rad)*r-34,w:68,h:68});});
-  // 산개 바위(엄폐·우회) — 스폰 각도 피해 배치
-  a.push({t:'c',x:HQX+620,y:HQY-540,r:74});
-  a.push({t:'c',x:HQX-560,y:HQY+460,r:66});
-  a.push({t:'c',x:HQX+260,y:HQY+780,r:58});
-  a.push({t:'c',x:HQX-820,y:HQY-260,r:70});
-  a.push({t:'c',x:HQX+1040,y:HQY+300,r:62});
-  a.push({t:'c',x:HQX+880,y:HQY-820,r:56});
-  a.push({t:'c',x:HQX-300,y:HQY-760,r:60});
-  // 외곽 차폐벽(길게) — 보스 방면 접근로에 빗장
-  a.push({t:'r',x:HQX+1500,y:HQY-360,w:60,h:240});
-  a.push({t:'r',x:HQX+1500,y:HQY+140,w:60,h:240});
+var OBST=(function(){var a=[];var rng=mulberry32(MAPSEED^0x9E3779B9);
+  // 본부(A) 앞 방어 길목 — A→B 방향으로 기둥 띠, 사이가 초크포인트
+  [-0.5,-0.25,0,0.25,0.5].forEach(function(uu){var p=rhoPlace(0.12,uu);a.push({t:'r',x:p.x-34,y:p.y-34,w:68,h:68});});
+  // 산개 엄폐물(Poisson 비슷) — 마름모 내부, 주축 회랑(|u|<0.16)은 비워 루트 보장(단순판)
+  var tries=0,placed=0;while(placed<9&&tries<400){tries++;
+    var t=0.20+rng()*0.60,u=(rng()*2-1);
+    if(Math.abs(u)<0.16)continue;
+    var p=rhoPlace(t,u),ok=true;
+    for(var i=0;i<a.length;i++){var dx=a[i].x-p.x,dy=a[i].y-p.y;if(dx*dx+dy*dy<210*210){ok=false;break;}}
+    if(!ok)continue;a.push({t:'c',x:p.x,y:p.y,r:52+rng()*28});placed++;}
+  // B 앞 빗장(보스 접근로) — 좌우 벽, 가운데만 통로
+  var lb=rhoPlace(0.80,-0.30),rb=rhoPlace(0.80,0.30);
+  a.push({t:'r',x:lb.x-30,y:lb.y-120,w:60,h:240});a.push({t:'r',x:rb.x-30,y:rb.y-120,w:60,h:240});
   return a;})();
 // 엔티티를 장애물 밖으로 밀어냄(이동 후 호출 → 표면을 따라 미끄러짐)
 function collide(o){var rad=(o.r||11);for(var i=0;i<OBST.length;i++){var b=OBST[i];
@@ -520,7 +531,7 @@ function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||6
   return m;}
 
 // 시작: 전사 1기(설계 §7 개막 1기). 코어로 최대 4기까지 충원.
-var MLS=[mkML('warrior',HQX,HQY+70)];
+var MLS=[mkML('warrior',HQX,HQY-70)];
 var sel=0;
 var myHQ={x:HQX,y:HQY,hp:1600,max:1600,r:24,def:20,mr:20,shield:0,mods:[],hitT:0,lungeT:0,name:'본부'};
 
@@ -562,31 +573,46 @@ function mkMb(o){var a=ARCHDEF[o.arch]||{};var sc=RINGSCALE[o.ring||0];
    line:null,dashFrom:null,dashTo:null,dashP:0,hitSet:null,atkInt:1.1,atkLeft:0,counted:false,
    hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0};}
 
-// ── 맵 배치: 각도/반경으로 동심원에 깔기. 코어(수호자+적본부)는 한 방향 끝 ──
-function ringPos(r,deg){var a=deg*Math.PI/180;return{x:HQX+Math.cos(a)*r,y:HQY+Math.sin(a)*r};}
-var BOSS=mkBoss(HQX+RINGS[3]+520,HQY);
+// ── 절차생성 1차(보장우선, 절차생성 §2): 스파인 = 밴드별 거점을 access-level 단조로 배치 ──
+// 로스터(아키타입·hp·특성)는 밸런스 유지, 위치만 시드 절차생성. ring=밴드(access-level).
+var ROSTER=[
+ {band:0,arch:'brood',  name:'새끼 포자',    hp:440},
+ {band:0,arch:'plague', name:'작은 역병체',  hp:480,regen:6},
+ {band:1,arch:'crystal',name:'굳은 결정',    hp:560},
+ {band:1,arch:'brood',  name:'포자 군체',    hp:520,split:true},
+ {band:1,arch:'binder', name:'매듭술사',     hp:540},
+ {band:1,arch:'plague', name:'역병 운반체',  hp:560,regen:11},
+ {band:2,arch:'crystal',name:'포자 결정체',  hp:680,def:70},
+ {band:2,arch:'charger',name:'강철 돌격병',  hp:760},
+ {band:2,arch:'veil',   name:'장막 사제',    hp:600},
+ {band:2,arch:'binder', name:'저주 매듭',    hp:660},
+ {band:3,arch:'plague', name:'역병 군주',    hp:900,regen:16,split:true},
+ {band:3,arch:'charger',name:'폭주 돌격대',  hp:840},
+ {band:3,arch:'brood',  name:'만개한 포자모',hp:820,split:true}
+];
+function clamp01(v){return v<0.05?0.05:(v>0.95?0.95:v);}
+function clampU(v){return v<-0.95?-0.95:(v>0.95?0.95:v);}
+var BOSS;
 (function buildMap(){
-  function add(arch,ring,deg,name,extra){var p=ringPos(RINGS[ring]||(RINGS[3]+520),deg);enemies.push(mkMb(Object.assign({arch:arch,ring:ring,x:p.x,y:p.y,name:name},extra||{})));}
-  // 링0 — 개막: 전사 1기로 처리 가능한 저방 거점만(고방 결정체는 링1로)
-  add('brood',0,200,'새끼 포자',{hp:440});
-  add('plague',0,350,'작은 역병체',{hp:480,regen:6});
-  // 링1 — 확장: 6 어휘 노출
-  add('crystal',1,150,'굳은 결정',{hp:560});       // 고방 → 마법/방깎 필요
-  add('brood',1,210,'포자 군체',{hp:520,split:true});
-  add('binder',1,40,'매듭술사',{hp:540});           // 광역 속박 → 정화/저항
-  add('plague',1,300,'역병 운반체',{hp:560,regen:11});
-  // 링2 — 압박: 하이브리드
-  add('crystal',2,165,'포자 결정체',{hp:680,def:70});
-  add('charger',2,225,'강철 돌격병',{hp:760});
-  add('veil',2,20,'장막 사제',{hp:600});            // 주변 거점에 방어막
-  add('binder',2,310,'저주 매듭',{hp:660});
-  // 링3 — 결전
-  add('plague',3,200,'역병 군주',{hp:900,regen:16,split:true});
-  add('charger',3,250,'폭주 돌격대',{hp:840});
-  add('brood',3,150,'만개한 포자모',{hp:820,split:true});
-  // 코어 — 적 본부 + 수호자(Veil): 수호자가 살아있는 한 본부는 실드로 보호된다
-  var gp=ringPos(RINGS[3]+360,0);enemies.push(mkMb({arch:'veil',ring:4,x:gp.x,y:gp.y,name:'본부 수호자',guardian:true,hp:1100}));
-  enemies.push(BOSS);
+  var rng=mrng,OPEN_MIN=560;
+  // 밴드별: 균등 좌우 슬롯(측면 가지=다중루트 I5 + 간격 보장) + Poisson 안전 + A 최소거리 보장(I4)
+  for(var band=0;band<4;band++){
+    var list=ROSTER.filter(function(n){return n.band===band;}),tc=BANDT[band],M=list.length;
+    for(var li=0;li<M;li++){var n=list[li];
+      var slot=(M>1)?(-1+2*(li+0.5)/M):0;            // 균등 슬롯: N≥2면 좌·우 둘 다 + 충분한 간격
+      var pos,ok=false,tries=0;
+      while(!ok&&tries<80){tries++;
+        var tj=clamp01(tc+(rng()-0.5)*0.10),uu=clampU(slot*0.85+(rng()-0.5)*0.16);pos=rhoPlace(tj,uu);
+        // I4 공정 개막(절차생성 §3): 본부(A)에서 최소거리 미만이면 B쪽으로 밀어 구조적 보장
+        var g=0;while(Math.hypot(pos.x-RHO.A.x,pos.y-RHO.A.y)<OPEN_MIN&&g<20){tj=clamp01(tj+0.02);pos=rhoPlace(tj,uu);g++;}
+        ok=true;for(var k=0;k<enemies.length;k++){var dx=enemies[k].x-pos.x,dy=enemies[k].y-pos.y;if(dx*dx+dy*dy<300*300){ok=false;break;}}
+      }
+      enemies.push(mkMb(Object.assign({ring:band,x:pos.x,y:pos.y},n)));
+    }
+  }
+  // 코어: 본부 수호자(Veil) + 적 본부(보스) — B 직전, 주축 끝(u≈0). 수호자 생존 시 보스 실드.
+  var gp=rhoPlace(GUARDT,0);enemies.push(mkMb({arch:'veil',ring:4,x:gp.x,y:gp.y,name:'본부 수호자',guardian:true,hp:1100}));
+  var bp=rhoPlace(BOSST,0);BOSS=mkBoss(bp.x,bp.y);enemies.push(BOSS);
 })();
 
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
@@ -605,7 +631,7 @@ var RECALL_TIME=5;              // 귀환 채널링 시간(초) — §9.2 즉시
 var HEAL_R=100, HEAL_RATE=0.06; // 본부 회복 반경 / 초당 최대체력 대비 회복율(허브 그래디언트)
 
 function toast(msg){var box=document.getElementById('toast');var d=document.createElement('div');d.className='toast-i';d.textContent=msg;box.appendChild(d);setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},3400);}
-function ringName(r){return r===4?'코어':('링 '+r);}
+function ringName(r){return r===4?'코어':('밴드 '+r);}
 
 /* 링 각성 판정 — 시간 / 이전 링 일부 파괴 / 마더로드 접근 */
 function ringAlive(r){var n=0;for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='mb'&&e.ring===r&&e.hp>0)n++;}return n;}
@@ -1046,8 +1072,15 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  ctx.setTransform(cam.z*dpr,0,0,cam.z*dpr,(shx-cam.x*cam.z)*dpr,(shy-cam.y*cam.z)*dpr);
  // 배경 그리드 — 월드 좌표
  ctx.save();ctx.globalAlpha=0.16;ctx.strokeStyle=COL.border;ctx.lineWidth=1/cam.z;var g=200;var wl=cam.x,wt=cam.y,wr=cam.x+VW/cam.z,wb=cam.y+VH/cam.z;for(var gx=Math.floor(wl/g)*g;gx<wr;gx+=g){ctx.beginPath();ctx.moveTo(gx,wt);ctx.lineTo(gx,wb);ctx.stroke();}for(var gy=Math.floor(wt/g)*g;gy<wb;gy+=g){ctx.beginPath();ctx.moveTo(wl,gy);ctx.lineTo(wr,gy);ctx.stroke();}ctx.restore();
- // 동심원 링(각성 링은 강조)
- for(var r=0;r<RINGS.length;r++){ctx.save();var on=ringAwake[r];ctx.globalAlpha=on?0.5:0.28;ring(HQX,HQY,RINGS[r],on?'#5b6a48':COL.border,on?1.4:1);ctx.restore();}
+ // 마름모 전장(A 본부 ↔ B 보스 대각 = 난이도 구배) + access-level 밴드 라인
+ (function(){var A=RHO.A,B=RHO.B,L=RHO.L,R=RHO.R;
+  var grad=ctx.createLinearGradient(A.x,A.y,B.x,B.y);grad.addColorStop(0,'rgba(40,52,38,0.20)');grad.addColorStop(1,'rgba(70,30,26,0.22)');
+  ctx.save();ctx.beginPath();ctx.moveTo(A.x,A.y);ctx.lineTo(R.x,R.y);ctx.lineTo(B.x,B.y);ctx.lineTo(L.x,L.y);ctx.closePath();
+  ctx.fillStyle=grad;ctx.fill();ctx.lineWidth=3/cam.z;ctx.strokeStyle='#586348';ctx.stroke();
+  for(var b=0;b<4;b++){var on=ringAwake[b];var pl=rhoPlace(BANDT[b],-1),pr=rhoPlace(BANDT[b],1);
+   ctx.globalAlpha=on?0.5:0.22;ctx.strokeStyle=on?'#5b6a48':COL.border;ctx.lineWidth=(on?1.4:1)/cam.z;
+   ctx.beginPath();ctx.moveTo(pl.x,pl.y);ctx.lineTo(pr.x,pr.y);ctx.stroke();}
+  ctx.globalAlpha=1;ctx.restore();})();
 
  // 지형지물(바위·차폐벽)
  OBST.forEach(function(b){ctx.save();ctx.fillStyle='#23291f';ctx.strokeStyle='#454f38';ctx.lineWidth=1.5;
@@ -1123,8 +1156,10 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
 
  // 미니맵
  var mw=210,mh=150,sxr=mw/WW,syr=mh/WH;mctx.clearRect(0,0,mw,mh);
- for(var rr=0;rr<RINGS.length;rr++){mctx.save();mctx.globalAlpha=ringAwake[rr]?0.4:0.2;mctx.strokeStyle=ringAwake[rr]?'#5b6a48':COL.border;mctx.beginPath();mctx.arc(HQX*sxr,HQY*syr,RINGS[rr]*sxr,0,7);mctx.stroke();mctx.restore();}
- mctx.fillStyle=COL.teal;mctx.fillRect(HQX*sxr-3,HQY*syr-3,6,6);
+ (function(){var A=RHO.A,B=RHO.B,L=RHO.L,R=RHO.R;mctx.save();mctx.globalAlpha=0.5;mctx.strokeStyle=COL.border;mctx.lineWidth=1;
+  mctx.beginPath();mctx.moveTo(A.x*sxr,A.y*syr);mctx.lineTo(R.x*sxr,R.y*syr);mctx.lineTo(B.x*sxr,B.y*syr);mctx.lineTo(L.x*sxr,L.y*syr);mctx.closePath();mctx.stroke();
+  for(var b=0;b<4;b++){var on=ringAwake[b];var pl=rhoPlace(BANDT[b],-1),pr=rhoPlace(BANDT[b],1);mctx.globalAlpha=on?0.45:0.2;mctx.strokeStyle=on?'#5b6a48':COL.border;mctx.beginPath();mctx.moveTo(pl.x*sxr,pl.y*syr);mctx.lineTo(pr.x*sxr,pr.y*syr);mctx.stroke();}
+  mctx.globalAlpha=1;mctx.fillStyle=COL.teal;mctx.fillRect(A.x*sxr-3,A.y*syr-3,6,6);mctx.fillStyle=COL.bad;mctx.fillRect(B.x*sxr-3,B.y*syr-3,6,6);mctx.restore();})();
  mctx.fillStyle='#454f38';OBST.forEach(function(b){if(b.t==='c')mctx.fillRect(b.x*sxr-1.5,b.y*syr-1.5,3,3);else mctx.fillRect(b.x*sxr,b.y*syr,Math.max(2,b.w*sxr),Math.max(2,b.h*syr));});
  enemies.forEach(function(e){if(e.hp<=0)return;var ex=e.x*sxr,ey=e.y*syr;if(e.kind==='em'){mctx.fillStyle=COL.bad;mctx.beginPath();mctx.arc(ex,ey,1.4,0,7);mctx.fill();}else if(e.kind==='mb'){mctx.fillStyle=e.awake?(e.guardian?COL.shield:COL.warn):COL.dim;mctx.fillRect(ex-3,ey-3,6,6);}else{mctx.fillStyle=COL.bad;mctx.fillRect(ex-4,ey-4,8,8);}});
  MLS.forEach(function(m,idx){mctx.fillStyle=idx===sel?COL.text:COL.info;mctx.beginPath();mctx.arc(m.x*sxr,m.y*syr,idx===sel?3.5:2.5,0,7);mctx.fill();});
