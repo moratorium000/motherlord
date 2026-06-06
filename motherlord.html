@@ -736,15 +736,15 @@ var BOSS;
   BOSS=mkBoss(GEN.boss.x,GEN.boss.y);enemies.push(BOSS);
 })();
 // 초기 적 스쿼드 배치(필드 정적 — 안개 너머 탐험 조우). 수문장(거점/협로 앞 고정) + 배회(개활 순찰).
-(function(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
+function _placeSquads(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
   var plan=[[0.30,'garrison'],[0.36,'patrol'],[0.50,'garrison'],[0.56,'patrol'],[0.68,'garrison'],[0.74,'patrol'],[0.82,'garrison']];
   for(var p=0;p<plan.length;p++){var band=Math.min(3,Math.floor(plan[p][0]*4)),c=pickCell(plan[p][0],used);if(c){used.push(c);makeSquad(c,band,plan[p][1]);}}
-})();
+}
 // 적 거점(공습원) 배치 — 협로 뒤(pickCell 협로 우선) · 거리 버킷별
-(function(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
+function _placeSpawners(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
   var spec=[[0.20,2],[0.40,2],[0.58,2],[0.76,1]]; // [거리frac, 거점수] per 밴드
   for(var b=0;b<spec.length;b++){for(var k=0;k<spec[b][1];k++){var c=pickCell(spec[b][0],used);if(c){used.push(c);enemies.push(mkSpawner(c.x,c.y,b));}}}
-})();
+}
 
 /* ════════════════════════════════════════════════════════════════════════
    봉인된 유물함 배치 알고리즘 — 미끼 C 회로(맵·탐험 §3.5)
@@ -786,7 +786,7 @@ function pickChestCell(frac,used,pref){var tg=frac*GEN.maxd,band=Math.max(4,GEN.
 function nearestLock(x,y,minBand){var best=null,bd=1e9;for(var i=0;i<enemies.length;i++){var e=enemies[i];
   if(e.kind!=='mb'||e.guardian)continue;if(minBand!=null&&e.ring<minBand)continue;
   var d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e;}}return best;}
-(function placeChests(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
+function _placeChests(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
  // [등급, 거리frac, 지형선호, 락밴드(이 밴드↑ 미니보스 처치로 개봉; null=락없음)]
  var plan=[
    ['common',0.22,'route', null],['common',0.32,'route', null], // 유혹: 근거리 루트변 저위험
@@ -796,7 +796,7 @@ function nearestLock(x,y,minBand){var best=null,bd=1e9;for(var i=0;i<enemies.len
  for(var p=0;p<plan.length;p++){var g=plan[p],c=pickChestCell(g[1],used,g[2]);if(!c)continue;used.push(c);
    var lock=(g[0]==='common')?null:nearestLock(c.x,c.y,g[3]);
    chests.push(mkChest(c.x,c.y,g[0],lock));}
-})();
+}
 // ── 유물 채널(보상 훅) — 효과/2칸 슬롯 시스템은 별도 채널, 여기선 획득만 기록 ──
 var RELICS=[];
 function grantRelic(grade){RELICS.push({grade:grade,t:gameTime});}
@@ -2061,6 +2061,8 @@ function loop(t){var d=Math.min(0.05,(t-last)/1000);last=t;
  fpsAcc+=d;fpsN++;if(fpsAcc>=0.5){document.title='MOTHERLODE — '+Math.round(fpsN/fpsAcc)+' fps · 적 '+enemies.length;fpsAcc=0;fpsN=0;}
  requestAnimationFrame(loop);}
 window.addEventListener('resize',resize);
+// 초기 적 배치 — 데이터/함수 정의가 모두 끝난 뒤 실행(시작 시 ELITE_DEF 등 미정의 참조 방지)
+_placeSquads();_placeSpawners();_placeChests();
 resize();cam.z=camT.z=ZOOM.def;snapTo(cam,myHQ.x,myHQ.y);snapTo(camT,myHQ.x,myHQ.y);
 buildRoster();
 requestAnimationFrame(loop);
