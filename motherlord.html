@@ -679,12 +679,10 @@ var BOSS;
   enemies.push(mkMb({arch:'veil',ring:4,x:gp.x,y:gp.y,name:'본부 수호자',guardian:true,hp:1100}));
   BOSS=mkBoss(GEN.boss.x,GEN.boss.y);enemies.push(BOSS);
 })();
-// 엘리트 삼중주 배치(다대다 합성 무대·우선순위 퍼즐) — 거리 버킷별 군집
+// 초기 적 스쿼드 배치(필드 정적 — 안개 너머 탐험 조우). 수문장(거점/협로 앞 고정) + 배회(개활 순찰).
 (function(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
-  var trios=[['warden','bombardier','gladiator'],['hexer','sniper','berserker'],['summoner','lancer','colossus']]; // §3 포위·증폭·압살 외
-  var fr=[0.34,0.52,0.70];
-  for(var t=0;t<trios.length;t++){var c=pickCell(fr[t],used);used.push(c);var sc=1+fr[t]*0.6;
-    for(var k=0;k<3;k++){var an=k/3*6.283;enemies.push(mkElite(trios[t][k],c.x+Math.cos(an)*70,c.y+Math.sin(an)*70,sc));}}
+  var plan=[[0.30,'garrison'],[0.36,'patrol'],[0.50,'garrison'],[0.56,'patrol'],[0.68,'garrison'],[0.74,'patrol'],[0.82,'garrison']];
+  for(var p=0;p<plan.length;p++){var band=Math.min(3,Math.floor(plan[p][0]*4)),c=pickCell(plan[p][0],used);if(c){used.push(c);makeSquad(c,band,plan[p][1]);}}
 })();
 // 적 거점(공습원) 배치 — 협로 뒤(pickCell 협로 우선) · 거리 버킷별
 (function(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
@@ -942,6 +940,7 @@ function updateElite(e,dt){if(modHas(e,'stun'))return;
   if(e.pounceT>0){e.pounceT-=dt;if(e.pounceT<=0&&e.pounceTgt&&e.pounceTgt.hp>0){e.x=e.pounceTgt.x;e.y=e.pounceTgt.y;lunge(e,e.pounceTgt.x,e.pounceTgt.y,8);resolveDamage(e,e.pounceTgt,40,'phys',{});}return;}
   var fr=null,fd=1e9;for(var a=0;a<MLS.length;a++){var M=MLS[a];if(M.downed)continue;var d=Math.hypot(M.x-e.x,M.y-e.y);if(d<fd){fd=d;fr=M;}for(var b=0;b<M.minions.length;b++){var d2=Math.hypot(M.minions[b].x-e.x,M.minions[b].y-e.y);if(d2<fd){fd=d2;fr=M.minions[b];}}}
   if(!fr){mbWander(e,dt);return;}
+  if(e.mode==='garrison'&&e.anchor&&Math.hypot(fr.x-e.anchor.x,fr.y-e.anchor.y)>400){if(Math.hypot(e.x-e.anchor.x,e.y-e.anchor.y)>60)moveTo(e,e.anchor.x,e.anchor.y,eSpeed(e,e.spd),dt,30);return;} // 수문장: 거점 이탈 추격 안 함
   e.facing=Math.atan2(fr.y-e.y,fr.x-e.x);
   e.ragePow=(e.sig==='rage')?1+(1-e.hp/e.max)*1.4:1;
   var reach=e.reach,root=modHas(e,'root');
@@ -995,6 +994,19 @@ function updateBoss(b,dt){var nm=nearML(b),M=nm.m;var frac=b.hp/b.max;
   else if(r<0.76){tels.push({kind:'circle',x:M.x,y:M.y,r:92,windup:1.1,wmax:1.1,dmg:80,dtype:'magic',source:b,follow:(Math.random()<0.5?M:null),applied:false,life:0});b.actCD=1.8;b.castName='추적 인장';} // 견제(점멸→지연 원)
   else{var a=Math.atan2(M.y-b.y,M.x-b.x);tels.push({kind:'lane',x:b.x,y:b.y,a:a,r:620,w:34,windup:0.6,wmax:0.6,dmg:60,dtype:'phys',source:b,applied:false,life:0});b.actCD=1.3;b.castName='마력탄';} // 주력(직선)
 }
+// ── 적 스쿼드(적_설계 §4.1): 엘리트 리더 + 개떼 호위. 수문장(고정)/배회. 다대다 합성 무대. ──
+var squadSeq=0;
+function pickSquadComp(band){var pools=[
+  [['gladiator','sniper'],['lancer','stalker'],['gladiator','hexer']],
+  [['warden','gladiator'],['hexer','bombardier'],['gladiator','sniper','stalker']],
+  [['warden','bombardier','gladiator'],['hexer','sniper','berserker'],['summoner','lancer','gladiator']], // 삼중주(포위·증폭·압살)
+  [['summoner','colossus','warden'],['berserker','hexer','sniper'],['colossus','bombardier','warden']]];
+  var p=pools[Math.min(3,band)];return p[(Math.random()*p.length)|0];}
+function pickSquadEm(band){var r=Math.random();return band>=2?(r<0.4?'shield':r<0.72?'shooter':r<0.88?'rusher':'spore'):(r<0.58?'rusher':r<0.85?'shield':'shooter');}
+function makeSquad(cell,band,mode){var sid=++squadSeq,anchor={x:cell.x,y:cell.y},comp=pickSquadComp(band),leader=null;
+  for(var k=0;k<comp.length;k++){var ang=k/comp.length*6.283,e=mkElite(comp[k],cell.x+Math.cos(ang)*64,cell.y+Math.sin(ang)*64,1+band*0.45);e.squad=sid;e.anchor=anchor;e.mode=mode;if(!leader)leader=e;enemies.push(e);}
+  var n=3+band+(mode==='garrison'?1:0);
+  for(var i=0;i<n;i++){var aa=Math.random()*6.283,rr=48+Math.random()*72,m=mkEm(cell.x+Math.cos(aa)*rr,cell.y+Math.sin(aa)*rr,emScaleNow(band),pickSquadEm(band));m.squad=sid;m.leader=leader;m.anchor=anchor;m.mode=mode;enemies.push(m);}}
 function updateMb(e,dt){
   if(!e.awake)return;
   if(e.regen)e.hp=Math.min(e.max,e.hp+e.regen*dt);
@@ -1208,6 +1220,15 @@ function update(dt){
   var stunE=modHas(en,'stun'),rootE=modHas(en,'root');if(stunE)continue;
   var fr=null,fd=1e9;for(var a=0;a<MLS.length;a++){var M=MLS[a];if(M.downed)continue;var d1=Math.hypot(M.x-en.x,M.y-en.y);if(d1<fd){fd=d1;fr=M;}for(var b=0;b<M.minions.length;b++){var d2=Math.hypot(M.minions[b].x-en.x,M.minions[b].y-en.y);if(d2<fd){fd=d2;fr=M.minions[b];}}}
   var goHQ=Math.hypot(myHQ.x-en.x,myHQ.y-en.y),et=en.etype;
+  if(en.squad){ // 필드 스쿼드 개떼: 리더 추종/방어, 근처 친군 교전. 리더 죽으면 해제→본부 러쉬.
+    if(en.leader&&en.leader.hp<=0){en.squad=null;en.leader=null;en.anchor=null;}
+    else{var ax=en.anchor.x,ay=en.anchor.y;
+      if(fr&&fd<300){en.facing=Math.atan2(fr.y-en.y,fr.x-en.x);
+        if(et==='shooter'){if(fd<en.standoff){en.fireCd-=dt;if(en.fireCd<=0){en.fireCd=en.fireInt;tels.push({kind:'lane',x:en.x,y:en.y,a:en.facing,r:en.standoff+50,w:34,windup:0.7,wmax:0.7,dmg:en.shot,dtype:'phys',source:en,applied:false,life:0});}if(fd<en.standoff*0.6&&!rootE)moveTo(en,en.x*2-fr.x,en.y*2-fr.y,eSpeed(en,en.spd),dt,1);}else if(!rootE)moveTo(en,fr.x,fr.y,eSpeed(en,en.spd),dt,en.standoff*0.8);}
+        else{if(fd>en.r+14&&!rootE)moveTo(en,fr.x,fr.y,eSpeed(en,en.spd),dt,13);else{en.atkLeft-=dt;if(en.atkLeft<=0){lunge(en,fr.x,fr.y,7);resolveDamage(en,fr,en.dmg,'phys',{});en.atkLeft=en.atkInt;}}}
+      }else if(Math.hypot(en.x-ax,en.y-ay)>64&&!rootE)moveTo(en,ax,ay,eSpeed(en,en.spd*0.45),dt,30); // 대기: anchor 복귀
+      continue;}
+  }
   if(et==='shooter'){ // 사수: 사거리 잡고 직선레인, 붙으면 후퇴
     if(fr&&fd<en.standoff){en.facing=Math.atan2(fr.y-en.y,fr.x-en.x);
       if(fd<en.standoff*0.65&&!rootE)moveTo(en,en.x*2-fr.x,en.y*2-fr.y,eSpeed(en,en.spd),dt,1);
