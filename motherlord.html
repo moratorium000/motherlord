@@ -701,8 +701,8 @@ function applyUpgrades(m){var u=m.up,cb=m.cardBonus||{};
   m.tenacity=Math.min(0.6,u.ten*USTEP.ten.step);
   m.speed=Math.round(statVal(m,'spd',u.spd)*(cb.spdMul||1));
   var nm=Math.round(statVal(m,'hp',u.hp)*(cb.hpMul||1)),frac=m.max?m.hp/m.max:1;m.max=nm;m.hp=Math.round(nm*frac);
-  m.minMax=Math.round(statVal(m,'mhp',u.mhp));
-  m.minAd=Math.round(statVal(m,'mad',u.mad));
+  m.minMax=Math.round(statVal(m,'mhp',u.mhp)*(cb.minMul||1));
+  m.minAd=Math.round(statVal(m,'mad',u.mad)*(cb.minMul||1));
   m.minAtk=1.0/(1+u.mas*USTEP.mas.step);
   m.minCount=Math.min(20,4+u.mcount);
   syncMinions(m);
@@ -1078,7 +1078,9 @@ function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdL
       ftext(te,(stk||0)+'중첩',COL.magic,false);
     }
     else if(s.fx==='charm'){ // 뱀파이어 매료 — 적 일시 아군화(가장 가까운 다른 적 공격). 보스 제압불가
-      if(tauntable(te)){te.charmT=s.dur||2.5;te.charmed=true;te.atkLeft=0;addMod(te,{key:'charm',field:'dmgTaken',op:'mul',value:1.15,dur:s.dur||2.5,tags:['debuff'],source:m,name:'매료',col:COL.magic});fx.push({x:te.x,y:te.y,r:te.r+8,t:0.5,life:0.5,col:COL.magic,fade:true,follow:te});}
+      var chD=s.dur||2.5;
+      if(tauntable(te)){te.charmT=chD;te.charmed=true;te.atkLeft=0;addMod(te,{key:'charm',field:'dmgTaken',op:'mul',value:1.15,dur:chD,tags:['debuff'],source:m,name:'매료',col:COL.magic});fx.push({x:te.x,y:te.y,r:te.r+8,t:0.5,life:0.5,col:COL.magic,fade:true,follow:te});}
+      if(m.cfx&&m.cfx.charmSpread){var cs=null,csd=160;for(var cj=0;cj<enemies.length;cj++){var cge=enemies[cj];if(cge!==te&&cge.hp>0&&!cge.charmed&&tauntable(cge)){var cgd=Math.hypot(cge.x-te.x,cge.y-te.y);if(cgd<csd){csd=cgd;cs=cge;}}}if(cs){cs.charmT=chD;cs.charmed=true;cs.atkLeft=0;addMod(cs,{key:'charm',field:'dmgTaken',op:'mul',value:1.15,dur:chD,tags:['debuff'],source:m,name:'매료',col:COL.magic});}} // 광역 매혹: 인접 1체 추가
       if(sd>0)resolveDamage(m,te,sd,s.dtype,{canCrit:true});
     }
     else if(s.fx==='whip'){ // 고고학자 채찍 강타 — 피해 + 끌어당김 + 짧은 다운
@@ -1945,7 +1947,10 @@ function cardOnKill(src,tgt){var c=src.cfx;if(!c)return;
     else addMod(src,{key:'frenzy',stacks:1,field:'dmgDealt',op:'mul',value:1+c.frenzy,dur:5,tags:['buff'],source:src,name:'광란',col:COL.warn});}
   if(c.killSpd){addMod(src,{key:'killspd',field:'moveSpd',op:'mul',value:1.4,dur:5,tags:['buff'],source:src,name:'추격',col:COL.warn});if(src.skills[2])src.skills[2].cdLeft=Math.max(0,(src.skills[2].cdLeft||0)-2);}
   if(c.killMana&&src.K&&src.K.res==='mana')src.mana=Math.min(src.maxMana,src.mana+c.killMana);
-  if(c.killCurseSpread){var best=null,bd=170;for(var q=0;q<enemies.length;q++){var e=enemies[q];if(e.hp>0&&e!==tgt){var dd=Math.hypot(e.x-tgt.x,e.y-tgt.y);if(dd<bd){bd=dd;best=e;}}}if(best)for(var s2=0;s2<5;s2++)curseHit(best,src);}}
+  if(c.killCurseSpread){var best=null,bd=170;for(var q=0;q<enemies.length;q++){var e=enemies[q];if(e.hp>0&&e!==tgt){var dd=Math.hypot(e.x-tgt.x,e.y-tgt.y);if(dd<bd){bd=dd;best=e;}}}if(best)for(var s2=0;s2<5;s2++)curseHit(best,src);}
+  if(c.killStealth){addMod(src,{key:'stealth',field:'dmgReduction',op:'add',value:0.6,dur:1.5,tags:['buff'],source:src,name:'재은신',col:COL.magic});src.stealthT=1.5;} // 도적 그림자 분신
+  if(c.killSummon)summonMinions(src,c.killSummon); // 네크로 끝없는 군대
+  if(c.killGold){ECON.gold+=c.killGold;ftext(src,'+'+c.killGold,COL.warn,false);}} // 고고 보물 사냥꾼
 
 /* ============================================================
    특수강화(진화) 카드 — 5직업 × 3하위직업 × (정의1 + 레인6) = 105장.
@@ -2084,6 +2089,162 @@ var CARDS={
   {id:'u_cu_4',sub:'저주',name:'만성 저주',tag:'저주',desc:'저주 지속 무한(전투 중 안 빠짐).',apply:function(m){m.cfx.curseInf=1;}},
   {id:'u_cu_5',sub:'저주',name:'[OP] 파멸의 누킹',tag:'저주',desc:'파멸의 인장(R) 스택당 기본 +30·계수 +0.3.',apply:function(m){m.skills[3].base+=30;m.skills[3].ratio+=0.3;}},
   {id:'u_cu_6',sub:'저주',name:'[OP] 영혼 수확',tag:'저주',desc:'파멸의 인장 처형 라인 5→4스택·HP20→30% (대가: 쿨 +60%).',apply:function(m){m.skills[3].execStk=4;m.skills[3].execHp=0.3;m.skills[3].cd=Math.round(m.skills[3].cd*1.6);}}
+ ],
+ rogue:[
+  // 암살 — 급습 누킹
+  {id:'r_as_d',sub:'암살',name:'[정의] 암살',tag:'암살',desc:'급습(Q) 은신 배수 +0.6·계수 +0.3 (짧은 빌드업 강한 한 방).',apply:function(m){m.skills[0].stealthBonus+=0.6;m.skills[0].ratio+=0.3;}},
+  {id:'r_as_1',sub:'암살',name:'치명 급습',tag:'암살',desc:'급습(Q) 계수 +0.4.',apply:function(m){m.skills[0].ratio+=0.4;}},
+  {id:'r_as_2',sub:'암살',name:'그림자 일격',tag:'암살',desc:'급습(Q) 기본 +40.',apply:function(m){m.skills[0].base+=40;}},
+  {id:'r_as_3',sub:'암살',name:'암살 본능',tag:'암살',desc:'급습(Q) 계수 +0.3.',apply:function(m){m.skills[0].ratio+=0.3;}},
+  {id:'r_as_4',sub:'암살',name:'연속 처형',tag:'암살',desc:'처치 시 전 스킬 쿨 −2s.',apply:function(m){m.cfx.killCdr=2;}},
+  {id:'r_as_5',sub:'암살',name:'[OP] 절명',tag:'암살',desc:'급습(Q)이 HP35%↓ 적 즉사.',apply:function(m){m.skills[0].execFrac=0.35;}},
+  {id:'r_as_6',sub:'암살',name:'[OP] 그림자 분신',tag:'암살',desc:'처치 시 즉시 재은신(다음 급습 강화).',apply:function(m){m.cfx.killStealth=1;}},
+  // 맹독 — 독 누적 폭발
+  {id:'r_po_d',sub:'맹독',name:'[정의] 맹독',tag:'맹독',desc:'독칼(W) [독] 도트 +8·지속 +2s.',apply:function(m){m.skills[1].dotDmg+=8;m.skills[1].dotDur+=2;}},
+  {id:'r_po_1',sub:'맹독',name:'맹독 칼날',tag:'맹독',desc:'독칼(W) 도트 +10.',apply:function(m){m.skills[1].dotDmg+=10;}},
+  {id:'r_po_2',sub:'맹독',name:'침투독',tag:'맹독',desc:'비율 관통 +20%(독 방어 무시).',apply:function(m){_cb(m,'pctPen',0.2);}},
+  {id:'r_po_3',sub:'맹독',name:'부패',tag:'맹독',desc:'독칼(W) 도트 +6·지속 +1.5s.',apply:function(m){m.skills[1].dotDmg+=6;m.skills[1].dotDur+=1.5;}},
+  {id:'r_po_4',sub:'맹독',name:'광역 중독',tag:'맹독',desc:'독칼(W) 도트 지속 +3s.',apply:function(m){m.skills[1].dotDur+=3;}},
+  {id:'r_po_5',sub:'맹독',name:'[OP] 역병의 칼',tag:'맹독',desc:'독칼(W) 도트 +14(전염 근사).',apply:function(m){m.skills[1].dotDmg+=14;}},
+  {id:'r_po_6',sub:'맹독',name:'[OP] 독의 정점',tag:'맹독',desc:'암습난무(R) 기본 +80(독 폭발 2배 근사).',apply:function(m){m.skills[3].base+=80;}},
+  // 그림자 — 콤보 영속
+  {id:'r_sh_d',sub:'그림자',name:'[정의] 그림자',tag:'그림자',desc:'연막(E) 지속 +1.5s + 처치 시 쿨 −1s.',apply:function(m){m.skills[2].dur+=1.5;m.cfx.killCdr=1;}},
+  {id:'r_sh_1',sub:'그림자',name:'그림자 보폭',tag:'그림자',desc:'연막(E) 지속 +1.5s.',apply:function(m){m.skills[2].dur+=1.5;}},
+  {id:'r_sh_2',sub:'그림자',name:'잔영',tag:'그림자',desc:'처치 시 전 스킬 쿨 −1s.',apply:function(m){m.cfx.killCdr=1;}},
+  {id:'r_sh_3',sub:'그림자',name:'연계',tag:'그림자',desc:'급습·암습난무 계수 +0.15.',apply:function(m){m.skills[0].ratio+=0.15;m.skills[3].ratio+=0.15;}},
+  {id:'r_sh_4',sub:'그림자',name:'은신 가속',tag:'그림자',desc:'연막(E) 지속 +1s + 상시 공속 +15%.',apply:function(m){m.skills[2].dur+=1;m.cfx.permAtkSpd=(m.cfx.permAtkSpd||1)*1.15;}},
+  {id:'r_sh_5',sub:'그림자',name:'[OP] 영원한 그림자',tag:'그림자',desc:'처치 시 전 스킬 쿨 −3s.',apply:function(m){m.cfx.killCdr=3;}},
+  {id:'r_sh_6',sub:'그림자',name:'[OP] 그림자 무도',tag:'그림자',desc:'암습난무(R) 쿨 −40%(재진입 근사).',apply:function(m){m.skills[3].cd=Math.round(m.skills[3].cd*0.6);}}
+ ],
+ necro:[
+  // 물량
+  {id:'n_sw_d',sub:'물량',name:'[정의] 물량',tag:'물량',desc:'해골 소환(W) +1·죽음의 군세(R) +2.',apply:function(m){m.skills[1].n+=1;m.skills[3].n+=2;}},
+  {id:'n_sw_1',sub:'물량',name:'대군',tag:'물량',desc:'죽음의 군세(R) 해골 +2.',apply:function(m){m.skills[3].n+=2;}},
+  {id:'n_sw_2',sub:'물량',name:'빠른 충원',tag:'물량',desc:'해골 소환(W) 쿨 −40%.',apply:function(m){m.skills[1].cd=Math.round(m.skills[1].cd*0.6*10)/10;}},
+  {id:'n_sw_3',sub:'물량',name:'시체 풍요',tag:'물량',desc:'해골 소환(W) +1.',apply:function(m){m.skills[1].n+=1;}},
+  {id:'n_sw_4',sub:'물량',name:'군세 강화',tag:'물량',desc:'해골 공·체 +15%.',apply:function(m){_cbm(m,'minMul',1.15);}},
+  {id:'n_sw_5',sub:'물량',name:'[OP] 끝없는 군대',tag:'물량',desc:'처치 시 해골 +1 (대가: 개체 −).',apply:function(m){m.cfx.killSummon=1;_cbm(m,'minMul',0.85);}},
+  {id:'n_sw_6',sub:'물량',name:'[OP] 백골 진형',tag:'물량',desc:'상시 받는피해 −10%(백골 벽 근사).',apply:function(m){m.cfx.permRed=(m.cfx.permRed||0)+0.1;}},
+  // 폭발
+  {id:'n_ex_d',sub:'폭발',name:'[정의] 폭발',tag:'폭발',desc:'시체 폭발(E) 기본 +40.',apply:function(m){m.skills[2].base+=40;}},
+  {id:'n_ex_1',sub:'폭발',name:'강화 폭발',tag:'폭발',desc:'시체 폭발(E) 기본 +40.',apply:function(m){m.skills[2].base+=40;}},
+  {id:'n_ex_2',sub:'폭발',name:'연쇄 폭발',tag:'폭발',desc:'시체 폭발(E) 반경 +30.',apply:function(m){m.skills[2].radius+=30;}},
+  {id:'n_ex_3',sub:'폭발',name:'부패 폭발',tag:'폭발',desc:'시체 폭발(E) 기본 +20·계수 +0.2.',apply:function(m){m.skills[2].base+=20;m.skills[2].ratio+=0.2;}},
+  {id:'n_ex_4',sub:'폭발',name:'시체 정제',tag:'폭발',desc:'시체 폭발(E) 계수 +0.4.',apply:function(m){m.skills[2].ratio+=0.4;}},
+  {id:'n_ex_5',sub:'폭발',name:'[OP] 대학살',tag:'폭발',desc:'시체 폭발(E) 기본 +50·반경 +50.',apply:function(m){m.skills[2].base+=50;m.skills[2].radius+=50;}},
+  {id:'n_ex_6',sub:'폭발',name:'[OP] 자폭 군단',tag:'폭발',desc:'시체 폭발(E) 기본 +60 (대가: 물량 −).',apply:function(m){m.skills[2].base+=60;_cbm(m,'minMul',0.8);}},
+  // 고위소환
+  {id:'n_hi_d',sub:'고위소환',name:'[정의] 고위소환',tag:'고위소환',desc:'해골 공·체 +30%(정예화).',apply:function(m){_cbm(m,'minMul',1.3);}},
+  {id:'n_hi_1',sub:'고위소환',name:'정예 해골',tag:'고위소환',desc:'해골 공·체 +20%.',apply:function(m){_cbm(m,'minMul',1.2);}},
+  {id:'n_hi_2',sub:'고위소환',name:'사령술',tag:'고위소환',desc:'해골 공·체 +15%.',apply:function(m){_cbm(m,'minMul',1.15);}},
+  {id:'n_hi_3',sub:'고위소환',name:'시체 응축',tag:'고위소환',desc:'죽음의 군세(R) +1.',apply:function(m){m.skills[3].n+=1;}},
+  {id:'n_hi_4',sub:'고위소환',name:'군주의 권능',tag:'고위소환',desc:'해골 공·체 +15%.',apply:function(m){_cbm(m,'minMul',1.15);}},
+  {id:'n_hi_5',sub:'고위소환',name:'[OP] 데스나이트',tag:'고위소환',desc:'해골 공·체 +40% (대가: 상한 −).',apply:function(m){_cbm(m,'minMul',1.4);m.skills[1].n=Math.max(1,m.skills[1].n-1);}},
+  {id:'n_hi_6',sub:'고위소환',name:'[OP] 고대의 군주',tag:'고위소환',desc:'처치 시 해골 +1 + 공·체 +20%.',apply:function(m){m.cfx.killSummon=1;_cbm(m,'minMul',1.2);}}
+ ],
+ archaeologist:[
+  // 탐사 — 경제/정찰
+  {id:'g_ex_d',sub:'탐사',name:'[정의] 탐사',tag:'탐사',desc:'발굴(아바타W) 재화 +8.',apply:function(m){if(m.avatarSkills[1])m.avatarSkills[1].n+=8;}},
+  {id:'g_ex_1',sub:'탐사',name:'광역 정찰',tag:'탐사',desc:'발굴 재화 +4·정찰 쿨 −2s.',apply:function(m){if(m.avatarSkills[1])m.avatarSkills[1].n+=4;if(m.avatarSkills[0])m.avatarSkills[0].cd=Math.max(4,m.avatarSkills[0].cd-2);}},
+  {id:'g_ex_2',sub:'탐사',name:'노다지',tag:'탐사',desc:'발굴 재화 +6.',apply:function(m){if(m.avatarSkills[1])m.avatarSkills[1].n+=6;}},
+  {id:'g_ex_3',sub:'탐사',name:'유물 감식',tag:'탐사',desc:'발굴 재화 +4.',apply:function(m){if(m.avatarSkills[1])m.avatarSkills[1].n+=4;}},
+  {id:'g_ex_4',sub:'탐사',name:'신속 발굴',tag:'탐사',desc:'발굴(아바타W) 쿨 −30%.',apply:function(m){if(m.avatarSkills[1])m.avatarSkills[1].cd=Math.round(m.avatarSkills[1].cd*0.7);}},
+  {id:'g_ex_5',sub:'탐사',name:'[OP] 보물 사냥꾼',tag:'탐사',desc:'처치 시 재화 +8 (대가: 빙의 딜 −).',apply:function(m){m.cfx.killGold=8;m.cfx.permDmgMul=(m.cfx.permDmgMul||1)*0.85;}},
+  {id:'g_ex_6',sub:'탐사',name:'[OP] 잃어버린 도시',tag:'탐사',desc:'발굴 재화 +12.',apply:function(m){if(m.avatarSkills[1])m.avatarSkills[1].n+=12;}},
+  // 지원 — 함정/행운
+  {id:'g_su_d',sub:'지원',name:'[정의] 지원',tag:'지원',desc:'함정(W) 피해 +6 + 행운(아바타E) 강화.',apply:function(m){m.skills[1].zdmg+=6;if(m.avatarSkills[2])m.avatarSkills[2].nextMul+=0.08;}},
+  {id:'g_su_1',sub:'지원',name:'정밀 함정',tag:'지원',desc:'함정(W) 피해 +8.',apply:function(m){m.skills[1].zdmg+=8;}},
+  {id:'g_su_2',sub:'지원',name:'다중 함정',tag:'지원',desc:'함정(W) 반경 +30·지속 +3s.',apply:function(m){m.skills[1].radius+=30;m.skills[1].dur+=3;}},
+  {id:'g_su_3',sub:'지원',name:'행운 강화',tag:'지원',desc:'행운의 부적(아바타E) 강화 +0.1.',apply:function(m){if(m.avatarSkills[2])m.avatarSkills[2].nextMul+=0.1;}},
+  {id:'g_su_4',sub:'지원',name:'광역 가호',tag:'지원',desc:'행운의 부적(아바타E) 지속 +3s.',apply:function(m){if(m.avatarSkills[2])m.avatarSkills[2].dur+=3;}},
+  {id:'g_su_5',sub:'지원',name:'[OP] 만인의 행운',tag:'지원',desc:'상시 치명률 +15% (대가: 자기 딜 −).',apply:function(m){_cb(m,'critAdd',0.15);m.cfx.permDmgMul=(m.cfx.permDmgMul||1)*0.85;}},
+  {id:'g_su_6',sub:'지원',name:'[OP] 보물의 축복',tag:'지원',desc:'상시 공격력 +12%.',apply:function(m){_cbm(m,'adMul',1.12);_cbm(m,'apMul',1.12);}},
+  // 유물전사 — 자기 무장
+  {id:'g_re_d',sub:'유물전사',name:'[정의] 유물전사',tag:'유물전사',desc:'유물 해방(R) 기본 +40 + 상시 받피 −5%.',apply:function(m){m.skills[3].base+=40;m.cfx.permRed=(m.cfx.permRed||0)+0.05;}},
+  {id:'g_re_1',sub:'유물전사',name:'유물 갑주',tag:'유물전사',desc:'상시 받는피해 −10%.',apply:function(m){m.cfx.permRed=(m.cfx.permRed||0)+0.1;}},
+  {id:'g_re_2',sub:'유물전사',name:'고대 무기',tag:'유물전사',desc:'채찍 강타(Q) 계수 +0.3.',apply:function(m){m.skills[0].ratio+=0.3;}},
+  {id:'g_re_3',sub:'유물전사',name:'발굴 연계',tag:'유물전사',desc:'유물 해방(R) 계수 +0.3.',apply:function(m){m.skills[3].ratio+=0.3;}},
+  {id:'g_re_4',sub:'유물전사',name:'폭발 발굴',tag:'유물전사',desc:'유물 해방(R) 반경 +40.',apply:function(m){m.skills[3].radius+=40;}},
+  {id:'g_re_5',sub:'유물전사',name:'[OP] 신의 유물',tag:'유물전사',desc:'유물 해방(R) 기본 +60·계수 +0.3.',apply:function(m){m.skills[3].base+=60;m.skills[3].ratio+=0.3;}},
+  {id:'g_re_6',sub:'유물전사',name:'[OP] 살아있는 전설',tag:'유물전사',desc:'처치마다 공격력 +3%(중첩, 비전투 리셋).',apply:function(m){m.cfx.frenzy=0.03;}}
+ ],
+ vampire:[
+  // 흡혈탱
+  {id:'v_lt_d',sub:'흡혈탱',name:'[정의] 흡혈탱',tag:'흡혈탱',desc:'흡혈격(Q) 흡혈 +15% + 상시 받피 −5%.',apply:function(m){m.skills[0].lifesteal+=0.15;m.cfx.permRed=(m.cfx.permRed||0)+0.05;}},
+  {id:'v_lt_1',sub:'흡혈탱',name:'대흡혈',tag:'흡혈탱',desc:'흡혈격(Q) 흡혈 35→50%.',apply:function(m){m.skills[0].lifesteal+=0.15;}},
+  {id:'v_lt_2',sub:'흡혈탱',name:'혈갑',tag:'흡혈탱',desc:'흡혈격(Q) 흡혈 +10%.',apply:function(m){m.skills[0].lifesteal+=0.1;}},
+  {id:'v_lt_3',sub:'흡혈탱',name:'재생',tag:'흡혈탱',desc:'상시 받는피해 −5%.',apply:function(m){m.cfx.permRed=(m.cfx.permRed||0)+0.05;}},
+  {id:'v_lt_4',sub:'흡혈탱',name:'응고',tag:'흡혈탱',desc:'상시 받는피해 −5%.',apply:function(m){m.cfx.permRed=(m.cfx.permRed||0)+0.05;}},
+  {id:'v_lt_5',sub:'흡혈탱',name:'[OP] 불사',tag:'흡혈탱',desc:'HP50%↓ 받는피해 −50%.',apply:function(m){m.cfx.giant=1;}},
+  {id:'v_lt_6',sub:'흡혈탱',name:'[OP] 피의 갑주',tag:'흡혈탱',desc:'흡혈격(Q) 흡혈 +20%.',apply:function(m){m.skills[0].lifesteal+=0.2;}},
+  // 포식
+  {id:'v_fe_d',sub:'포식',name:'[정의] 포식',tag:'포식',desc:'혈제(R) 흡혈 +10%·기본 +30.',apply:function(m){m.skills[3].lifesteal+=0.1;m.skills[3].base+=30;}},
+  {id:'v_fe_1',sub:'포식',name:'광역 흡혈',tag:'포식',desc:'혈제(R) 흡혈 +15%.',apply:function(m){m.skills[3].lifesteal+=0.15;}},
+  {id:'v_fe_2',sub:'포식',name:'흡혈 가속',tag:'포식',desc:'상시 공속 +15%.',apply:function(m){m.cfx.permAtkSpd=(m.cfx.permAtkSpd||1)*1.15;}},
+  {id:'v_fe_3',sub:'포식',name:'피의 굶주림',tag:'포식',desc:'흡혈격(Q) 계수 +0.3.',apply:function(m){m.skills[0].ratio+=0.3;}},
+  {id:'v_fe_4',sub:'포식',name:'혈식 폭발',tag:'포식',desc:'혈제(R) 기본 +40.',apply:function(m){m.skills[3].base+=40;}},
+  {id:'v_fe_5',sub:'포식',name:'[OP] 핏빛 향연',tag:'포식',desc:'처치 시 전 스킬 쿨 −2s.',apply:function(m){m.cfx.killCdr=2;}},
+  {id:'v_fe_6',sub:'포식',name:'[OP] 무한 갈증',tag:'포식',desc:'흡혈격·혈제 흡혈 +20%.',apply:function(m){m.skills[0].lifesteal+=0.2;m.skills[3].lifesteal+=0.2;}},
+  // 매혹
+  {id:'v_ch_d',sub:'매혹',name:'[정의] 매혹',tag:'매혹',desc:'매료(W) 지속 +1s.',apply:function(m){m.skills[1].dur+=1;}},
+  {id:'v_ch_1',sub:'매혹',name:'지속 매료',tag:'매혹',desc:'매료(W) 지속 +1.5s.',apply:function(m){m.skills[1].dur+=1.5;}},
+  {id:'v_ch_2',sub:'매혹',name:'광역 매혹',tag:'매혹',desc:'매료 시 인접 1체 추가 매료.',apply:function(m){m.cfx.charmSpread=1;}},
+  {id:'v_ch_3',sub:'매혹',name:'지배의 격',tag:'매혹',desc:'매료(W) 지속 +0.5s.',apply:function(m){m.skills[1].dur+=0.5;}},
+  {id:'v_ch_4',sub:'매혹',name:'배신의 일격',tag:'매혹',desc:'혈제(R) 기본 +30(매료 종료 폭발 근사).',apply:function(m){m.skills[3].base+=30;}},
+  {id:'v_ch_5',sub:'매혹',name:'[OP] 군주의 매혹',tag:'매혹',desc:'매료(W) 지속 +2s.',apply:function(m){m.skills[1].dur+=2;}},
+  {id:'v_ch_6',sub:'매혹',name:'[OP] 영원한 종복',tag:'매혹',desc:'매료 시 인접 추가 + 지속 +1s.',apply:function(m){m.cfx.charmSpread=1;m.skills[1].dur+=1;}}
+ ],
+ engineer:[
+  // 요새화
+  {id:'e_fo_d',sub:'요새화',name:'[정의] 요새화',tag:'요새화',desc:'방벽(W) 반경 +30·지속 +3s.',apply:function(m){m.skills[1].radius+=30;m.skills[1].dur+=3;}},
+  {id:'e_fo_1',sub:'요새화',name:'강화 방벽',tag:'요새화',desc:'방벽(W) 반경 +30·지속 +3s.',apply:function(m){m.skills[1].radius+=30;m.skills[1].dur+=3;}},
+  {id:'e_fo_2',sub:'요새화',name:'가시 방벽',tag:'요새화',desc:'방벽(W) 접촉 피해 +8.',apply:function(m){m.skills[1].zdmg+=8;}},
+  {id:'e_fo_3',sub:'요새화',name:'연결 구조',tag:'요새화',desc:'포탑(Q) 반경 +20.',apply:function(m){m.skills[0].radius+=20;}},
+  {id:'e_fo_4',sub:'요새화',name:'자동 수리',tag:'요새화',desc:'과부하 코어(R) 지속 +3s.',apply:function(m){m.skills[3].dur+=3;}},
+  {id:'e_fo_5',sub:'요새화',name:'[OP] 불괴 요새',tag:'요새화',desc:'아군 영토 근처 받는피해 −40%.',apply:function(m){m.cfx.fortress=0.4;}},
+  {id:'e_fo_6',sub:'요새화',name:'[OP] 이동 요새',tag:'요새화',desc:'방벽(W) 쿨 −40%(재배치 근사).',apply:function(m){m.skills[1].cd=Math.round(m.skills[1].cd*0.6*10)/10;}},
+  // 화력거점
+  {id:'e_fb_d',sub:'화력거점',name:'[정의] 화력거점',tag:'화력거점',desc:'포탑(Q) 피해 +8·반경 +20.',apply:function(m){m.skills[0].zdmg+=8;m.skills[0].radius+=20;}},
+  {id:'e_fb_1',sub:'화력거점',name:'중포탑',tag:'화력거점',desc:'포탑(Q) 피해 +8·반경 +30.',apply:function(m){m.skills[0].zdmg+=8;m.skills[0].radius+=30;}},
+  {id:'e_fb_2',sub:'화력거점',name:'집중 화망',tag:'화력거점',desc:'포탑(Q) 피해 +6.',apply:function(m){m.skills[0].zdmg+=6;}},
+  {id:'e_fb_3',sub:'화력거점',name:'과열',tag:'화력거점',desc:'포탑(Q) 지속 +3s.',apply:function(m){m.skills[0].dur+=3;}},
+  {id:'e_fb_4',sub:'화력거점',name:'코어 증폭',tag:'화력거점',desc:'과부하 코어(R) 반경 +40.',apply:function(m){m.skills[3].radius+=40;}},
+  {id:'e_fb_5',sub:'화력거점',name:'[OP] 데스 그리드',tag:'화력거점',desc:'포탑(Q) 피해 +12.',apply:function(m){m.skills[0].zdmg+=12;}},
+  {id:'e_fb_6',sub:'화력거점',name:'[OP] 포탑이 포탑을',tag:'화력거점',desc:'과부하 코어(R) 피해 +12·반경 +30.',apply:function(m){m.skills[3].zdmg+=12;m.skills[3].radius+=30;}},
+  // 보급망
+  {id:'e_sp_d',sub:'보급망',name:'[정의] 보급망',tag:'보급망',desc:'과부하 코어(R) 반경 +40 + 포탑 쿨 −30%.',apply:function(m){m.skills[3].radius+=40;m.skills[0].cd=Math.max(1,Math.round(m.skills[0].cd*0.7*10)/10);}},
+  {id:'e_sp_1',sub:'보급망',name:'전진 거점',tag:'보급망',desc:'포탑(Q) 쿨 −30%.',apply:function(m){m.skills[0].cd=Math.max(1,Math.round(m.skills[0].cd*0.7*10)/10);}},
+  {id:'e_sp_2',sub:'보급망',name:'보급 포탑',tag:'보급망',desc:'포탑(Q) 지속 +3s.',apply:function(m){m.skills[0].dur+=3;}},
+  {id:'e_sp_3',sub:'보급망',name:'원정 코어',tag:'보급망',desc:'과부하 코어(R) 지속 +3s.',apply:function(m){m.skills[3].dur+=3;}},
+  {id:'e_sp_4',sub:'보급망',name:'신속 설치',tag:'보급망',desc:'포탑(Q) 쿨 −40%.',apply:function(m){m.skills[0].cd=Math.max(1,Math.round(m.skills[0].cd*0.6*10)/10);}},
+  {id:'e_sp_5',sub:'보급망',name:'[OP] 전선 확장',tag:'보급망',desc:'방벽(W) 반경 +40(전진 거점 근사).',apply:function(m){m.skills[1].radius+=40;}},
+  {id:'e_sp_6',sub:'보급망',name:'[OP] 모바일 베이스',tag:'보급망',desc:'과부하 코어(R) 쿨 −30%·반경 +30.',apply:function(m){m.skills[3].cd=Math.round(m.skills[3].cd*0.7);m.skills[3].radius+=30;}}
+ ],
+ drone:[
+  // 포격형
+  {id:'d_ar_d',sub:'포격형',name:'[정의] 포격형',tag:'포격형',desc:'과부하 포격(R) 기본 +40·반경 +20.',apply:function(m){m.skills[3].base+=40;m.skills[3].radius+=20;}},
+  {id:'d_ar_1',sub:'포격형',name:'고폭탄',tag:'포격형',desc:'사격(Q) 계수 +0.25.',apply:function(m){m.skills[0].ratio+=0.25;}},
+  {id:'d_ar_2',sub:'포격형',name:'폭주 효율',tag:'포격형',desc:'모드 전환(W) 피해 배수 +0.1.',apply:function(m){m.skills[1].dmgMul+=0.1;}},
+  {id:'d_ar_3',sub:'포격형',name:'충전 가속',tag:'포격형',desc:'사격(Q) 쿨 −20%.',apply:function(m){m.skills[0].cd=Math.max(0.4,m.skills[0].cd*0.8);}},
+  {id:'d_ar_4',sub:'포격형',name:'초과부하',tag:'포격형',desc:'과부하 포격(R) 기본 +30·반경 +30.',apply:function(m){m.skills[3].base+=30;m.skills[3].radius+=30;}},
+  {id:'d_ar_5',sub:'포격형',name:'[OP] 전력 폭발',tag:'포격형',desc:'과부하 포격(R) 기본 +80.',apply:function(m){m.skills[3].base+=80;}},
+  {id:'d_ar_6',sub:'포격형',name:'[OP] 무한 포격',tag:'포격형',desc:'사격(Q) 쿨 −40%(폭주 근사).',apply:function(m){m.skills[0].cd=Math.max(0.3,m.skills[0].cd*0.6);}},
+  // 돌격형
+  {id:'d_ch_d',sub:'돌격형',name:'[정의] 돌격형',tag:'돌격형',desc:'모드 전환(W) 공속 +0.2 + 부스터 쿨 −30%.',apply:function(m){m.skills[1].atkSpdMul+=0.2;m.skills[2].cd=Math.round(m.skills[2].cd*0.7);}},
+  {id:'d_ch_1',sub:'돌격형',name:'돌격 모드',tag:'돌격형',desc:'부스터(E) 기본 +30·계수 +0.3.',apply:function(m){m.skills[2].base+=30;m.skills[2].ratio+=0.3;}},
+  {id:'d_ch_2',sub:'돌격형',name:'쾌속 전환',tag:'돌격형',desc:'모드 전환(W) 쿨 −50%.',apply:function(m){m.skills[1].cd=Math.round(m.skills[1].cd*0.5);}},
+  {id:'d_ch_3',sub:'돌격형',name:'충격 부스터',tag:'돌격형',desc:'부스터(E) 사거리 +40.',apply:function(m){m.skills[2].dashRange+=40;}},
+  {id:'d_ch_4',sub:'돌격형',name:'기동 폭주',tag:'돌격형',desc:'모드 전환(W) 피해 배수 +0.1.',apply:function(m){m.skills[1].dmgMul+=0.1;}},
+  {id:'d_ch_5',sub:'돌격형',name:'[OP] 변신 가속',tag:'돌격형',desc:'모드 전환(W) 쿨 −60%.',apply:function(m){m.skills[1].cd=Math.round(m.skills[1].cd*0.4);}},
+  {id:'d_ch_6',sub:'돌격형',name:'[OP] 양면 가동',tag:'돌격형',desc:'모드 전환(W) 피해 +0.2·공속 +0.2.',apply:function(m){m.skills[1].dmgMul+=0.2;m.skills[1].atkSpdMul+=0.2;}},
+  // 공병형
+  {id:'d_en_d',sub:'공병형',name:'[정의] 공병형',tag:'공병형',desc:'자가수리(아바타R) 방어막 +60 + 사격 쿨 −20%.',apply:function(m){if(m.avatarSkills[3])m.avatarSkills[3].shield+=60;m.skills[0].cd=Math.max(0.4,m.skills[0].cd*0.8);}},
+  {id:'d_en_1',sub:'공병형',name:'자가수리',tag:'공병형',desc:'자가수리(아바타R) 방어막 +60.',apply:function(m){if(m.avatarSkills[3])m.avatarSkills[3].shield+=60;}},
+  {id:'d_en_2',sub:'공병형',name:'발전기',tag:'공병형',desc:'사격(Q) 쿨 −20%.',apply:function(m){m.skills[0].cd=Math.max(0.4,m.skills[0].cd*0.8);}},
+  {id:'d_en_3',sub:'공병형',name:'효율 코어',tag:'공병형',desc:'과부하 포격(R) 쿨 −20%.',apply:function(m){m.skills[3].cd=Math.round(m.skills[3].cd*0.8);}},
+  {id:'d_en_4',sub:'공병형',name:'내열',tag:'공병형',desc:'상시 받는피해 −5%.',apply:function(m){m.cfx.permRed=(m.cfx.permRed||0)+0.05;}},
+  {id:'d_en_5',sub:'공병형',name:'[OP] 영구기관',tag:'공병형',desc:'처치 시 전 스킬 쿨 −1.5s.',apply:function(m){m.cfx.killCdr=1.5;}},
+  {id:'d_en_6',sub:'공병형',name:'[OP] 자력 순환',tag:'공병형',desc:'사격(Q) 쿨 −50%.',apply:function(m){m.skills[0].cd=Math.max(0.3,m.skills[0].cd*0.5);}}
  ]
 };
 function ownedCardIds(m){return m.cards.map(function(c){return c.id;});}
