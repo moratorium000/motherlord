@@ -447,6 +447,8 @@ function resolveDamage(src,tgt,base,dtype,opt){
   if(src&&src.cfx)amt*=cardOutMul(src);              // 진화: 가한피해 배수(최후의 광란 등)
   if(src&&src.itw&&src.itw.execAmp&&tgt.hp<tgt.max*0.3)amt*=1.6; // 아이템 처형자의 도끼: 저HP 적 +60%
   if(src&&src.itw&&src.itw.apAmp&&dtype==='magic')amt*=(1+src.itw.apAmp); // 아이템 주문 증폭(대마법사 왕홀 등): 마법 피해 +%
+  if(src&&src.itw&&src.itw.ambush&&tgt.hp>tgt.max*0.6)amt*=(1+src.itw.ambush); // 아이템 그림자 송곳니: 고체력(60%↑) 대상 기습 증폭
+  if(src&&src.itw&&src.itw.maxHpDmg&&tgt.max&&!opt.dot&&!opt.reflect)amt+=tgt.max*src.itw.maxHpDmg; // 아이템 파멸의 낙인: 대상 최대HP 비례 추가타(안티탱크)
   amt*=modMul(tgt,'dmgTaken');                       // ← 저주술사 파멸의 인장이 여기로
   if(dtype!=='true'){
     var raw=(dtype==='magic')?(tgt.mr||0):(tgt.def||0);
@@ -470,6 +472,8 @@ function resolveDamage(src,tgt,base,dtype,opt){
   tgt.hitT=HIT;spark(tgt.x,tgt.y,COL.spark);
   if(amt>0&&!opt.reflect&&!opt.dot&&tgt.itw&&tgt.itw.thorns&&src&&src!==tgt&&src.hp>0)resolveDamage(tgt,src,Math.max(1,Math.round(amt*tgt.itw.thorns)),'magic',{canCrit:false,reflect:true}); // 아이템 불괴의 토템: 받은 피해 반사
   if(amt>0&&!opt.reflect&&!opt.dot&&dtype!=='true'&&src&&src.itw&&src.itw.shred&&tgt!==src&&tgt.def!==undefined&&tgt.hp>0)addMod(tgt,{key:'shred',field:'def',op:'add',value:-src.itw.shred,dur:3,tags:['debuff'],name:'균열',col:COL.bad}); // 아이템 사냥꾼의 정수: 타격 시 방어 약화(갱신)
+  if(amt>0&&!opt.reflect&&!opt.dot&&src&&src.itw&&src.itw.chill&&tgt!==src&&tgt.hp>0)addMod(tgt,{key:'chill',field:'moveSpd',op:'mul',value:src.itw.chill,dur:1.5,tags:['slow','debuff'],source:src,name:'한기',col:COL.info}); // 아이템 수은의 인장: 타격 시 둔화(카이팅)
+  if(amt>0&&!opt.reflect&&!opt.dot&&src&&src.itw&&src.itw.venom&&tgt!==src&&tgt.hp>0)addMod(tgt,{key:'venom',field:'_dot',value:Math.max(1,Math.round((src.ap||0)*src.itw.venom+8)),tickInt:0.5,dur:3,dtype:'magic',tags:['dot','debuff'],source:src,name:'중독',col:COL.dot}); // 아이템 역병의 표상: 타격 시 마법 도트(갱신)
   if(tgt===myHQ&&amt>0){hqFlash=Math.min(1,hqFlash+0.5);addShake(4);sfx('hqhit',0.25);}
   return amt;
 }
@@ -764,7 +768,19 @@ var ITEMS={
  t_chalice:_it({id:'t_chalice',tier:3,name:'생명의 성배',gly:'⚜️',cost:300,build:['m_hood','c_tome'],stats:{ap:55,mr:45,hp:100,cdr:0.12},twist:'aura',tw:{lifeAura:1},twistDesc:'2초마다 주변 아군 치유(주문력 비례·지원형).'}),
  // ── T3 완성템: 소환·군세 2 (네크로·엔지니어·자율로봇) ──
  t_warbanner:_it({id:'t_warbanner',tier:3,name:'군주의 깃발',gly:'🚩',cost:320,build:['m_sigil','c_mail'],stats:{hp:300,def:45,cdr:0.12,minHp:60,minAd:6},twist:'warband',tw:{minionAmp:0.30},twistDesc:'미니언 체력·공격 강화 + 미니언 피해 +30%.'}),
- t_overcrown:_it({id:'t_overcrown',tier:3,name:'지배의 왕관',gly:'👑',cost:320,build:['m_orb','c_vita'],stats:{ap:55,hp:200,cdr:0.12,tenacity:0.20,minCount:2,minAd:4},twist:'dominion',tw:{minionAmp:0.15},twistDesc:'미니언 +2기 · 미니언 공격 강화 + 미니언 피해 +15%.'})
+ t_overcrown:_it({id:'t_overcrown',tier:3,name:'지배의 왕관',gly:'👑',cost:320,build:['m_orb','c_vita'],stats:{ap:55,hp:200,cdr:0.12,tenacity:0.20,minCount:2,minAd:4},twist:'dominion',tw:{minionAmp:0.15},twistDesc:'미니언 +2기 · 미니언 공격 강화 + 미니언 피해 +15%.'}),
+ // ── T3 완성템: 기동·카이팅 ──
+ t_quicksilver:_it({id:'t_quicksilver',tier:3,name:'수은의 인장',gly:'⚡',cost:300,build:['m_track','c_boot'],stats:{spd:70,as:0.20,crit:0.12},twist:'chill',tw:{chill:0.7},twistDesc:'타격마다 대상 둔화 30%(1.5초·카이팅).'}),
+ // ── T3 완성템: 저주·도트 ──
+ t_plague:_it({id:'t_plague',tier:3,name:'역병의 표상',gly:'☣️',cost:300,build:['m_orb','c_pike'],stats:{ap:55,cdr:0.12,pen:20},twist:'venom',tw:{venom:0.25},twistDesc:'타격마다 마법 중독(주문력 비례·0.5초마다 3초).'}),
+ // ── T3 완성템: 안티탱크 ──
+ t_ruin:_it({id:'t_ruin',tier:3,name:'파멸의 낙인',gly:'💀',cost:320,build:['m_fang','c_sword'],stats:{ad:90,pen:20,lifesteal:0.08},twist:'ruin',tw:{maxHpDmg:0.035},twistDesc:'타격마다 대상 최대 HP 3.5% 추가 피해(탱커·보스 특효).'}),
+ // ── T3 완성템: 리더십 오라 ──
+ t_warhorn:_it({id:'t_warhorn',tier:3,name:'전쟁 군가',gly:'📯',cost:320,build:['m_plate','c_gear'],stats:{def:45,hp:300,cdr:0.12,tenacity:0.20},twist:'lead',tw:{auraLead:0.15},twistDesc:'주변 아군 가한 피해 +15%(지휘·지속 갱신).'}),
+ // ── T3 완성템: 암살 버스트 ──
+ t_shadow:_it({id:'t_shadow',tier:3,name:'그림자 송곳니',gly:'🗡️',cost:310,build:['m_zerk','c_pike'],stats:{ad:45,as:0.20,crit:0.12,pen:20},twist:'ambush',tw:{ambush:0.35},twistDesc:'HP 60% 이상 대상에게 피해 +35%(개시 암살).'}),
+ // ── T3 완성템: 범용 CC 면역 탱커 ──
+ t_warden:_it({id:'t_warden',tier:3,name:'불침의 방벽',gly:'🚧',cost:320,build:['m_hood','c_mail'],stats:{def:45,mr:45,hp:200,cdr:0.12},twist:'warden',tw:{ccImmune:1},twistDesc:'본인 CC 면역(범용 비전사 탱커 해법).'})
 };
 var ITEM_TIERS=[[],[],[],[]]; // [1]=컴포넌트 [2]=중위 [3]=완성
 Object.keys(ITEMS).forEach(function(id){ITEM_TIERS[ITEMS[id].tier].push(id);});
@@ -1830,6 +1846,7 @@ function update(dt){
   if(m.itw&&m.itw.autoPurge){m.purgeT=(m.purgeT||0)-dt;if(m.purgeT<=0){m.purgeT=3;var _pn=purge(m);m.shield=Math.max(m.shield,80+_pn*60);if(_pn)ftext(m,'정화',COL.teal,false);}} // 아이템 정화의 성수: 3초마다 자동 정화 + 방어막
   if(m.itw&&m.itw.bastion){m.bastionT=(m.bastionT||0)-dt;if(m.bastionT<=0){m.bastionT=4;m.shield=Math.max(m.shield,Math.round(m.max*0.12));}} // 아이템 불멸의 성소: 4초마다 (최대HP 12%) 방어막 충전
   if(m.itw&&m.itw.lifeAura){m.auraT=(m.auraT||0)-dt;if(m.auraT<=0){m.auraT=2;for(var _la=0;_la<MLS.length;_la++){var _LA=MLS[_la];if(!_LA.downed&&_LA.hp>0&&_LA.hp<_LA.max&&Math.hypot(_LA.x-m.x,_LA.y-m.y)<200)heal(_LA,Math.round(m.max*0.03+m.ap*0.35));}}} // 아이템 생명의 성배: 2초마다 주변 아군 치유(주문력 비례)
+  if(m.itw&&m.itw.auraLead){m.leadT=(m.leadT||0)-dt;if(m.leadT<=0){m.leadT=1.5;for(var _ld=0;_ld<MLS.length;_ld++){var _LD=MLS[_ld];if(!_LD.downed&&_LD.hp>0&&Math.hypot(_LD.x-m.x,_LD.y-m.y)<220)addMod(_LD,{key:'lead',field:'dmgDealt',op:'mul',value:1+m.itw.auraLead,dur:1.8,tags:['buff'],source:m,name:'지휘',col:COL.warn});}}} // 아이템 전쟁 군가: 주변 아군 가한 피해 증폭(리더십)
   if(m.K.res==='mana')m.mana=Math.min(m.maxMana,m.mana+m.manaRegen*dt);
   if(nearFriendlyBase(m.x,m.y))m.hp=Math.min(m.max,m.hp+m.max*HEAL_RATE*dt); // 본부·교두보 근처 자동회복
   if(m.recall!=null){m.recall-=dt;if(m.recall<=0)doRecall(m);}
