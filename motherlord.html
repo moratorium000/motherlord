@@ -446,6 +446,7 @@ function resolveDamage(src,tgt,base,dtype,opt){
   if(src)amt*=modMul(src,'dmgDealt');
   if(src&&src.cfx)amt*=cardOutMul(src);              // 진화: 가한피해 배수(최후의 광란 등)
   if(src&&src.itw&&src.itw.execAmp&&tgt.hp<tgt.max*0.3)amt*=1.6; // 아이템 처형자의 도끼: 저HP 적 +60%
+  if(src&&src.itw&&src.itw.apAmp&&dtype==='magic')amt*=(1+src.itw.apAmp); // 아이템 주문 증폭(대마법사 왕홀 등): 마법 피해 +%
   amt*=modMul(tgt,'dmgTaken');                       // ← 저주술사 파멸의 인장이 여기로
   if(dtype!=='true'){
     var raw=(dtype==='magic')?(tgt.mr||0):(tgt.def||0);
@@ -457,6 +458,7 @@ function resolveDamage(src,tgt,base,dtype,opt){
     amt*=100/(100+eff);
   }
   amt*=(1-modReduction(tgt));
+  if(tgt.itw&&tgt.itw.lowHpDR&&tgt.hp<tgt.max*0.4)amt*=(1-tgt.itw.lowHpDR); // 아이템 불굴의 거신: HP40%↓ 받는 피해 경감
   if(tgt.bigHitReduce&&amt>tgt.max*0.12)amt*=(1-tgt.bigHitReduce); // 전사 아바타 불굴: 단발 고피해만 경감
   amt=Math.max(1,Math.round(amt));
   if(tgt.cfx){amt=cardIncoming(tgt,amt,src,dtype);amt=Math.max(0,Math.round(amt));} // 진화: 받는피해 조건부 경감·반사·부활
@@ -466,6 +468,7 @@ function resolveDamage(src,tgt,base,dtype,opt){
     ftext(tgt,amt,col,crit);}
   if(src&&src.K&&src.cfx&&amt>0){cardOnHit(src,tgt,amt,dtype);if(tgt.hp<=0)cardOnKill(src,tgt);} // 진화: 온힛·온킬 트리거
   tgt.hitT=HIT;spark(tgt.x,tgt.y,COL.spark);
+  if(amt>0&&!opt.reflect&&!opt.dot&&tgt.itw&&tgt.itw.thorns&&src&&src!==tgt&&src.hp>0)resolveDamage(tgt,src,Math.max(1,Math.round(amt*tgt.itw.thorns)),'magic',{canCrit:false,reflect:true}); // 아이템 불괴의 토템: 받은 피해 반사
   if(tgt===myHQ&&amt>0){hqFlash=Math.min(1,hqFlash+0.5);addShake(4);sfx('hqhit',0.25);}
   return amt;
 }
@@ -743,7 +746,15 @@ var ITEMS={
  // ── T3 완성템: 범용 3(대표 빌드 관통/정화/CC) ──
  t_pierce:_it({id:'t_pierce',tier:3,name:'관통의 표창',gly:'🎯',cost:280,build:['m_fang','c_pike'],stats:{ad:45,pen:40,lifesteal:0.08},twist:'armor',tw:{armorPen:1},twistDesc:'대상 방어/마저 비례 관통 — 탱일수록 더 뚫는다.'}),
  t_purge:_it({id:'t_purge',tier:3,name:'정화의 성수',gly:'💧',cost:300,build:['m_hood','c_vita'],stats:{mr:45,hp:300,cdr:0.12,tenacity:0.20},twist:'purge',tw:{autoPurge:1},twistDesc:'3초마다 디버프 자동 정화 + 정화 수만큼 방어막.'}),
- t_bind:_it({id:'t_bind',tier:3,name:'속박의 인장',gly:'🔗',cost:300,build:['m_orb','m_hood'],stats:{ap:55,cdr:0.24,mr:45,hp:100},twist:'cc',tw:{ccAmp:1},twistDesc:'CC 적중 시 대상 받는 피해 +25%(취약 낙인).'})
+ t_bind:_it({id:'t_bind',tier:3,name:'속박의 인장',gly:'🔗',cost:300,build:['m_orb','m_hood'],stats:{ap:55,cdr:0.24,mr:45,hp:100},twist:'cc',tw:{ccAmp:1},twistDesc:'CC 적중 시 대상 받는 피해 +25%(취약 낙인).'}),
+ // ── T3 완성템: 주문력 계통 3 ──
+ t_archon:_it({id:'t_archon',tier:3,name:'대마법사의 왕홀',gly:'🔱',cost:320,build:['m_orb','c_tome'],stats:{ap:110,cdr:0.12},twist:'apamp',tw:{apAmp:0.30},twistDesc:'모든 마법 피해 +30%(순수 폭딜 술사).'}),
+ t_void:_it({id:'t_void',tier:3,name:'공허의 첨탑',gly:'🟪',cost:300,build:['m_orb','c_pike'],stats:{ap:55,cdr:0.12,pen:20},twist:'voiddrain',tw:{apAmp:0.18,lifeAll:0.10},twistDesc:'모든 마법 피해 +18% · 가한 피해 10% 흡혈(주문 자생).'}),
+ t_frost:_it({id:'t_frost',tier:3,name:'서리의 왕홀',gly:'❄️',cost:300,build:['m_orb','c_cloak'],stats:{ap:55,cdr:0.12,mr:45,hp:100},twist:'frostbite',tw:{ccAmp:1,apAmp:0.12},twistDesc:'CC 적중 시 대상 받는 피해 +25% · 마법 피해 +12%(제어형 술사).'}),
+ // ── T3 완성템: 탱킹 계통 3 ──
+ t_bulwark:_it({id:'t_bulwark',tier:3,name:'불괴의 토템',gly:'🗿',cost:320,build:['m_plate','c_cloak'],stats:{def:45,mr:45,hp:400,tenacity:0.20},twist:'thorns',tw:{thorns:0.18},twistDesc:'받은 피해의 18%를 공격자에게 마법으로 반사.'}),
+ t_aegis:_it({id:'t_aegis',tier:3,name:'불멸의 성소',gly:'🛡️',cost:320,build:['m_plate','c_mail'],stats:{def:90,hp:400,tenacity:0.20},twist:'bastion',tw:{bastion:1},twistDesc:'4초마다 (최대HP 12%)만큼 방어막을 충전.'}),
+ t_juggernaut:_it({id:'t_juggernaut',tier:3,name:'불굴의 거신',gly:'🦏',cost:320,build:['m_sigil','c_vita'],stats:{hp:400,cdr:0.12,tenacity:0.40},twist:'lowhpdr',tw:{lowHpDR:0.30},twistDesc:'HP 40% 이하일 때 받는 피해 −30%.'})
 };
 var ITEM_TIERS=[[],[],[],[]]; // [1]=컴포넌트 [2]=중위 [3]=완성
 Object.keys(ITEMS).forEach(function(id){ITEM_TIERS[ITEMS[id].tier].push(id);});
@@ -1807,6 +1818,7 @@ function update(dt){
   if(m.lockT>0)m.lockT=Math.max(0,m.lockT-dt); // 피니셔 후딜 무방비
   if(m.stealthT>0)m.stealthT=Math.max(0,m.stealthT-dt); // 도적 은신 타이머
   if(m.itw&&m.itw.autoPurge){m.purgeT=(m.purgeT||0)-dt;if(m.purgeT<=0){m.purgeT=3;var _pn=purge(m);m.shield=Math.max(m.shield,80+_pn*60);if(_pn)ftext(m,'정화',COL.teal,false);}} // 아이템 정화의 성수: 3초마다 자동 정화 + 방어막
+  if(m.itw&&m.itw.bastion){m.bastionT=(m.bastionT||0)-dt;if(m.bastionT<=0){m.bastionT=4;m.shield=Math.max(m.shield,Math.round(m.max*0.12));}} // 아이템 불멸의 성소: 4초마다 (최대HP 12%) 방어막 충전
   if(m.K.res==='mana')m.mana=Math.min(m.maxMana,m.mana+m.manaRegen*dt);
   if(nearFriendlyBase(m.x,m.y))m.hp=Math.min(m.max,m.hp+m.max*HEAL_RATE*dt); // 본부·교두보 근처 자동회복
   if(m.recall!=null){m.recall-=dt;if(m.recall<=0)doRecall(m);}
