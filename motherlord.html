@@ -584,7 +584,8 @@ function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타�
   if(swapCD>0){toast('빙의 쿨 '+swapCD.toFixed(1)+'s — 이 몸에 묶임');return;}
   var p=MLS[sel],a=MLS[i];if(a.downed)return;
   if(Math.hypot(p.x-a.x,p.y-a.y)>SWAP_RANGE){toast('너무 멀다 — 아바타에 더 가까이 가서 빙의');return;}
-  sel=i;swapCD=2.2;snapTo(camT,a.x,a.y);toast('빙의 → '+a.name);sfx('cast',0.1);}
+  sel=i;swapCD=2.2;snapTo(camT,a.x,a.y);toast('빙의 → '+a.name);sfx('cast',0.1);
+  for(var q=0;q<enemies.length;q++){var o=enemies[q];if(o.hp>0&&((o.kind==='mb'&&o.awake)||o.kind==='elite')&&Math.hypot(o.x-p.x,o.y-p.y)<300){var na=Math.atan2(a.y-o.y,a.x-o.x);tels.push({kind:'lane',x:o.x,y:o.y,a:na,r:300,w:36,windup:0.45,wmax:0.45,dmg:34,dtype:'phys',source:o,applied:false,life:0});}}} // ⑥ 반응형 스왑 처벌: 교전 중 스왑=갭클로즈 예고(예측형 스왑 학습)
 function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;MLS[i].cmd=c;if(c==='hold')MLS[i].holdPt={x:MLS[i].x,y:MLS[i].y};n++;}
   toast(n?('아바타 '+n+'기 → '+(c==='escort'?'호위':c==='push'?'진격(보스 방면)':'수비(현 위치)')):'아바타 없음');}
 function reviveSoul(m){m.downed=false;m.hp=m.max;m.x=myHQ.x+(Math.random()*44-22);m.y=myHQ.y+(Math.random()*44-22);m.mods=[];m.shield=0;m.dest=m.tgt=m.amove=null;
@@ -944,6 +945,7 @@ function updateMb(e,dt){
   if(!e.awake)return;
   if(e.regen)e.hp=Math.min(e.max,e.hp+e.regen*dt);
   if(modHas(e,'stun'))return;
+  if(!e.p2&&e.hp<=e.max*0.5){e.p2=true;e.hitT=0.35;addShake(8);for(var pi=0;pi<10;pi++){var pa=Math.random()*6.283;fx.push({type:'part',x:e.x,y:e.y,vx:Math.cos(pa)*120,vy:Math.sin(pa)*120,life:0.5,t:0.5,col:COL.warn});}toast(e.name+' — 페이즈 2 (패턴 강화)');} // ⑤ 패턴 진화=층 추가
   var nm=nearML(e),M=nm.m;
   var T=MBTUNE[e.arch];
   if(e.arch==='plague'){
@@ -951,14 +953,14 @@ function updateMb(e,dt){
     e.ptimer-=dt;
     if(e.ptimer<=0){var tgt=null;
       if(M&&nm.d<=T.range)tgt=M;else if(Math.hypot(myHQ.x-e.x,myHQ.y-e.y)<=T.range)tgt=myHQ;
-      if(tgt){var wu=T.windup;tels.push({kind:'circle',x:tgt.x,y:tgt.y,r:62,windup:wu,wmax:wu,life:0,dmg:70,dtype:'magic',source:e,applied:false,leaveDot:true});
+      if(tgt){var wu=T.windup;tels.push({kind:'circle',x:tgt.x,y:tgt.y,r:e.p2?78:62,windup:wu,wmax:wu,hold:e.p2?0.4:0,life:0,dmg:70,dtype:'magic',source:e,applied:false,leaveDot:true});
         e.ptimer=T.cast+Math.random()*T.castVar;e.castName='역병 살포';e.castP=0;e.castMax=wu;}else e.ptimer=0.4;}
     if(e.castP<e.castMax)e.castP+=dt;
   }
   else if(e.arch==='brood'){ // 다수: 잡몹 주기 소환 + 약한 포자 장판
     mbWander(e,dt);
     e.ptimer-=dt;
-    if(e.ptimer<=0){var n=T.spawn+(e.ring>1?1:0);for(var i=0;i<n;i++)enemies.push(mkEm(e.x+(Math.random()*40-20),e.y+(Math.random()*40-20),1+e.ring*0.25));
+    if(e.ptimer<=0){var n=T.spawn+(e.ring>1?1:0)+(e.p2?2:0);for(var i=0;i<n;i++)enemies.push(mkEm(e.x+(Math.random()*40-20),e.y+(Math.random()*40-20),1+e.ring*0.25,pickEmType(gameTime)));
       e.castName='포자 분출';e.castP=0;e.castMax=0.6;e.ptimer=T.cast+Math.random()*T.castVar;
       // 가끔 약한 독 장판
       if(M&&nm.d<340)tels.push({kind:'circle',x:M.x,y:M.y,r:54,windup:1.3,wmax:1.3,life:0,dmg:42,dtype:'magic',source:e,applied:false,leaveDot:true});}
@@ -969,13 +971,13 @@ function updateMb(e,dt){
     if(e.phase==='idle'){e.ptimer-=dt;
       if(e.ptimer<=0&&M&&nm.d<T.range){e.phase='tele';e.castName='관통 빔';e.castMax=T.windup;e.castP=0;
         var dx=M.x-e.x,dy=M.y-e.y,d=Math.hypot(dx,dy)||1,L=T.range;
-        e.line={x1:e.x,y1:e.y,x2:e.x+dx/d*L,y2:e.y+dy/d*L,w:26,windup:T.windup,beam:true};}}
+        e.line={x1:e.x,y1:e.y,x2:e.x+dx/d*L,y2:e.y+dy/d*L,w:e.p2?38:26,windup:T.windup,beam:true};}}
     else if(e.phase==='tele'){e.castP+=dt;e.line.windup-=dt;
       if(e.line.windup<=0){ // 빔 발사: 라인 근처 아군 전부 물리 피해
         var L=e.line;impact((L.x1+L.x2)/2,(L.y1+L.y2)/2,40,COL.bad);
         for(var i=0;i<FRIENDS.length;i++){var u=FRIENDS[i];if(u.hp<=0)continue;if(distToSeg(u.x,u.y,L.x1,L.y1,L.x2,L.y2)<=L.w){resolveDamage(e,u,64,'phys',{});}}
         fx.push({type:'beam',x1:L.x1,y1:L.y1,x2:L.x2,y2:L.y2,life:0.22,t:0.22,col:COL.bad});
-        e.line=null;e.phase='idle';e.ptimer=T.cd+Math.random()*T.cdVar;e.castName='';}}
+        e.line=null;e.phase='idle';e.ptimer=T.cd*(e.p2?0.6:1)+Math.random()*T.cdVar;e.castName='';}}
   }
   else if(e.arch==='veil'){ // 장막: 직접딜 약함, 주변 거점/본부에 방어막 부여
     mbWander(e,dt);
@@ -993,7 +995,7 @@ function updateMb(e,dt){
     mbWander(e,dt);
     if(e.phase==='idle'){e.ptimer-=dt;
       if(e.ptimer<=0&&M&&nm.d<T.range+60){e.phase='tele';e.castName='속박 결계';e.castMax=T.windup;e.castP=0;
-        e.bind={x:M.x,y:M.y,r:T.radius,windup:T.windup};}}
+        e.bind={x:M.x,y:M.y,r:T.radius*(e.p2?1.35:1),windup:T.windup};}}
     else if(e.phase==='tele'){e.castP+=dt;e.bind.windup-=dt;
       if(e.bind.windup<=0){impact(e.bind.x,e.bind.y,e.bind.r,COL.teal);
         aoeFriends(e.bind.x,e.bind.y,e.bind.r,function(u){addMod(u,{key:'root',field:'moveSpd',op:'mul',value:0,dur:T.rootDur,tags:['root','cc','debuff'],source:e,name:'속박',col:COL.teal});resolveDamage(e,u,20,'magic',{});});
@@ -1011,7 +1013,14 @@ function updateMb(e,dt){
       if(e.line.windup<=0){e.phase='dash';e.dashFrom={x:e.x,y:e.y};e.dashTo={x:e.line.x2,y:e.line.y2};e.dashP=0;e.hitSet=[];e.line=null;}}
     else if(e.phase==='dash'){var fx0=e.dashFrom.x,fy0=e.dashFrom.y;e.dashP+=dt*3.2;var p=Math.min(1,e.dashP);e.x=fx0+(e.dashTo.x-fx0)*p;e.y=fy0+(e.dashTo.y-fy0)*p;
       for(var i=0;i<FRIENDS.length;i++){var u=FRIENDS[i];if(u.hp<=0||e.hitSet.indexOf(u)>=0)continue;if(Math.hypot(u.x-e.x,u.y-e.y)<34){resolveDamage(e,u,48,'phys',{});e.hitSet.push(u);}}
-      if(p>=1){e.phase='idle';e.ptimer=T.cd+Math.random()*T.cdVar;e.castName='';}}
+      if(p>=1){
+        if(e.p2)tels.push({kind:'ringC',x:e.x,y:e.y,r:130,windup:0.6,wmax:0.6,dmg:50,dtype:'phys',source:e,applied:false,life:0}); // ⑤ P2: 콤보 끝 수축링(처벌 창이 이동까지 요구)
+        var nm2=nearML(e);
+        if(e.p2&&nm2.m&&nm2.d<150&&!e.restrung){ // ① 스트링 분기: P2 & 근접 유지면 즉시 연속 돌진
+          e.restrung=true;e.phase='tele';e.castName='연속 돌진';e.castMax=0.35;e.castP=0;
+          var ddx=nm2.m.x-e.x,ddy=nm2.m.y-e.y,dd=Math.hypot(ddx,ddy)||1,LL=Math.min(260,dd+70);
+          e.line={x1:e.x,y1:e.y,x2:e.x+ddx/dd*LL,y2:e.y+ddy/dd*LL,w:30,windup:0.35};
+        } else {e.restrung=false;e.phase='idle';e.ptimer=T.cd+Math.random()*T.cdVar;e.castName='';}}}
   }
 }
 function distToSeg(px,py,x1,y1,x2,y2){var dx=x2-x1,dy=y2-y1,l2=dx*dx+dy*dy;if(l2===0)return Math.hypot(px-x1,py-y1);var t=Math.max(0,Math.min(1,((px-x1)*dx+(py-y1)*dy)/l2));return Math.hypot(px-(x1+t*dx),py-(y1+t*dy));}
