@@ -428,6 +428,7 @@ function resolveDamage(src,tgt,base,dtype,opt){
     amt*=100/(100+eff);
   }
   amt*=(1-modReduction(tgt));
+  if(tgt.bigHitReduce&&amt>tgt.max*0.12)amt*=(1-tgt.bigHitReduce); // 전사 아바타 불굴: 단발 고피해만 경감
   amt=Math.max(1,Math.round(amt));
   if(tgt.shield&&tgt.shield>0){var ab=Math.min(tgt.shield,amt);tgt.shield-=ab;amt-=ab;if(ab>0)ftext(tgt,ab,COL.shield,false);}
   if(amt>0){tgt.hp=Math.max(0,tgt.hp-amt);
@@ -451,7 +452,11 @@ function S(key,name,type,o){o=o||{};return{
   shield:o.shield||0,reduce:o.reduce||0,slow:o.slow||0,rootDur:o.rootDur||0,
   dotDmg:o.dotDmg||0,dotDur:o.dotDur||0,dotTick:o.dotTick||0.5,
   atkspd:o.atkspd||0,burn:o.burn||0,dashRange:o.dashRange||220,
-  heal:o.heal||0,hot:o.hot||0,defDown:o.defDown||0,ampMul:o.ampMul||1
+  heal:o.heal||0,hot:o.hot||0,defDown:o.defDown||0,ampMul:o.ampMul||1,
+  // ── 신설계(구현지침 §4): 연격·토글·아바타 전용 필드 ──
+  knock:o.knock||0,combo:o.combo||null,window:o.window||0.6,step:0,winLeft:0,
+  on:false,hpCost:o.hpCost||0,dmgMul:o.dmgMul||1,atkSpdMul:o.atkSpdMul||1,takenMul:o.takenMul||1,offHp:o.offHp||0,
+  tauntDur:o.tauntDur||0,pull:o.pull||0,spdMul:o.spdMul||1,nextMul:o.nextMul||1,zdmg:o.zdmg||0
 };}
 function skillDmg(m,s){var stat=(s.dtype==='magic')?m.ap:(s.dtype==='true'?0:m.ad);return Math.round(s.base+s.ratio*stat);}
 function skillHealAmt(m,s){return Math.round(s.heal+s.ratio*m.ap);}
@@ -459,12 +464,24 @@ function skillHealAmt(m,s){return Math.round(s.heal+s.ratio*m.ap);}
 var KITS={
  warrior:{label:'전사 · 쿨다운형',gly:'전',res:'cd',col:COL.info,range:38,atkInt:0.9,ranged:false,
   ad:30,ap:0,def:24,mr:8,crit:0.12,critMult:1.7,hp:640,
-  tag:'근접 물리 · 분노로 피를 태워 폭딜. 성직자 힐이 자멸을 메우면 영구 딜 엔진.',
+  tag:'근접 물리 · 피를 태우는 돌진 광전사. 빙의=연격·혈투, 아바타=빙의체 개조+라인홀드.',
+  // 변신벌(빙의 — 공격적+컨트롤성, 쿨 자원): 연격 Q / 풀+도발 W / 돌진 E / 토글 R
   skills:[
-   S('Q','강타','enemy',{base:80,ratio:1.5,cd:4,dtype:'phys',desc:'단일 대상 물리 피해.'}),
-   S('W','진형 방벽','self',{cd:10,dur:5,col:COL.good,fx:'shield',shield:180,reduce:0.3,desc:'방어막 + 받는 피해 감소.'}),
-   S('E','돌진베기','dash',{base:46,ratio:1.0,cd:8,radius:52,dashRange:240,dtype:'phys',desc:'지점으로 돌진 — 경로/착지 적에 물리 피해. 갭클로저.'}),
-   S('R','분노','self',{cd:18,dur:6,mult:1.8,col:COL.bad,fx:'rage',burn:14,desc:'피해 +80%. 매초 체력 연소. (성직자 힐과 짝)'})
+   S('Q','강타','combo',{cd:6,dtype:'phys',window:0.6,desc:'3타 연격. 단계마다 판정·계수↑. 피니셔(3타) 처치 시 쿨 60% 환급. 끊으면 안전, 끝까지 가면 무방비.',combo:[
+     {dmgBase:30,dmgRatio:0.40,cone:60, r:90, rec:0.12},
+     {dmgBase:35,dmgRatio:0.45,cone:80, r:100,rec:0.15},
+     {dmgBase:50,dmgRatio:0.60,cone:110,r:120,rec:0.30,knock:60,finisher:true,killRefund:0.6,lock:0.30}
+   ]}),
+   S('W','전장 장악','point',{cd:11,radius:130,col:COL.good,fx:'rally',shield:120,ratio:0.4,pull:130,tauntDur:2,dtype:'phys',desc:'반경 130 적 강제 끌어당김(풀)+도발 2s, 자신 방어막. 흩어진 적을 내가 뭉친다.'}),
+   S('E','돌진베기','dash',{base:70,ratio:0.6,cd:7,radius:52,dashRange:240,knock:50,dtype:'phys',desc:'지점 돌진 — 경로 적 베기+넉백. 갭클로즈·추격·보스 패턴 회피.'}),
+   S('R','혈투','toggle',{cd:18,hpCost:0.03,dmgMul:1.45,atkSpdMul:1.40,takenMul:1.25,offHp:0.2,col:COL.bad,desc:'토글: HP 3%/s 연소, 피해+45%·공속+40%·받는피해+25%. HP 20%서 자동 해제. (성직자 힐과 짝=영구 엔진)'})
+  ],
+  // 아바타벌(자율 — 빙의체 개조+라인홀드, 자원무시 쿨): 도발진 / 돌격명령 / 전선구축 / 불굴
+  avatarSkills:[
+   S('Q','도발진','point',{cd:9,radius:150,col:COL.warn,fx:'taunt',tauntDur:2.5,desc:'반경 150 적 도발 — 빙의체가 받을 공격을 흡수. (보스 제압불가)'}),
+   S('W','돌격 명령','self',{cd:12,dur:8,col:COL.warn,fx:'warcry',spdMul:1.30,nextMul:1.25,desc:'호위 빙의체·미니언 이속+30%, 피해+25%. 빙의체를 더 세게 박게.'}),
+   S('E','전선 구축','zone',{cd:14,dur:8,radius:110,col:COL.info,fx:'frontline',slow:0.7,zdmg:6,desc:'폭 진입 방해 지대 — 통과 적 둔화30%+소량 피해. 개떼·엘리트 길목 차단.'}),
+   S('R','불굴','passive',{fx:'inimitable',reduce:0.4,desc:'패시브: 보스급 단발 패턴 피해 −40%(다수 피해엔 미적용).'})
   ]},
  mage:{label:'마법사 · 마나형',gly:'마',res:'mana',col:COL.magic,range:165,atkInt:1.0,ranged:true,
   ad:16,ap:42,def:6,mr:14,crit:0.08,critMult:1.7,hp:520,
@@ -555,6 +572,8 @@ function applyUpgrades(m){var u=m.up,cb=m.cardBonus||{};
   syncMinions(m);
 }
 function clone(k){return k.map(function(s){return Object.assign({},s);});}
+// 스킬 클론 — 연격(combo) 단계 배열까지 인스턴스별로 깊은 복사(카드 변형이 공유배열을 오염시키지 않게)
+function deepCloneSkills(k){return k.map(function(s){var c=Object.assign({},s);if(s.combo)c.combo=s.combo.map(function(st){return Object.assign({},st);});c.step=0;c.winLeft=0;c.on=false;c.cdLeft=0;return c;});}
 // 미니언 대형 — 마더로드 주위 동심 배치(수 증가 대응)
 function minionOffset(i){var ring=Math.floor(i/6),idx=i%6,rad=20+ring*14,a=(idx/6)*6.283+ring*0.6;return [Math.cos(a)*rad,Math.sin(a)*rad];}
 function mkMinion(m,i){var o=minionOffset(i);return {x:m.x+o[0],y:m.y+o[1],o:o,hp:m.minMax||80,max:m.minMax||80,def:6,mr:6,shield:0,mods:[],atkLeft:Math.random(),hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:'미니언',owner:m};}
@@ -566,8 +585,8 @@ function syncMinions(m){var want=m.minCount||4;
 function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||600,max:K.hp||600,mana:100,maxMana:100,manaRegen:9,
   range:K.range,speed:92,ad:K.ad,ap:K.ap,def:K.def,mr:K.mr,crit:K.crit,critMult:K.critMult,flatPen:0,pctPen:0,tenacity:0,cdr:0,shield:0,
   minMax:80,minAd:7,minAtk:1.0,minCount:4,
-  dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:clone(K.skills),mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},recall:null,
-  cmd:'escort',downed:false,downT:0,holdPt:null, // 빙의 프레임: 아바타 커맨드 + 다운 상태
+  dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:deepCloneSkills(K.skills),avatarSkills:K.avatarSkills?deepCloneSkills(K.avatarSkills):null,mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},recall:null,
+  cmd:'escort',downed:false,downT:0,holdPt:null,lockT:0,tauntT:0,bigHitReduce:0, // 빙의 프레임: 아바타 커맨드 + 다운 + 신설계 상태
   hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:K.label};
   for(var i=0;i<4;i++)m.minions.push(mkMinion(m,i));
   applyUpgrades(m);
@@ -591,7 +610,8 @@ function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타�
   for(var q=0;q<enemies.length;q++){var o=enemies[q];if(o.hp>0&&((o.kind==='mb'&&o.awake)||o.kind==='elite')&&Math.hypot(o.x-p.x,o.y-p.y)<300){var na=Math.atan2(a.y-o.y,a.x-o.x);tels.push({kind:'lane',x:o.x,y:o.y,a:na,r:300,w:36,windup:0.45,wmax:0.45,dmg:34,dtype:'phys',source:o,applied:false,life:0});}}} // ⑥ 반응형 스왑 처벌: 교전 중 스왑=갭클로즈 예고(예측형 스왑 학습)
 function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;MLS[i].cmd=c;if(c==='hold')MLS[i].holdPt={x:MLS[i].x,y:MLS[i].y};n++;}
   toast(n?('아바타 '+n+'기 → '+(c==='escort'?'호위':c==='push'?'진격(보스 방면)':'수비(현 위치)')):'아바타 없음');}
-function reviveSoul(m){m.downed=false;m.hp=m.max;m.x=myHQ.x+(Math.random()*44-22);m.y=myHQ.y+(Math.random()*44-22);m.mods=[];m.shield=0;m.dest=m.tgt=m.amove=null;
+function reviveSoul(m){m.downed=false;m.hp=m.max;m.x=myHQ.x+(Math.random()*44-22);m.y=myHQ.y+(Math.random()*44-22);m.mods=[];m.shield=0;m.dest=m.tgt=m.amove=null;m.lockT=0;
+  for(var si=0;si<m.skills.length;si++)if(m.skills[si].on)m.skills[si].on=false; // 다운 시 토글 강제 해제(mods는 이미 비움)
   if(MLS.indexOf(m)===sel){overlordDead=false;toast('부활 — '+m.name+'에 다시 빙의');}else toast(m.name+' 재소환');}
 var myHQ={x:HQX,y:HQY,hp:1600,max:1600,r:24,def:20,mr:20,shield:0,mods:[],hitT:0,lungeT:0,name:'본부'};
 
@@ -769,7 +789,7 @@ function drawChest(c){if(c.opened)return;var pul=0.5+0.5*Math.abs(Math.sin(c.pul
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
 var coreExposed=false;
 var waveT=20,waveN=1;
-var order=null,mouse={x:0,y:0,on:false},fx=[],projs=[],held={},tels=[],hazards=[],ftxts=[];
+var order=null,mouse={x:0,y:0,on:false},fx=[],projs=[],held={},tels=[],hazards=[],zones=[],ftxts=[];
 var shiftHeld=false,hoverSkill=-1,overPanel=false;
 // 화면 흔들림 / 본부 피격 비네트 / 유닛 이모지
 var shake=0,hqFlash=0;
@@ -836,7 +856,10 @@ function applyDebuff(tgt,src,s){
   if(s.fx==='amp')addMod(tgt,{key:'amp',field:'dmgTaken',op:'mul',value:s.ampMul,dur:s.dur,tags:['debuff'],source:src,name:'파멸의 인장',col:COL.bad});
 }
 function lowestHpAlly(){var b=null,bf=2;for(var i=0;i<MLS.length;i++){var m=MLS[i];var f=m.hp/m.max;if(f<bf){bf=f;b=m;}}return b;}
-function executeCast(m,si,tx,ty,te){var s=m.skills[si];if(s.cdLeft>0)return;if(modHas(m,'stun')||modHas(m,'silence'))return;if(m.K.res==='mana'&&m.mana<s.mana)return;
+function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdLeft>0)return;if(modHas(m,'stun')||modHas(m,'silence'))return;if(m.K.res==='mana'&&m.mana<s.mana)return;
+  if(s.type==='combo'){doCombo(m,s,tx,ty,te);return;}   // 연격: 자체 쿨 관리
+  if(s.type==='toggle'){doToggle(m,s);return;}          // 토글: 자체 쿨 관리
+  if(s.type==='passive')return;
   s.cdLeft=s.cd*(1-(m.cdr||0));if(m.K.res==='mana')m.mana-=Math.round(s.mana*(1-(m.cdr||0)*0.6));var sd=skillDmg(m,s);
   if(s.fx==='sanctuary'||s.type==='auto'||(s.type==='ally'))sfx('heal');
   else if(s.fx==='weaken'||s.fx==='amp'||s.fx==='root'||s.fx==='dot'||m.kind==='curser')sfx('castDark');
@@ -844,7 +867,14 @@ function executeCast(m,si,tx,ty,te){var s=m.skills[si];if(s.cdLeft>0)return;if(m
   else if(s.type==='point'&&s.radius>=80)sfx('aoe');
   else sfx('cast');
   if(s.type==='self'){
-    if(s.fx==='shield'){m.shield=Math.max(m.shield,s.shield);addMod(m,{key:'guard',field:'dmgReduction',op:'add',value:s.reduce,dur:s.dur,tags:['buff'],source:m,name:'방벽',col:s.col});}
+    if(s.fx==='warcry'){ // 아바타 돌격명령 — 빙의체(MLS[sel])+자기 미니언 이속·피해 버프
+      var targets=[m];if(!overlordDead&&MLS[sel])targets.push(MLS[sel]);for(var wi=0;wi<m.minions.length;wi++)targets.push(m.minions[wi]);
+      for(var wt=0;wt<targets.length;wt++){var u=targets[wt];if(!u||u.hp<=0)continue;
+        addMod(u,{key:'warcry_spd',field:'moveSpd',op:'mul',value:s.spdMul,dur:s.dur,tags:['buff'],source:m,name:'돌격',col:s.col});
+        addMod(u,{key:'warcry_dmg',field:'dmgDealt',op:'mul',value:s.nextMul,dur:s.dur,tags:['buff'],source:m,name:'돌격',col:s.col});}
+      fx.push({x:m.x,y:m.y,r:46,t:0.5,life:0.5,col:s.col,fade:true,follow:m});
+    }
+    else if(s.fx==='shield'){m.shield=Math.max(m.shield,s.shield);addMod(m,{key:'guard',field:'dmgReduction',op:'add',value:s.reduce,dur:s.dur,tags:['buff'],source:m,name:'방벽',col:s.col});}
     else if(s.fx==='atkspd')addMod(m,{key:'haste',field:'atkSpd',op:'mul',value:s.atkspd,dur:s.dur,tags:['buff'],source:m,name:'속사',col:s.col});
     else if(s.fx==='rage'){addMod(m,{key:'rage',field:'dmgDealt',op:'mul',value:s.mult,dur:s.dur,tags:['buff'],source:m,name:'분노',col:s.col});
       addMod(m,{key:'rageburn',field:'_dot',op:'mul',value:s.burn,dur:s.dur,tickInt:0.5,dtype:'true',tags:['dot'],source:m,name:'체력연소',col:COL.bad});
@@ -865,11 +895,25 @@ function executeCast(m,si,tx,ty,te){var s=m.skills[si];if(s.cdLeft>0)return;if(m
   }}
   else if(s.type==='dash'){
     var dx=tx-m.x,dy=ty-m.y,dd=Math.hypot(dx,dy)||1;var L=Math.min(s.dashRange,dd);
-    m.dash={fx:m.x,fy:m.y,tx:m.x+dx/dd*L,ty:m.y+dy/dd*L,p:0,time:0.18,dmg:sd,dtype:s.dtype,radius:s.radius,pathR:30,col:s.col,hit:[]};
+    m.dash={fx:m.x,fy:m.y,tx:m.x+dx/dd*L,ty:m.y+dy/dd*L,p:0,time:0.18,dmg:sd,dtype:s.dtype,radius:s.radius,pathR:30,col:s.col,hit:[],knock:s.knock||0};
     m.dest=null;m.tgt=null;m.amove=null;
   }
+  else if(s.type==='zone'){ // 아바타 전선 구축 — 진입 방해 지대(둔화+소량딜)
+    zones.push({x:m.x,y:m.y,r:s.radius,life:s.dur,slow:s.slow||0.7,dmg:s.zdmg||0,source:m,col:s.col});
+    fx.push({x:m.x,y:m.y,r:s.radius,t:0.5,life:0.5,col:s.col,fade:true});
+  }
   else{ // point
-    if(s.fx==='sanctuary'){ // 아군 회복 + 정화
+    if(s.fx==='rally'){ // 전사 W 전장 장악 — 풀+도발+자기 방어막(자기중심)
+      fx.push({x:m.x,y:m.y,r:s.radius,t:0.5,life:0.5,col:s.col,fade:true,follow:m});impact(m.x,m.y,s.radius*0.5,s.col);
+      pullToward(m.x,m.y,s.radius,s.pull||120,m);
+      for(var rj=0;rj<enemies.length;rj++){var re=enemies[rj];if(re.hp>0&&Math.hypot(re.x-m.x,re.y-m.y)<=s.radius){resolveDamage(m,re,sd,s.dtype,{canCrit:true});applyTaunt(re,m,s.tauntDur);}}
+      m.shield=Math.max(m.shield,Math.round(s.shield+s.ratio*m.ad));
+    }
+    else if(s.fx==='taunt'){ // 아바타 도발진 — 반경 적 도발
+      fx.push({x:m.x,y:m.y,r:s.radius,t:0.5,life:0.5,col:s.col,fade:true,follow:m});
+      for(var tj=0;tj<enemies.length;tj++){var teN=enemies[tj];if(teN.hp>0&&Math.hypot(teN.x-m.x,teN.y-m.y)<=s.radius)applyTaunt(teN,m,s.tauntDur);}
+    }
+    else if(s.fx==='sanctuary'){ // 아군 회복 + 정화
       fx.push({x:tx,y:ty,r:s.radius,t:0.6,life:0.6,col:s.col,fade:true});impact(tx,ty,s.radius*0.5,s.col);
       var amt=skillHealAmt(m,s);
       for(var i=0;i<FRIENDS.length;i++){var u=FRIENDS[i];if(u.hp<=0||u===myHQ)continue;if(Math.hypot(u.x-tx,u.y-ty)<=s.radius){heal(u,amt);var pn=purge(u);if(pn)ftext(u,'정화',COL.teal,false);}}
@@ -882,32 +926,84 @@ function executeCast(m,si,tx,ty,te){var s=m.skills[si];if(s.cdLeft>0)return;if(m
 // 돌진 진행
 function advDash(m,dt){var d=m.dash;d.p+=dt/d.time;var p=Math.min(1,d.p);
   m.x=d.fx+(d.tx-d.fx)*p;m.y=d.fy+(d.ty-d.fy)*p;lunge(m,d.tx,d.ty,4);
-  for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.hp<=0||d.hit.indexOf(e)>=0)continue;if(Math.hypot(e.x-m.x,e.y-m.y)<=d.pathR){d.hit.push(e);resolveDamage(m,e,d.dmg,d.dtype,{canCrit:true});}}
+  for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.hp<=0||d.hit.indexOf(e)>=0)continue;if(Math.hypot(e.x-m.x,e.y-m.y)<=d.pathR){d.hit.push(e);resolveDamage(m,e,d.dmg,d.dtype,{canCrit:true});if(d.knock)knockback(e,d.fx,d.fy,d.knock);}}
   if(p>=1){fx.push({x:m.x,y:m.y,r:d.radius,t:0.5,life:0.5,col:d.col,fade:true});impact(m.x,m.y,d.radius*0.5,d.col);
-    for(var k=0;k<enemies.length;k++){var e2=enemies[k];if(e2.hp<=0||d.hit.indexOf(e2)>=0)continue;if(Math.hypot(e2.x-m.x,e2.y-m.y)<=d.radius)resolveDamage(m,e2,d.dmg,d.dtype,{canCrit:true});}
+    for(var k=0;k<enemies.length;k++){var e2=enemies[k];if(e2.hp<=0||d.hit.indexOf(e2)>=0)continue;if(Math.hypot(e2.x-m.x,e2.y-m.y)<=d.radius){resolveDamage(m,e2,d.dmg,d.dtype,{canCrit:true});if(d.knock)knockback(e2,d.fx,d.fy,d.knock);}}
     m.dash=null;}
 }
+/* ════════════════════════════════════════════════════════════
+   신설계 스킬 인프라(구현지침 §4) — 연격·토글·아바타 전용 거동
+   ════════════════════════════════════════════════════════════ */
+function removeModKey(e,key){if(e.mods)for(var i=e.mods.length-1;i>=0;i--)if(e.mods[i].key===key)e.mods.splice(i,1);}
+function tauntable(e){return e&&e.hp>0&&e.kind!=='boss'&&!e.guardian&&e.kind!=='spawner';} // 보스 제압불가
+function enemiesNear(x,y,r){var n=0;for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.hp>0&&e.kind!=='spawner'&&Math.hypot(e.x-x,e.y-y)<=r)n++;}return n;}
+function applyTaunt(e,src,dur){if(!tauntable(e))return;e.tauntT=Math.max(e.tauntT||0,dur);e.tauntSrc=src;
+  addMod(e,{key:'taunt',field:'_taunt',op:'mul',value:1,dur:dur,tags:['cc','debuff'],source:src,name:'도발',col:COL.warn});}
+function knockback(e,fx2,fy2,dist){if(!e||e.kind==='boss'||e.kind==='spawner'||e.guardian)return;var dx=e.x-fx2,dy=e.y-fy2,d=Math.hypot(dx,dy)||1,nx=e.x+dx/d*dist,ny=e.y+dy/d*dist;
+  if(obstAt(nx,ny,e.r||14)){nx=e.x+dx/d*dist*0.4;ny=e.y+dy/d*dist*0.4;if(obstAt(nx,ny,e.r||14))return;}e.x=nx;e.y=ny;}
+function pullToward(cx,cy,range,dist,src){for(var i=0;i<enemies.length;i++){var e=enemies[i];if(!tauntable(e))continue;var dx=cx-e.x,dy=cy-e.y,d=Math.hypot(dx,dy);if(d>range||d<8)continue;
+  var stp=Math.min(dist,d-12),nx=e.x+dx/d*stp,ny=e.y+dy/d*stp;if(!obstAt(nx,ny,e.r||14)){e.x=nx;e.y=ny;}}}
+// 부채꼴 판정 — 조준방향 ±각/2 + 반경 안의 적 전부 타격. 맞은 적 배열 반환(처치 환급 판정용)
+function coneHit(m,tx,ty,range,coneDeg,dmg,dtype,opt){var aim=Math.atan2(ty-m.y,tx-m.x),half=coneDeg*Math.PI/360,hit=[];
+  for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.hp<=0||e.kind==='spawner')continue;var dx=e.x-m.x,dy=e.y-m.y,d=Math.hypot(dx,dy);if(d>range+(e.r||0))continue;
+    var a=Math.atan2(dy,dx)-aim;while(a>Math.PI)a-=6.283;while(a<-Math.PI)a+=6.283;
+    if(Math.abs(a)<=half||d<(e.r||0)+8){resolveDamage(m,e,dmg,dtype,opt||{canCrit:true});hit.push(e);}}
+  return hit;}
+// Q 연격 — 단계별 부채꼴, 피니셔 넉백 + 처치 시 쿨 환급. 윈도우 내 재입력으로 진행, 끊기면 1타 리셋.
+function doCombo(m,s,tx,ty,te){var step=s.step||0,st=s.combo[step];if(!st)return;
+  var ax=tx,ay=ty;if(te&&te.hp>0){ax=te.x;ay=te.y;}
+  lunge(m,ax,ay,11);slash(ax,ay,Math.atan2(ay-m.y,ax-m.x),COL.info);sfx('melee',0.05);
+  var dmg=Math.round(st.dmgBase+st.dmgRatio*m.ad),hit=coneHit(m,ax,ay,st.r,st.cone,dmg,'phys',{canCrit:true});
+  if(st.knock)for(var i=0;i<hit.length;i++)knockback(hit[i],m.x,m.y,st.knock);
+  if(st.finisher){var killed=false;for(var k=0;k<hit.length;k++)if(hit[k].hp<=0){killed=true;break;}
+    s.cdLeft=s.cd*(1-(m.cdr||0))*((killed&&st.killRefund)?(1-st.killRefund):1);
+    s.step=0;s.winLeft=0;if(st.lock)m.lockT=st.lock;
+    fx.push({x:m.x,y:m.y,r:st.r*0.7,t:0.35,life:0.35,col:COL.warn,fade:true,follow:m});
+    if(killed)ftext(m,'쿨 환급',COL.warn,false);
+  } else { s.cdLeft=st.rec||0.12;s.step=step+1;s.winLeft=s.window||0.6; }
+}
+// R 혈투 — 토글. ON=지속 버프+자해, OFF/HP20%=해제 후 쿨.
+function doToggle(m,s){if(!s.on){s.on=true;
+    addMod(m,{key:'tgl_dmg',field:'dmgDealt',op:'mul',value:s.dmgMul,dur:99999,tags:['buff'],source:m,name:s.name,col:s.col});
+    addMod(m,{key:'tgl_as',field:'atkSpd',op:'mul',value:s.atkSpdMul,dur:99999,tags:['buff'],source:m});
+    addMod(m,{key:'tgl_taken',field:'dmgTaken',op:'mul',value:s.takenMul,dur:99999,tags:['debuff'],source:m,name:'받피↑',col:COL.bad});
+    if(m._berserk)addMod(m,{key:'tgl_bers',field:'dmgReduction',op:'add',value:0.5,dur:99999,tags:['buff'],source:m,name:'광전사',col:COL.warn});
+    fx.push({x:m.x,y:m.y,r:46,t:0.5,life:0.5,col:s.col,fade:true,follow:m});sfx('cast');
+  } else { toggleOff(m,s);s.cdLeft=s.cd*(1-(m.cdr||0)); }
+}
+function toggleOff(m,s){s.on=false;removeModKey(m,'tgl_dmg');removeModKey(m,'tgl_as');removeModKey(m,'tgl_taken');removeModKey(m,'tgl_bers');}
 function clericPresent(){for(var i=0;i<MLS.length;i++)if(MLS[i].kind==='cleric')return true;return false;}
 // 자동 스킬 — 정책(인지)은 규칙으로 고정, 실행(손가락)은 자동. 수동 QWER는 쿨로 자연 공존.
 function autoCastTick(m){if(!AUTO_SKILLS)return;if(modHas(m,'stun')||modHas(m,'silence'))return;
+  var set=m.avatarSkills||m.skills; // 아바타일 때 = 아바타벌(자율 유틸·제어), 없으면 빙의벌 폴백
   var eng=(m.tgt&&m.tgt.hp>0)?m.tgt:nearestEnemy(m.x,m.y,m.range+30,true);var engaged=!!eng;
-  for(var i=0;i<m.skills.length;i++){var s=m.skills[i];
+  for(var i=0;i<set.length;i++){var s=set[i];
+    if(s.type==='passive')continue;
     if(s.cdLeft>0)continue;if(m.K.res==='mana'&&m.mana<s.mana)continue;
-    if(s.type==='auto'||s.type==='ally'){var al=lowestHpAlly();if(al&&al.hp<al.max*0.82)executeCast(m,i,al.x,al.y,al);continue;}
+    // ── 아바타 전용 fx ──
+    if(s.fx==='taunt'){if(enemiesNear(m.x,m.y,s.radius)>0)executeCast(m,i,m.x,m.y,null,set);continue;}
+    if(s.fx==='warcry'){if(engaged||(MLS[sel]&&!overlordDead&&nearestEnemy(MLS[sel].x,MLS[sel].y,300,true)))executeCast(m,i,m.x,m.y,null,set);continue;}
+    if(s.fx==='frontline'){if(enemiesNear(m.x,m.y,s.radius+40)>0)executeCast(m,i,m.x,m.y,null,set);continue;}
+    // ── 공용(빙의벌 폴백 포함) ──
+    if(s.type==='auto'||s.type==='ally'){var al=lowestHpAlly();if(al&&al.hp<al.max*0.82)executeCast(m,i,al.x,al.y,al,set);continue;}
+    if(s.type==='toggle'){if(m.hp>m.max*0.6&&clericPresent()&&!s.on&&engaged)executeCast(m,i,m.x,m.y,null,set);continue;} // 혈투: 힐러 있을 때만 자동 ON
     if(!engaged)continue;
-    if(s.type==='enemy'){executeCast(m,i,eng.x,eng.y,eng);}
+    if(s.type==='enemy'||s.type==='combo'){executeCast(m,i,eng.x,eng.y,eng,set);}
+    else if(s.type==='zone'){executeCast(m,i,m.x,m.y,null,set);}
     else if(s.type==='point'){var cnt=0;for(var j=0;j<enemies.length;j++){var e2=enemies[j];if(e2.hp>0&&Math.hypot(e2.x-eng.x,e2.y-eng.y)<=s.radius)cnt++;}
       if((s.radius>=100||s.mana>=50)&&cnt<2)continue; // 큰 광역은 2기 이상 군집에만
-      executeCast(m,i,eng.x,eng.y,null);}
-    else if(s.type==='dash'){if(Math.hypot(eng.x-m.x,eng.y-m.y)>60)executeCast(m,i,eng.x,eng.y,null);}
+      executeCast(m,i,eng.x,eng.y,null,set);}
+    else if(s.type==='dash'){if(Math.hypot(eng.x-m.x,eng.y-m.y)>60)executeCast(m,i,eng.x,eng.y,null,set);}
     else if(s.type==='self'){
-      if(s.fx==='rage'){if(m.hp>m.max*0.6&&clericPresent())executeCast(m,i,m.x,m.y,null);} // 자멸 방지: 힐러 있을 때만 자동
-      else if(s.fx==='shield'){if(m.hp<m.max*0.8||m.hitT>0)executeCast(m,i,m.x,m.y,null);}
-      else executeCast(m,i,m.x,m.y,null);}
+      if(s.fx==='rage'){if(m.hp>m.max*0.6&&clericPresent())executeCast(m,i,m.x,m.y,null,set);} // 자멸 방지: 힐러 있을 때만 자동
+      else if(s.fx==='shield'){if(m.hp<m.max*0.8||m.hitT>0)executeCast(m,i,m.x,m.y,null,set);}
+      else executeCast(m,i,m.x,m.y,null,set);}
   }}
 function pressSkill(si){if(paused||gameOver||overlordDead)return;var m=MLS[sel];if(m.downed)return;var s=m.skills[si];
-  if(s.type==='self'){executeCast(m,si,m.x,m.y,null);order=null;}
+  if(s.type==='self'||s.type==='toggle'||s.fx==='rally'){executeCast(m,si,m.x,m.y,null);order=null;} // 자기중심기 = 즉발
   else if(s.type==='auto'){executeCast(m,si,0,0,lowestHpAlly());order=null;}
+  else if(s.type==='combo'){ // 연격: 최근접 적(없으면 커서) 방향으로 즉발
+    var en=nearestEnemy(m.x,m.y,200,false);var tx=en?en.x:wX(mouse.x),ty=en?en.y:wY(mouse.y);executeCast(m,si,tx,ty,en);order=null;}
   else order={type:(s.type==='ally'?'skillAlly':'skill'),mi:sel,si:si};}
 
 /* ============================================================
@@ -966,7 +1062,7 @@ function moveTo(o,gx,gy,sp,dt,stopAt){var ddx=gx-o.x,ddy=gy-o.y,d=Math.hypot(ddx
     t1x/=l1;t1y/=l1;t2x/=l2;t2y/=l2;var pick=(t1x*ux+t1y*uy>=t2x*ux+t2y*uy);
     nx=o.x+(pick?t1x:t2x)*st;ny=o.y+(pick?t1y:t2y)*st;}
   o.x=nx;o.y=ny;collide(o);return false;}
-function decay(o,dt){if(o.hitT>0)o.hitT=Math.max(0,o.hitT-dt);if(o.lungeT>0)o.lungeT=Math.max(0,o.lungeT-dt);}
+function decay(o,dt){if(o.hitT>0)o.hitT=Math.max(0,o.hitT-dt);if(o.lungeT>0)o.lungeT=Math.max(0,o.lungeT-dt);if(o.tauntT>0){o.tauntT-=dt;if(o.tauntT<=0)o.tauntSrc=null;}}
 function eSpeed(o,base){return base*modMul(o,'moveSpd');}
 // 미니보스 배회 — 본부/플레이어로 접근하지 않고 자기 앵커 주변을 천천히 순회(출제자, §8.3)
 function mbWander(e,dt){if(modHas(e,'root'))return;
@@ -979,7 +1075,8 @@ function mbWander(e,dt){if(modHas(e,'root'))return;
    ============================================================ */
 var FRIENDS=[];
 function rebuildFriends(){FRIENDS.length=0;for(var i=0;i<MLS.length;i++){if(MLS[i].downed)continue;FRIENDS.push(MLS[i]);if(i===sel&&!overlordDead)continue;for(var j=0;j<MLS[i].minions.length;j++)FRIENDS.push(MLS[i].minions[j]);}FRIENDS.push(myHQ);} // 미니언=아바타 전용(빙의체 미니언 휴면)
-function nearML(e){var b=null,bd=1e9;for(var i=0;i<MLS.length;i++){var d=Math.hypot(MLS[i].x-e.x,MLS[i].y-e.y);if(d<bd){bd=d;b=MLS[i];}}return{m:b,d:bd};}
+function nearML(e){if(e.tauntT>0&&e.tauntSrc&&e.tauntSrc.hp>0&&!e.tauntSrc.downed)return{m:e.tauntSrc,d:Math.hypot(e.tauntSrc.x-e.x,e.tauntSrc.y-e.y)}; // 도발: 도발원 강제 타겟
+  var b=null,bd=1e9;for(var i=0;i<MLS.length;i++){var d=Math.hypot(MLS[i].x-e.x,MLS[i].y-e.y);if(d<bd){bd=d;b=MLS[i];}}return{m:b,d:bd};}
 function aoeFriends(x,y,r,fn){for(var i=0;i<FRIENDS.length;i++){var u=FRIENDS[i];if(u.hp<=0)continue;if(Math.hypot(u.x-x,u.y-y)<=r)fn(u);}}
 
 // ── 엘리트 10종(적_설계 §4): 적 플레이어. 시그니처1+텔레그래프1+카운터1. 단독 약·삼중주 합성 위협. ──
@@ -1256,8 +1353,13 @@ function update(dt){
   if(m.downed){m.downT-=dt;if(m.downT<=0)reviveSoul(m);continue;}
   var isP=(i===sel&&!overlordDead);  // 빙의체 = 사람 손, 그 외 = AI 아바타
   decay(m,dt);tickMods(m,dt);
+  m.bigHitReduce=(!isP&&m.kind==='warrior'&&m.avatarSkills)?0.4:0; // 불굴(아바타 패시브): 보스급 단발 −40%
   if(m.shield>0&&!modHas(m,'guard'))m.shield=Math.max(0,m.shield-26*dt);
-  for(var s=0;s<m.skills.length;s++)if(m.skills[s].cdLeft>0)m.skills[s].cdLeft=Math.max(0,m.skills[s].cdLeft-dt);
+  for(var s=0;s<m.skills.length;s++){var sk=m.skills[s];if(sk.cdLeft>0)sk.cdLeft=Math.max(0,sk.cdLeft-dt);
+    if(sk.type==='combo'&&sk.winLeft>0){sk.winLeft-=dt;if(sk.winLeft<=0)sk.step=0;}                 // 연격 윈도우 만료 → 1타 리셋
+    if(sk.on){if(!isP){toggleOff(m,sk);} else {m.hp-=m.max*sk.hpCost*dt;if(m.hp<=m.max*(sk.offHp||0.2)||m.hp<=1){m.hp=Math.max(1,m.hp);toggleOff(m,sk);sk.cdLeft=sk.cd*(1-(m.cdr||0));}}}} // 토글: 빙의체 전용. 자해 + HP20% 자동 해제
+  if(m.avatarSkills)for(var sa=0;sa<m.avatarSkills.length;sa++)if(m.avatarSkills[sa].cdLeft>0)m.avatarSkills[sa].cdLeft=Math.max(0,m.avatarSkills[sa].cdLeft-dt);
+  if(m.lockT>0)m.lockT=Math.max(0,m.lockT-dt); // 피니셔 후딜 무방비
   if(m.K.res==='mana')m.mana=Math.min(m.maxMana,m.mana+m.manaRegen*dt);
   if(nearFriendlyBase(m.x,m.y))m.hp=Math.min(m.max,m.hp+m.max*HEAL_RATE*dt); // 본부·교두보 근처 자동회복
   if(m.recall!=null){m.recall-=dt;if(m.recall<=0)doRecall(m);}
@@ -1273,18 +1375,18 @@ function update(dt){
    var anear=nearestEnemy(m.x,m.y,m.cmd==='escort'?300:260,true);
    if(anear){m.tgt=anear;m.amove=null;m.dest=null;}else{m.tgt=null;m.dest=null;m.amove={x:gp.x,y:gp.y};}
   }
-  var eng=null;
+  var eng=null,locked=(m.lockT>0);
   if(m.tgt){if(m.tgt.hp<=0)m.tgt=null;else eng=m.tgt;}
   if(!eng&&m.amove)eng=nearestEnemy(m.x,m.y,m.range+44,true);
   if(!chan&&!eng&&!m.dest&&!m.tgt&&!m.amove)eng=nearestEnemy(m.x,m.y,m.range,true);
-  if(!m.dash&&!stun&&!chan&&eng){var de=Math.hypot(eng.x-m.x,eng.y-m.y);
+  if(!m.dash&&!stun&&!chan&&!locked&&eng){var de=Math.hypot(eng.x-m.x,eng.y-m.y);
     if(de>m.range-4){if((m.tgt||m.amove)&&!root)moveTo(m,eng.x,eng.y,eSpeed(m,m.speed),dt,m.range-6);}
     else{m.atkLeft-=dt*modMul(m,'atkSpd');if(m.atkLeft<=0){
       if(m.K.ranged)shoot(m,eng,m.ad,(m.kind==='mage'||m.kind==='cleric'||m.kind==='curser')?'magic':'phys',m.K.col,m.kind==='archer'?640:460,m.kind==='archer'?2.5:5,{canCrit:true});
       else{lunge(m,eng.x,eng.y,9);slash(eng.x,eng.y,Math.atan2(eng.y-m.y,eng.x-m.x),m.K.col);resolveDamage(m,eng,m.ad,'phys',{canCrit:true});sfx('melee',0.07);}
       m.atkLeft=m.atkInt;}}}
-  else if(!m.dash&&!stun&&!root&&m.dest){if(moveTo(m,m.dest.x,m.dest.y,eSpeed(m,m.speed),dt,2))m.dest=null;}
-  else if(!m.dash&&!stun&&!root&&m.amove){if(moveTo(m,m.amove.x,m.amove.y,eSpeed(m,m.speed),dt,2))m.amove=null;}
+  else if(!m.dash&&!stun&&!root&&!locked&&m.dest){if(moveTo(m,m.dest.x,m.dest.y,eSpeed(m,m.speed),dt,2))m.dest=null;}
+  else if(!m.dash&&!stun&&!root&&!locked&&m.amove){if(moveTo(m,m.amove.x,m.amove.y,eSpeed(m,m.speed),dt,2))m.amove=null;}
   if(!isP){ // 미니언 = 아바타 전용·소모성·거점(본부/교두보) 생산(작업로그 v2 §52)
    if(m.minions.length<m.minCount&&nearFriendlyBase(m.x,m.y)){m.refillCD=(m.refillCD||0)-dt;if(m.refillCD<=0){m.minions.push(mkMinion(m,m.minions.length));m.refillCD=3.5;}} // 거점 근처서 충원
    for(var j=m.minions.length-1;j>=0;j--){var mn=m.minions[j];
@@ -1343,6 +1445,11 @@ function update(dt){
  if(myHQ.hitT>0)myHQ.hitT=Math.max(0,myHQ.hitT-dt);
 
  updateTels(dt);
+ // 전선 구축 지대(아바타 전선구축) — 진입 적 둔화 + 소량 피해
+ for(var zi=zones.length-1;zi>=0;zi--){var zz=zones[zi];zz.life-=dt;if(zz.life<=0){zones.splice(zi,1);continue;}
+   for(var ze=0;ze<enemies.length;ze++){var en2=enemies[ze];if(en2.hp<=0||en2.kind==='spawner'||en2.kind==='boss'||en2.guardian)continue;
+     if(Math.hypot(en2.x-zz.x,en2.y-zz.y)<=zz.r){addMod(en2,{key:'frontline',field:'moveSpd',op:'mul',value:zz.slow,dur:0.35,tags:['slow','debuff'],source:zz.source,name:'전선',col:zz.col});
+       if(zz.dmg){en2._flAcc=(en2._flAcc||0)+dt;if(en2._flAcc>=0.5){en2._flAcc=0;resolveDamage(zz.source,en2,zz.dmg,'phys',{canCrit:false});}}}}}
 
  for(var f=fx.length-1;f>=0;f--){var ff=fx[f];if(ff.follow){ff.x=ff.follow.x;ff.y=ff.follow.y;}if(ff.type==='part'){ff.x+=ff.vx*dt;ff.y+=ff.vy*dt;ff.vx*=0.9;ff.vy*=0.9;}ff.life-=dt;if(ff.life<=0)fx.splice(f,1);}
  if(shake>0)shake=Math.max(0,shake-dt*38);if(hqFlash>0)hqFlash=Math.max(0,hqFlash-dt*2.2);
@@ -1429,6 +1536,7 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
 
  // 지면 위험: 독 지대 + 예고
  hazards.forEach(function(z){var a=Math.min(1,z.life);ctx.save();ctx.globalAlpha=0.14*a;disc(z.x,z.y,z.r,COL.poison);ctx.globalAlpha=0.5*a;ring(z.x,z.y,z.r,COL.poison,1.2);ctx.restore();});
+ zones.forEach(function(z){var a=Math.min(1,z.life/2);ctx.save();ctx.globalAlpha=0.10+0.06*a;disc(z.x,z.y,z.r,z.col);ctx.globalAlpha=0.45;ring(z.x,z.y,z.r,z.col,1.4);ctx.setLineDash([5,5]);ring(z.x,z.y,z.r-5,z.col,1);ctx.setLineDash([]);ctx.restore();}); // 전선 구축 지대
  tels.forEach(function(t){if(t.applied)return;
    var inHold=(t.hold>0&&t.windup<=0&&(t.holdLeft||0)>0),fill=inHold?1:1-Math.max(0,t.windup)/(t.wmax||1.05);
    var pul=inHold?(0.45+0.55*Math.abs(Math.sin(gameTime*11))):1,col=t.dtype==='magic'?COL.magic:COL.bad;ctx.save();
@@ -1550,9 +1658,9 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
    ============================================================ */
 var CARDS={
  warrior:[
-  {id:'w_bers',name:'광전사 각성',tag:'스킬 변형',desc:'분노(R) 시전 중 받는 피해 −50%. 자멸 딜을 안전하게 굴린다.',apply:function(m){m._berserk=true;}},
-  {id:'w_exec',name:'처형 리듬',tag:'스킬 변형',desc:'강타(Q) 쿨 −1.5s, 피해 계수 +0.6. 처형 속도 가속.',apply:function(m){var q=m.skills[0];q.cd=Math.max(1,q.cd-1.5);q.ratio+=0.6;}},
-  {id:'w_wall',name:'불굴의 방벽',tag:'스킬 변형',desc:'진형 방벽(W) 방어막 +140, 받는 피해 감소 +12%, 지속 +2s.',apply:function(m){var w=m.skills[1];w.shield+=140;w.reduce+=0.12;w.dur+=2;}}
+  {id:'w_bers',name:'광전사 각성',tag:'버서커',desc:'혈투(R) 시전 중 받는 피해 −50%. HP 자원화를 안전하게 굴린다.',apply:function(m){m._berserk=true;}},
+  {id:'w_exec',name:'처형 리듬',tag:'처형자',desc:'강타(Q) 연격 전 단계 피해 계수 +0.15, 쿨 −1.5s. 처형 환급 사슬 가속.',apply:function(m){var q=m.skills[0];q.cd=Math.max(2,q.cd-1.5);if(q.combo)q.combo.forEach(function(st){st.dmgRatio+=0.15;});}},
+  {id:'w_wall',name:'불굴의 방벽',tag:'수호자',desc:'전장 장악(W) 방어막 +140, 끌어당김 반경 +30, 도발 +1s.',apply:function(m){var w=m.skills[1];w.shield+=140;w.radius+=30;w.tauntDur+=1;}}
  ],
  mage:[
   {id:'m_chain',name:'낙뢰 연쇄',tag:'반응 시퀀스',desc:'낙뢰(W) 반경 +34, 피해 계수 +0.8. 감전 살포를 넓힌다.',apply:function(m){var w=m.skills[1];w.radius+=34;w.ratio+=0.8;}},
@@ -1727,7 +1835,7 @@ function buildEntityTip(o){
  return h;}
 function dtypeLabel(d){return d==='magic'?'마법':(d==='true'?'고정':'물리');}
 function buildSkillTip(m,si){var s=m.skills[si];
- var typ=s.type==='self'?'자기 강화':(s.type==='enemy'?'단일 대상':(s.type==='dash'?'돌진 · 갭클로저':(s.type==='auto'?'아군 자동':(s.type==='ally'?'아군 지정':'지점 광역'))));
+ var typ=s.type==='self'?'자기 강화':(s.type==='enemy'?'단일 대상':(s.type==='dash'?'돌진 · 갭클로저':(s.type==='auto'?'아군 자동':(s.type==='ally'?'아군 지정':(s.type==='combo'?'연격 · 콤보':(s.type==='toggle'?'토글 · 지속':(s.type==='zone'?'설치 · 지대':(s.type==='passive'?'패시브':'지점 광역'))))))));
  var h='<div class="t-name" style="color:'+s.col+'">'+s.key+' · '+s.name+'</div>';
  h+='<div class="t-sub">'+typ+' · '+dtypeLabel(s.dtype)+'</div>';
  h+='<div style="margin-top:5px;">'+s.desc+'</div>';
@@ -1750,6 +1858,15 @@ function buildSkillTip(m,si){var s=m.skills[si];
  if(s.fx==='weaken')h+='<div class="t-row"><span>쇠약</span><span style="color:'+COL.magic+'">방어 −'+(s.defDown>=999?'전부(0)':s.defDown)+' · 이속↓ / '+s.dur+'s</span></div>';
  if(s.fx==='root')h+='<div class="t-row"><span>속박</span><span style="color:'+COL.teal+'">'+s.rootDur+'s</span></div>';
  if(s.fx==='amp')h+='<div class="t-row"><span>받는 피해 증폭</span><span style="color:'+COL.bad+'">×'+s.ampMul+' / '+s.dur+'s</span></div>';
+ if(s.type==='combo'&&s.combo){h+='<div class="t-row"><span>연격</span><span>'+s.combo.length+'타 · 윈도우 '+s.window+'s</span></div>';
+   for(var ci=0;ci<s.combo.length;ci++){var st=s.combo[ci];h+='<div class="t-detail t-sub">'+(ci+1)+'타 '+(st.dmgBase+Math.round(st.dmgRatio*m.ad))+(st.finisher?' · 피니셔(처치 시 쿨 '+Math.round(st.killRefund*100)+'% 환급)':'')+'</div>';}}
+ if(s.type==='toggle')h+='<div class="t-row"><span>토글</span><span style="color:'+s.col+'">HP '+Math.round(s.hpCost*100)+'%/s · 피해×'+s.dmgMul+' 공속×'+s.atkSpdMul+' 받피×'+s.takenMul+'</span></div>';
+ if(s.fx==='rally')h+='<div class="t-row"><span>장악</span><span style="color:'+COL.good+'">끌어당김 r'+s.radius+' · 도발 '+s.tauntDur+'s · 방어막 '+s.shield+'</span></div>';
+ if(s.fx==='taunt')h+='<div class="t-row"><span>도발</span><span style="color:'+COL.warn+'">r'+s.radius+' · '+s.tauntDur+'s (보스 제압불가)</span></div>';
+ if(s.fx==='warcry')h+='<div class="t-row"><span>돌격</span><span style="color:'+s.col+'">이속×'+s.spdMul+' 피해×'+s.nextMul+' / '+s.dur+'s</span></div>';
+ if(s.fx==='frontline')h+='<div class="t-row"><span>전선</span><span style="color:'+s.col+'">둔화×'+s.slow+' +'+(s.zdmg*2)+'/s · '+s.dur+'s</span></div>';
+ if(s.fx==='inimitable')h+='<div class="t-row"><span>불굴</span><span style="color:'+COL.shield+'">보스급 단발 −'+Math.round(s.reduce*100)+'%</span></div>';
+ if(s.knock)h+='<div class="t-row"><span>넉백</span><span>'+s.knock+'</span></div>';
  if(m.cards&&m.cards.length){var on=m.cards.filter(function(c){var t=CARDS[m.kind];return t&&t.some(function(x){return x.id===c.id;});});}
  return h;}
 function updateTip(){
