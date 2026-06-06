@@ -815,8 +815,24 @@ function clone(k){return k.map(function(s){return Object.assign({},s);});}
 // 스킬 클론 — 연격(combo) 단계 배열까지 인스턴스별로 깊은 복사(카드 변형이 공유배열을 오염시키지 않게)
 function deepCloneSkills(k){return k.map(function(s){var c=Object.assign({},s);if(s.combo)c.combo=s.combo.map(function(st){return Object.assign({},st);});c.step=0;c.winLeft=0;c.on=false;c.cdLeft=0;return c;});}
 // 미니언 대형 — 마더로드 주위 동심 배치(수 증가 대응)
+// ── 마더로드별 미니언 아키타입(특색) — role: melee/ranged/support. range=교전 사거리, spd=이속, *Mul=스탯 배수 ──
+var MINIONDEF={
+ warrior:{role:'melee', name:'방패병', gly:'盾',col:COL.info,  hpMul:1.7,dmgMul:0.8,spd:104,range:24, atkInt:1.1,def:18,front:0.4},
+ mage:   {role:'ranged',name:'견습술사',gly:'魔',col:COL.magic, hpMul:0.7,dmgMul:1.0,spd:120,range:150,atkInt:1.7,dtype:'magic'},
+ archer: {role:'ranged',name:'사수',   gly:'弓',col:COL.good,  hpMul:0.7,dmgMul:1.25,spd:118,range:190,atkInt:1.0,dtype:'phys'},
+ cleric: {role:'support',name:'복사',  gly:'聖',col:COL.teal,  hpMul:1.05,dmgMul:0.5,spd:116,range:26, atkInt:1.4,heal:14},
+ curser: {role:'ranged',name:'저주병', gly:'呪',col:COL.magic, hpMul:0.8,dmgMul:0.75,spd:114,range:160,atkInt:1.6,dtype:'magic',slow:0.6},
+ rogue:  {role:'melee', name:'그림자', gly:'刃',col:COL.magic, hpMul:0.55,dmgMul:1.6,spd:152,range:22, atkInt:0.8},
+ necro:  {role:'melee', name:'망령',   gly:'骸',col:COL.poison, hpMul:0.8,dmgMul:0.9,spd:120,range:24, atkInt:1.1},
+ archaeologist:{role:'melee',name:'조수',gly:'探',col:COL.warn, hpMul:1.0,dmgMul:1.0,spd:118,range:42, atkInt:1.1},
+ vampire:{role:'melee', name:'권속',   gly:'血',col:COL.bad,   hpMul:1.0,dmgMul:1.0,spd:124,range:24, atkInt:1.0,lifesteal:0.4},
+ engineer:{role:'ranged',name:'정찰드론',gly:'◇',col:COL.info, hpMul:0.9,dmgMul:0.9,spd:108,range:170,atkInt:1.3,dtype:'phys'},
+ drone:  {role:'ranged',name:'포격드론',gly:'◈',col:COL.teal,  hpMul:0.9,dmgMul:1.15,spd:110,range:185,atkInt:1.2,dtype:'phys'}
+};
+function minionDef(m){return MINIONDEF[m.kind]||MINIONDEF.warrior;}
 function minionOffset(i){var ring=Math.floor(i/6),idx=i%6,rad=20+ring*14,a=(idx/6)*6.283+ring*0.6;return [Math.cos(a)*rad,Math.sin(a)*rad];}
-function mkMinion(m,i){var o=minionOffset(i);return {x:m.x+o[0],y:m.y+o[1],o:o,hp:m.minMax||80,max:m.minMax||80,def:6,mr:6,shield:0,mods:[],atkLeft:Math.random(),hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:'미니언',owner:m};}
+function mkMinion(m,i){var o=minionOffset(i),D=minionDef(m),mx=Math.round((m.minMax||80)*D.hpMul);
+  return {x:m.x+o[0],y:m.y+o[1],o:o,mdef:D,hp:mx,max:mx,def:D.def||6,mr:6,shield:0,mods:[],facing:0,atkLeft:Math.random(),hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,front:D.front||0,name:D.name,owner:m};}
 function summonMinions(m,n){var SKEL_CAP=10,skelN=0;for(var i=0;i<m.minions.length;i++)if(m.minions[i].skel)skelN++; // 해골 군단 = 별도 상한(호위 미니언과 독립)
   for(var k=0;k<n&&skelN<SKEL_CAP;k++){var mn=mkMinion(m,m.minions.length);mn.skel=true;m.minions.push(mn);skelN++;}}
 function syncMinions(m){var want=m.minCount||4,skels=[],regs=[];        // 해골(skel)은 별도 군단 — 카운트/트림에서 제외(소환물 보존)
@@ -824,7 +840,35 @@ function syncMinions(m){var want=m.minCount||4,skels=[],regs=[];        // 해�
   while(regs.length<want)regs.push(mkMinion(m,regs.length));
   if(regs.length>want)regs.length=want;
   m.minions=regs.concat(skels);
-  for(var i=0;i<m.minions.length;i++){var mn=m.minions[i];mn.o=minionOffset(i);var fr=mn.max?mn.hp/mn.max:1;mn.max=m.minMax||80;mn.hp=Math.min(mn.max,Math.round(mn.max*fr));}
+  for(var i=0;i<m.minions.length;i++){var mn=m.minions[i];mn.o=minionOffset(i);if(!mn.mdef)mn.mdef=minionDef(m);var fr=mn.max?mn.hp/mn.max:1;mn.max=Math.round((m.minMax||80)*mn.mdef.hpMul);mn.hp=Math.min(mn.max,Math.round(mn.max*fr));}
+}
+// 힐 대상: 주인 + 근처 아군 마더로드 중 최저 체력비(없으면 null)
+function minionLowestAlly(mn,owner){var best=owner,bf=owner.hp/owner.max;for(var i=0;i<MLS.length;i++){var M=MLS[i];if(M.downed||M===owner)continue;if(Math.hypot(M.x-mn.x,M.y-mn.y)<170){var f=M.hp/M.max;if(f<bf){bf=f;best=M;}}}return bf<0.97?best:null;}
+// ── 미니언 역할 AI(특색): 포커스파이어 + 근접/원거리(카이팅)/서포트(힐) + 저체력 후퇴 + 흡혈·둔화 ──
+function minionTick(m,mn,dt){var D=mn.mdef||minionDef(m),mroot=modHas(mn,'root');
+  var dmg=Math.max(1,Math.round((m.minAd||7)*D.dmgMul)),atk=D.atkInt*(m.minAtk||1),fx2=m.x+mn.o[0],fy2=m.y+mn.o[1],leash=Math.hypot(mn.x-m.x,mn.y-m.y);
+  // 타겟: 주인 타겟 포커스(갱업) → 없으면 근처 적
+  var detect=(D.range||30)+100,tgt=null;
+  if(m.tgt&&m.tgt.hp>0&&!m.tgt.captured&&Math.hypot(m.tgt.x-mn.x,m.tgt.y-mn.y)<detect+140)tgt=m.tgt;
+  if(!tgt)tgt=nearestEnemy(mn.x,mn.y,detect,true);
+  if(D.role==='support'){ // 서포트: 주인 근처 유지 + 힐(주인/근처 최저 아군), 비상 시 약공
+    if(leash>54&&!mroot)moveTo(mn,fx2,fy2,eSpeed(mn,D.spd),dt,1);
+    mn.atkLeft-=dt;if(mn.atkLeft<=0){var h=minionLowestAlly(mn,m);
+      if(h){heal(h,D.heal||10);fx.push({x:h.x,y:h.y,r:8,t:0.3,life:0.3,col:COL.teal,fade:true,follow:h});mn.atkLeft=atk;}
+      else if(tgt&&Math.hypot(tgt.x-mn.x,tgt.y-mn.y)<28){mn.facing=Math.atan2(tgt.y-mn.y,tgt.x-mn.x);lunge(mn,tgt.x,tgt.y,5);resolveDamage(mn,tgt,dmg,'magic',{});mn.atkLeft=atk;}
+      else mn.atkLeft=0.3;}
+    return;}
+  if(mn.hp<mn.max*0.25&&tgt){if(!mroot)moveTo(mn,fx2,fy2,eSpeed(mn,D.spd),dt,1);return;} // 저체력 후퇴(주인 쪽)
+  if(!tgt||leash>230){if(!mroot&&leash>4)moveTo(mn,fx2,fy2,eSpeed(mn,D.spd),dt,1);return;} // 적 없음/이탈 → 대형 복귀
+  var d=Math.hypot(tgt.x-mn.x,tgt.y-mn.y);mn.facing=Math.atan2(tgt.y-mn.y,tgt.x-mn.x);
+  if(D.role==='ranged'){var stand=D.range,kite=stand*0.5;
+    if(d>stand){if(!mroot)moveTo(mn,tgt.x,tgt.y,eSpeed(mn,D.spd),dt,stand-6);}
+    else if(d<kite&&!mroot)moveTo(mn,mn.x*2-tgt.x,mn.y*2-tgt.y,eSpeed(mn,D.spd),dt,1); // 카이팅 후퇴
+    mn.atkLeft-=dt;if(mn.atkLeft<=0&&d<=stand+16){var opt={};if(D.slow)opt.applyMod={key:'slow',field:'moveSpd',op:'mul',value:D.slow,dur:2,tags:['slow','debuff'],name:'둔화',col:COL.info};shoot(mn,tgt,dmg,D.dtype||'phys',D.col,500,3,opt);mn.atkLeft=atk;}
+  } else { // 근접
+    if(d>D.range){if(!mroot)moveTo(mn,tgt.x,tgt.y,eSpeed(mn,D.spd),dt,D.range);}
+    else{mn.atkLeft-=dt;if(mn.atkLeft<=0){lunge(mn,tgt.x,tgt.y,6);var dlt=resolveDamage(mn,tgt,dmg,'phys',{});if(D.lifesteal)heal(mn,Math.round(dlt*D.lifesteal));mn.atkLeft=atk;}}
+  }
 }
 function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||600,max:K.hp||600,mana:100,maxMana:100,manaRegen:9,
   range:K.range,speed:92,ad:K.ad,ap:K.ap,def:K.def,mr:K.mr,crit:K.crit,critMult:K.critMult,flatPen:0,pctPen:0,tenacity:0,cdr:0,shield:0,
@@ -1803,9 +1847,7 @@ function update(dt){
     if(mn.hp<=0){m.minions.splice(j,1);continue;}                          // 죽으면 소멸(부활 X)
     if(!mn.skel&&isP)continue;                                             // 일반 미니언은 빙의 중 휴면, 해골은 항상 활동
     decay(mn,dt);tickMods(mn,dt);if(modHas(mn,'stun'))continue;
-    var me=nearestEnemy(mn.x,mn.y,78,true);var leash=Math.hypot(mn.x-m.x,mn.y-m.y);var mroot=modHas(mn,'root');
-    if(me&&leash<150){if(Math.hypot(me.x-mn.x,me.y-mn.y)>26){if(!mroot)moveTo(mn,me.x,me.y,eSpeed(mn,118),dt,24);}else{mn.atkLeft-=dt;if(mn.atkLeft<=0){lunge(mn,me.x,me.y,6);resolveDamage(mn,me,(m.minAd||7),'phys',{});mn.atkLeft=(m.minAt||m.minAtk||1.0);}}}
-    else if(!mroot)moveTo(mn,m.x+mn.o[0],m.y+mn.o[1],eSpeed(mn,130),dt,1);
+    minionTick(m,mn,dt);
    }
   }
  }
@@ -2011,7 +2053,10 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  // 미니언 + 마더로드
  for(var i=0;i<MLS.length;i++){var m=MLS[i];
   if(m.downed){ctx.save();ctx.globalAlpha=0.5;ctx.setLineDash([3,4]);ring(m.x,m.y,12,COL.dim,1.5);ctx.setLineDash([]);label(m.x,m.y-20,(i===sel?'부활 ':'재소환 ')+Math.ceil(m.downT)+'s',COL.dim);ctx.restore();continue;}
-  if(!(i===sel&&!overlordDead))m.minions.forEach(function(mn){var mx=mn.x+offX(mn),my=mn.y+offY(mn);disc(mx,my,4.5,m.K.col);flashDisc(mn,4.5);ccRing(mn,5);bars(mn,13,-9);}); // 오버로드 미니언 휴면(비표시)
+  m.minions.forEach(function(mn){if(i===sel&&!overlordDead&&!mn.skel)return; // 빙의 중 호위 미니언은 휴면(비표시), 해골은 표시
+    var mx=mn.x+offX(mn),my=mn.y+offY(mn),D=mn.mdef,col=D?D.col:m.K.col,r=(D&&D.role==='ranged')?3.8:(D&&D.role==='support')?4.2:5;
+    disc(mx,my,r,col);if(D&&D.role==='ranged'){ctx.lineWidth=1/cam.z;ring(mx,my,r+1.6,col);} // 원거리=링 표식
+    flashDisc(mn,r);ccRing(mn,r+0.5);bars(mn,13,-9);}); // 마더로드별 미니언 특색(색·모양)
   var poss=(i===sel&&!overlordDead);
   if(poss){ctx.save();ctx.globalAlpha=0.4;ring(m.x,m.y,m.range,COL.info,1);ctx.restore();ring(m.x,m.y,15,m.K.col,2);ring(m.x,m.y,19,COL.info,2);
    var marker=m.dest||m.amove;if(marker){ctx.save();ctx.globalAlpha=0.65;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(dX(m.x),dY(m.y));ctx.lineTo(dX(marker.x),dY(marker.y));ctx.strokeStyle=m.amove?COL.bad:COL.info;ctx.lineWidth=1.2;ctx.stroke();ctx.setLineDash([]);ring(marker.x,marker.y,5,m.amove?COL.bad:COL.info,1.4);ctx.restore();}}
