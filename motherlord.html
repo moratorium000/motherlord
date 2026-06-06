@@ -442,7 +442,7 @@ function resolveDamage(src,tgt,base,dtype,opt){
   if(!tgt||tgt.hp<=0)return 0;
   var amt=base*enemyEarlyDmgMul(src),crit=false;
   if(tgt.front>0&&src){var fa=Math.atan2(src.y-tgt.y,src.x-tgt.x)-tgt.facing;while(fa>Math.PI)fa-=6.283;while(fa<-Math.PI)fa+=6.283;if(Math.abs(fa)<1.2)amt*=(1-tgt.front);} // 방패병 전면 피해감소
-  if(src&&opt.canCrit!==false&&src.crit){if(Math.random()<src.crit){crit=true;amt*=(src.critMult||1.7);}}
+  if(src&&opt.canCrit!==false&&src.crit){if(Math.random()<src.crit){crit=true;amt*=((src.critMult||1.7)+((src.itw&&src.itw.critAmp)||0));}} // critAmp: 폭풍의 결정 치명 피해 증폭
   if(src)amt*=modMul(src,'dmgDealt');
   if(src&&src.cfx)amt*=cardOutMul(src);              // 진화: 가한피해 배수(최후의 광란 등)
   if(src&&src.itw&&src.itw.execAmp&&tgt.hp<tgt.max*0.3)amt*=1.6; // 아이템 처형자의 도끼: 저HP 적 +60%
@@ -469,6 +469,7 @@ function resolveDamage(src,tgt,base,dtype,opt){
   if(src&&src.K&&src.cfx&&amt>0){cardOnHit(src,tgt,amt,dtype);if(tgt.hp<=0)cardOnKill(src,tgt);} // 진화: 온힛·온킬 트리거
   tgt.hitT=HIT;spark(tgt.x,tgt.y,COL.spark);
   if(amt>0&&!opt.reflect&&!opt.dot&&tgt.itw&&tgt.itw.thorns&&src&&src!==tgt&&src.hp>0)resolveDamage(tgt,src,Math.max(1,Math.round(amt*tgt.itw.thorns)),'magic',{canCrit:false,reflect:true}); // 아이템 불괴의 토템: 받은 피해 반사
+  if(amt>0&&!opt.reflect&&!opt.dot&&dtype!=='true'&&src&&src.itw&&src.itw.shred&&tgt!==src&&tgt.def!==undefined&&tgt.hp>0)addMod(tgt,{key:'shred',field:'def',op:'add',value:-src.itw.shred,dur:3,tags:['debuff'],name:'균열',col:COL.bad}); // 아이템 사냥꾼의 정수: 타격 시 방어 약화(갱신)
   if(tgt===myHQ&&amt>0){hqFlash=Math.min(1,hqFlash+0.5);addShake(4);sfx('hqhit',0.25);}
   return amt;
 }
@@ -754,18 +755,27 @@ var ITEMS={
  // ── T3 완성템: 탱킹 계통 3 ──
  t_bulwark:_it({id:'t_bulwark',tier:3,name:'불괴의 토템',gly:'🗿',cost:320,build:['m_plate','c_cloak'],stats:{def:45,mr:45,hp:400,tenacity:0.20},twist:'thorns',tw:{thorns:0.18},twistDesc:'받은 피해의 18%를 공격자에게 마법으로 반사.'}),
  t_aegis:_it({id:'t_aegis',tier:3,name:'불멸의 성소',gly:'🛡️',cost:320,build:['m_plate','c_mail'],stats:{def:90,hp:400,tenacity:0.20},twist:'bastion',tw:{bastion:1},twistDesc:'4초마다 (최대HP 12%)만큼 방어막을 충전.'}),
- t_juggernaut:_it({id:'t_juggernaut',tier:3,name:'불굴의 거신',gly:'🦏',cost:320,build:['m_sigil','c_vita'],stats:{hp:400,cdr:0.12,tenacity:0.40},twist:'lowhpdr',tw:{lowHpDR:0.30},twistDesc:'HP 40% 이하일 때 받는 피해 −30%.'})
+ t_juggernaut:_it({id:'t_juggernaut',tier:3,name:'불굴의 거신',gly:'🦏',cost:320,build:['m_sigil','c_vita'],stats:{hp:400,cdr:0.12,tenacity:0.40},twist:'lowhpdr',tw:{lowHpDR:0.30},twistDesc:'HP 40% 이하일 때 받는 피해 −30%.'}),
+ // ── T3 완성템: 치명·공속 캐리 2 ──
+ t_tempest:_it({id:'t_tempest',tier:3,name:'폭풍의 결정',gly:'🌩️',cost:320,build:['m_zerk','c_knife'],stats:{ad:45,as:0.40,crit:0.24},twist:'critamp',tw:{critAmp:0.5},twistDesc:'치명타 피해 +50%p(평타 폭딜 캐리).'}),
+ t_hunter:_it({id:'t_hunter',tier:3,name:'사냥꾼의 정수',gly:'🏹',cost:310,build:['m_track','c_pike'],stats:{spd:35,as:0.20,crit:0.12,pen:20},twist:'shred',tw:{shred:14},twistDesc:'타격마다 대상 방어 −14(3초·지속 타격 시 유지).'}),
+ // ── T3 완성템: 흡혈 브루저 · 지원 2 ──
+ t_sanguine:_it({id:'t_sanguine',tier:3,name:'피의 군주',gly:'🩸',cost:300,build:['m_fang','c_vita'],stats:{ad:45,pen:20,hp:200,lifesteal:0.08,tenacity:0.20},twist:'sang',tw:{lifeAll:0.25},twistDesc:'모든 타격 25% 흡혈(범용 자생 브루저).'}),
+ t_chalice:_it({id:'t_chalice',tier:3,name:'생명의 성배',gly:'⚜️',cost:300,build:['m_hood','c_tome'],stats:{ap:55,mr:45,hp:100,cdr:0.12},twist:'aura',tw:{lifeAura:1},twistDesc:'2초마다 주변 아군 치유(주문력 비례·지원형).'}),
+ // ── T3 완성템: 소환·군세 2 (네크로·엔지니어·자율로봇) ──
+ t_warbanner:_it({id:'t_warbanner',tier:3,name:'군주의 깃발',gly:'🚩',cost:320,build:['m_sigil','c_mail'],stats:{hp:300,def:45,cdr:0.12,minHp:60,minAd:6},twist:'warband',tw:{minionAmp:0.30},twistDesc:'미니언 체력·공격 강화 + 미니언 피해 +30%.'}),
+ t_overcrown:_it({id:'t_overcrown',tier:3,name:'지배의 왕관',gly:'👑',cost:320,build:['m_orb','c_vita'],stats:{ap:55,hp:200,cdr:0.12,tenacity:0.20,minCount:2,minAd:4},twist:'dominion',tw:{minionAmp:0.15},twistDesc:'미니언 +2기 · 미니언 공격 강화 + 미니언 피해 +15%.'})
 };
 var ITEM_TIERS=[[],[],[],[]]; // [1]=컴포넌트 [2]=중위 [3]=완성
 Object.keys(ITEMS).forEach(function(id){ITEM_TIERS[ITEMS[id].tier].push(id);});
 var ITEM_PRICE_MUL=3.4; // 가격 일괄 배수(데이터=기준가). 재화 경제 대비 상향
 function costOf(it){return Math.round((it.cost||0)*ITEM_PRICE_MUL);}
-var ITEM_STAT_KEYS=['ad','ap','def','mr','hp','crit','pen','pctPen','as','cdr','spd','lifesteal','tenacity'];
+var ITEM_STAT_KEYS=['ad','ap','def','mr','hp','crit','pen','pctPen','as','cdr','spd','lifesteal','tenacity','minHp','minAd','minCount'];
 function itemStats(m){var s={};ITEM_STAT_KEYS.forEach(function(k){s[k]=0;});if(!m.items)return s;
   for(var i=0;i<m.items.length;i++){var it=ITEMS[m.items[i]];if(!it)continue;for(var k in it.stats)if(s[k]!==undefined)s[k]+=it.stats[k];}return s;}
 function itemTwists(m){var t={};if(!m.items)return t;
   for(var i=0;i<m.items.length;i++){var it=ITEMS[m.items[i]];if(it&&it.tw)for(var k in it.tw)t[k]=(typeof it.tw[k]==='number')?Math.max(t[k]||0,it.tw[k]):it.tw[k];}return t;}
-function itemStatLine(it){var p=[],S=it.stats;if(S.ad)p.push('공 +'+S.ad);if(S.ap)p.push('주 +'+S.ap);if(S.def)p.push('방 +'+S.def);if(S.mr)p.push('마저 +'+S.mr);if(S.hp)p.push('HP +'+S.hp);if(S.crit)p.push('치명 +'+Math.round(S.crit*100)+'%');if(S.pen)p.push('관통 +'+S.pen);if(S.as)p.push('공속 +'+Math.round(S.as*100)+'%');if(S.cdr)p.push('쿨감 +'+Math.round(S.cdr*100)+'%');if(S.spd)p.push('이속 +'+S.spd);if(S.lifesteal)p.push('흡혈 +'+Math.round(S.lifesteal*100)+'%');if(S.tenacity)p.push('저항 +'+Math.round(S.tenacity*100)+'%');return p.join(' · ');}
+function itemStatLine(it){var p=[],S=it.stats;if(S.ad)p.push('공 +'+S.ad);if(S.ap)p.push('주 +'+S.ap);if(S.def)p.push('방 +'+S.def);if(S.mr)p.push('마저 +'+S.mr);if(S.hp)p.push('HP +'+S.hp);if(S.crit)p.push('치명 +'+Math.round(S.crit*100)+'%');if(S.pen)p.push('관통 +'+S.pen);if(S.as)p.push('공속 +'+Math.round(S.as*100)+'%');if(S.cdr)p.push('쿨감 +'+Math.round(S.cdr*100)+'%');if(S.spd)p.push('이속 +'+S.spd);if(S.lifesteal)p.push('흡혈 +'+Math.round(S.lifesteal*100)+'%');if(S.tenacity)p.push('저항 +'+Math.round(S.tenacity*100)+'%');if(S.minCount)p.push('미니언 +'+S.minCount+'기');if(S.minHp)p.push('미니언HP +'+S.minHp);if(S.minAd)p.push('미니언공 +'+S.minAd);return p.join(' · ');}
 function canBuyItem(m,id){var it=ITEMS[id];if(!it)return false;if(it.cls&&it.cls!==m.kind)return false;return true;}
 function firstEmptySlot(m){for(var i=0;i<m.items.length;i++)if(!m.items[i])return i;return -1;}
 function buyItem(m,id){var it=ITEMS[id];if(!it||!canBuyItem(m,id)||ECON.gold<costOf(it))return false;var sl=firstEmptySlot(m);if(sl<0)return false;ECON.gold-=costOf(it);m.items[sl]=id;applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('buy');return true;}
@@ -816,10 +826,10 @@ function applyUpgrades(m){var u=m.up,cb=m.cardBonus||{},it=itemStats(m),rl=relic
   m.speed=Math.round(statVal(m,'spd',u.spd)*(cb.spdMul||1))+it.spd+rl.spd;
   var nm=Math.round(statVal(m,'hp',u.hp)*(cb.hpMul||1))+it.hp+rl.hp,frac=m.max?m.hp/m.max:1;m.max=nm;m.hp=Math.round(nm*frac);
   m.itemLifesteal=it.lifesteal+rl.lifesteal;m.itw=mergeTw(itemTwists(m),relicTwists(m)); // 완성템+유물 고유효과(twist)
-  m.minMax=Math.round(statVal(m,'mhp',u.mhp)*(cb.minMul||1));
-  m.minAd=Math.round(statVal(m,'mad',u.mad)*(cb.minMul||1));
+  m.minMax=Math.round(statVal(m,'mhp',u.mhp)*(cb.minMul||1))+it.minHp+rl.minHp;
+  m.minAd=Math.round(statVal(m,'mad',u.mad)*(cb.minMul||1))+it.minAd+rl.minAd;
   m.minAtk=1.0/(1+u.mas*USTEP.mas.step);
-  m.minCount=armyCap();
+  m.minCount=armyCap()+it.minCount+rl.minCount;
   syncMinions(m);
 }
 function clone(k){return k.map(function(s){return Object.assign({},s);});}
@@ -857,7 +867,7 @@ function syncMinions(m){var want=m.minCount||4,skels=[],regs=[];        // 해�
 function minionLowestAlly(mn,owner){var best=owner,bf=owner.hp/owner.max;for(var i=0;i<MLS.length;i++){var M=MLS[i];if(M.downed||M===owner)continue;if(Math.hypot(M.x-mn.x,M.y-mn.y)<170){var f=M.hp/M.max;if(f<bf){bf=f;best=M;}}}return bf<0.97?best:null;}
 // ── 미니언 역할 AI(특색): 포커스파이어 + 근접/원거리(카이팅)/서포트(힐) + 저체력 후퇴 + 흡혈·둔화 ──
 function minionTick(m,mn,dt){var D=mn.mdef||minionDef(m),mroot=modHas(mn,'root');
-  var dmg=Math.max(1,Math.round((m.minAd||7)*D.dmgMul)),atk=D.atkInt*(m.minAtk||1),fx2=m.x+mn.o[0],fy2=m.y+mn.o[1],leash=Math.hypot(mn.x-m.x,mn.y-m.y);
+  var dmg=Math.max(1,Math.round((m.minAd||7)*D.dmgMul*(1+((m.itw&&m.itw.minionAmp)||0)))),atk=D.atkInt*(m.minAtk||1),fx2=m.x+mn.o[0],fy2=m.y+mn.o[1],leash=Math.hypot(mn.x-m.x,mn.y-m.y);
   // 타겟: 주인 타겟 포커스(갱업) → 없으면 근처 적
   var detect=(D.range||30)+100,tgt=null;
   if(m.tgt&&m.tgt.hp>0&&!m.tgt.captured&&Math.hypot(m.tgt.x-mn.x,m.tgt.y-mn.y)<detect+140)tgt=m.tgt;
@@ -1819,6 +1829,7 @@ function update(dt){
   if(m.stealthT>0)m.stealthT=Math.max(0,m.stealthT-dt); // 도적 은신 타이머
   if(m.itw&&m.itw.autoPurge){m.purgeT=(m.purgeT||0)-dt;if(m.purgeT<=0){m.purgeT=3;var _pn=purge(m);m.shield=Math.max(m.shield,80+_pn*60);if(_pn)ftext(m,'정화',COL.teal,false);}} // 아이템 정화의 성수: 3초마다 자동 정화 + 방어막
   if(m.itw&&m.itw.bastion){m.bastionT=(m.bastionT||0)-dt;if(m.bastionT<=0){m.bastionT=4;m.shield=Math.max(m.shield,Math.round(m.max*0.12));}} // 아이템 불멸의 성소: 4초마다 (최대HP 12%) 방어막 충전
+  if(m.itw&&m.itw.lifeAura){m.auraT=(m.auraT||0)-dt;if(m.auraT<=0){m.auraT=2;for(var _la=0;_la<MLS.length;_la++){var _LA=MLS[_la];if(!_LA.downed&&_LA.hp>0&&_LA.hp<_LA.max&&Math.hypot(_LA.x-m.x,_LA.y-m.y)<200)heal(_LA,Math.round(m.max*0.03+m.ap*0.35));}}} // 아이템 생명의 성배: 2초마다 주변 아군 치유(주문력 비례)
   if(m.K.res==='mana')m.mana=Math.min(m.maxMana,m.mana+m.manaRegen*dt);
   if(nearFriendlyBase(m.x,m.y))m.hp=Math.min(m.max,m.hp+m.max*HEAL_RATE*dt); // 본부·교두보 근처 자동회복
   if(m.recall!=null){m.recall-=dt;if(m.recall<=0)doRecall(m);}
