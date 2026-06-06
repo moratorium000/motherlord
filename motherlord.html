@@ -601,6 +601,7 @@ var myHQ={x:HQX,y:HQY,hp:1600,max:1600,r:24,def:20,mr:20,shield:0,mods:[],hitT:0
    arch: brood | crystal | veil | binder | plague | charger
    ============================================================ */
 var enemies=[];
+var chests=[]; // 봉인된 유물함(유물 채널 = 맵 드랍). 배치 = 미끼 C 회로(맵·탐험 §3.5)
 var rushPow=1,emCount=0,EM_CAP=140; // 거점 송출: 부활 반비례 강도(§4.4) / 전체 개떼 상한
 // 링별 스케일(설계 §3.3)
 var RINGSCALE=[{hp:1.0,da:0,rew:{core:1,gold:30}},{hp:1.4,da:10,rew:{core:1,gold:55}},
@@ -691,6 +692,79 @@ var BOSS;
   var spec=[[0.20,2],[0.40,2],[0.58,2],[0.76,1]]; // [거리frac, 거점수] per 밴드
   for(var b=0;b<spec.length;b++){for(var k=0;k<spec[b][1];k++){var c=pickCell(spec[b][0],used);if(c){used.push(c);enemies.push(mkSpawner(c.x,c.y,b));}}}
 })();
+
+/* ════════════════════════════════════════════════════════════════════════
+   봉인된 유물함 배치 알고리즘 — 미끼 C 회로(맵·탐험 §3.5)
+   ────────────────────────────────────────────────────────────────────────
+   "미끼 C 회로가 곧 유물 배치 문법이다." 등급↑ = 거리↑ · 리스크 게이트↑.
+     · 유혹(일반)  : 근거리 루트변 · 저위험 · 즉시 개봉(보너스 칸). 안개 살짝 너머.
+     · 성장(희귀)  : 더 깊은 엄폐/고지 · 지역 락(미니보스) 처치로 봉인 해제.
+     · 전설(legend): 외곽 위험지형 · 외곽 자물쇠 뒤 · 전설마커=비콘(안개 뚫고 유인).
+   배치 = 기존 거리장(GEN.dist) 버킷 + 지형 선호 + 자물쇠 게이팅. (§3.5 표 그대로)
+   ════════════════════════════════════════════════════════════════════════ */
+var CHESTDEF={
+ common:{grade:'common',rk:'일반',label:'유물함',     col:COL.teal,glow:COL.teal,beacon:false,r:15},
+ rare:  {grade:'rare',  rk:'희귀',label:'봉인 유물함', col:COL.info,glow:COL.info,beacon:false,r:17},
+ legend:{grade:'legend',rk:'전설',label:'전설 유물함', col:COL.core,glow:COL.core,beacon:true, r:19}
+};
+function mkChest(x,y,grade,lock){var D=CHESTDEF[grade];
+ return{kind:'chest',x:x,y:y,r:D.r,grade:grade,def:D,
+  sealed:grade!=='common', // 일반=보너스 칸(즉시), 희귀/전설=지역 락 봉인(전진 강제)
+  lock:lock||null,         // 봉인 해제 자물쇠 = 미니보스. 처치 시 unseal.
+  opened:false,pulseT:Math.random()*6};}
+// 셀 인접 벽 수(0~4): 엄폐/막다른(자물쇠 느낌) 정량화
+function adjWallG(gx,gy){var n=0,ox=[1,-1,0,0],oy=[0,0,1,-1];for(var k=0;k<4;k++)if(gAt(gx+ox[k],gy+oy[k])===WALLC)n++;return n;}
+// 거리 버킷 + 지형 선호로 유물함 셀 선정(기존 노드/유물함 회피). pref: route|cover|hazard
+function pickChestCell(frac,used,pref){var tg=frac*GEN.maxd,band=Math.max(4,GEN.maxd*0.12),cand=[];
+ for(var gy=2;gy<ROWS-2;gy++)for(var gx=2;gx<COLS-2;gx++){var i=gy*COLS+gx,d=GEN.dist[i],c=GEN.cell[i];
+   if(d<=0||c===WALLC||Math.abs(d-tg)>=band)continue;
+   var wx=gx*CW+CW/2,wy=gy*CH+CH/2,ok=true;
+   for(var u=0;u<used.length;u++)if(Math.hypot(used[u].x-wx,used[u].y-wy)<200){ok=false;break;}
+   if(!ok)continue;
+   var aw=adjWallG(gx,gy),score;
+   if(pref==='hazard')      score=(c===HAZC?4:0)+aw;            // 전설: 위험지형 + 막다른(자물쇠 뒤)
+   else if(pref==='cover')  score=(c===HIGHC?3:0)+aw;           // 희귀: 고지 엄폐 + 벽 뒤(매복 리스크)
+   else                     score=(isChokeG(gx,gy)?0:2)+(4-aw); // 일반: 개활 루트변(엄폐 적음=저위험)
+   cand.push({x:wx,y:wy,s:score});}
+ if(!cand.length)return null;
+ cand.sort(function(a,b){return b.s-a.s;});
+ return cand[(mrng()*Math.min(6,cand.length))|0];}
+// 가장 가까운 지역 락(미니보스, 본부 수호자 제외). minBand 이상만.
+function nearestLock(x,y,minBand){var best=null,bd=1e9;for(var i=0;i<enemies.length;i++){var e=enemies[i];
+  if(e.kind!=='mb'||e.guardian)continue;if(minBand!=null&&e.ring<minBand)continue;
+  var d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e;}}return best;}
+(function placeChests(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
+ // [등급, 거리frac, 지형선호, 락밴드(이 밴드↑ 미니보스 처치로 개봉; null=락없음)]
+ var plan=[
+   ['common',0.22,'route', null],['common',0.32,'route', null], // 유혹: 근거리 루트변 저위험
+   ['rare',  0.48,'cover', 1],   ['rare',  0.58,'cover', 2],     // 성장: 깊은 엄폐, 지역 락 뒤
+   ['legend',0.72,'hazard',2],   ['legend',0.84,'hazard',3]      // 전설: 외곽 위험지형, 외곽 자물쇠 뒤
+ ];
+ for(var p=0;p<plan.length;p++){var g=plan[p],c=pickChestCell(g[1],used,g[2]);if(!c)continue;used.push(c);
+   var lock=(g[0]==='common')?null:nearestLock(c.x,c.y,g[3]);
+   chests.push(mkChest(c.x,c.y,g[0],lock));}
+})();
+// ── 유물 채널(보상 훅) — 효과/2칸 슬롯 시스템은 별도 채널, 여기선 획득만 기록 ──
+var RELICS=[];
+function grantRelic(grade){RELICS.push({grade:grade,t:gameTime});}
+function updateChests(dt){for(var i=0;i<chests.length;i++){var c=chests[i];if(c.opened)continue;c.pulseT+=dt;
+  if(c.sealed){if(c.lock&&c.lock.hp>0)continue; // 자물쇠 생존 = 봉인 유지
+    c.sealed=false;toast('🔓 '+c.def.label+' 봉인 해제'+(c.lock?' — '+c.lock.name+' 처치':''));}
+  for(var j=0;j<MLS.length;j++){var m=MLS[j];if(m.downed)continue;
+    if(Math.hypot(m.x-c.x,m.y-c.y)<c.r+16){openChest(c);break;}}}}
+function openChest(c){c.opened=true;grantRelic(c.grade);coreBurst(c.x,c.y);sfx('core',0.05);addShake(5);
+  toast('📦 '+c.def.label+' 개봉 — '+c.def.rk+' 유물 획득');}
+function drawChest(c){if(c.opened)return;var pul=0.5+0.5*Math.abs(Math.sin(c.pulseT*3)),gl=c.def.glow,r=c.r,sealed=c.sealed;
+ ctx.save();
+ if(c.def.beacon){ // 전설마커 = 비콘: 안개 뚫고 멀리서 빛남(유인)
+   ctx.globalAlpha=0.10+0.10*pul;disc(c.x,c.y,r*3.4,gl);
+   ctx.globalAlpha=0.30+0.2*pul;ring(c.x,c.y,r*2.0+pul*5,gl,1.5);}
+ ctx.globalAlpha=sealed?0.6:1;
+ ctx.fillStyle=sealed?'#2a2c25':c.def.col;ctx.fillRect(dX(c.x)-r,dY(c.y)-r*0.8,r*2,r*1.6); // 상자 몸체
+ ctx.lineWidth=2;ctx.strokeStyle=sealed?COL.dim:gl;ctx.strokeRect(dX(c.x)-r,dY(c.y)-r*0.8,r*2,r*1.6);
+ ctx.globalAlpha=1;emoji(c.x,c.y,sealed?'🔒':'📦',r*1.3);
+ label(c.x,c.y-r-7,sealed?(c.def.label+' (봉인)'):c.def.label,sealed?COL.dim:gl);
+ ctx.restore();}
 
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
 var coreExposed=false;
@@ -1140,6 +1214,7 @@ function update(dt){
  rebuildFriends();
  fogAcc+=dt;if(fogAcc>=0.07){fogAcc=0;computeFog();}
  updateAwaken(dt);
+ updateChests(dt); // 봉인된 유물함: 락 처치 시 해제 + 아군 근접 시 개봉
  emCount=0;for(var _ec=0;_ec<enemies.length;_ec++)if(enemies[_ec].kind==='em'&&enemies[_ec].hp>0)emCount++;
  // ── 카메라(조작지침 §3·§4·§5): 줌보정 엣지팬 + 키램프 + 홀드Space 추적 + 보간 ──
  if(!dragPan.active){
@@ -1400,6 +1475,9 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
      if((isMb||isBoss)&&e.castName&&e.castMax>0&&e.castP<e.castMax){var bw=48,bx=dX(e.x)-bw/2,by=dY(e.y)-e.r-18;ctx.fillStyle=COL.track;ctx.fillRect(bx,by,bw,4);ctx.fillStyle=COL.warn;ctx.fillRect(bx,by,bw*(e.castP/e.castMax),4);label(e.x,by-3,e.castName,COL.warn);}
    }});
 
+ // 봉인된 유물함(미끼 C 회로) — 전설=비콘(안개 무관, 유인), 일반/희귀=시야 내에서만
+ chests.forEach(function(c){if(c.opened)return;if(!c.def.beacon&&!cellVis(c.x,c.y))return;drawChest(c);});
+
  // 빙의 사슬(스왑 노드 그물) — 본부+교두보 연결, 빙의체가 노드 근처면 릴레이 대상 아바타 강조
  (function(){var nodes=[{x:myHQ.x,y:myHQ.y}];for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0)nodes.push({x:e.x,y:e.y});}
    if(nodes.length>1){ctx.save();ctx.globalAlpha=0.22;ctx.setLineDash([6/cam.z,8/cam.z]);ctx.strokeStyle=COL.teal;ctx.lineWidth=1.2/cam.z;
@@ -1459,6 +1537,8 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  (function(){var cs=sxr*CW,c2=syr*CH;for(var gy=0;gy<ROWS;gy++)for(var gx=0;gx<COLS;gx++){var gi=gy*COLS+gx;if(!explGrid[gi]){mctx.fillStyle='#0b0d0b';mctx.fillRect(gx*cs,gy*c2,cs+0.7,c2+0.7);continue;}var c=GEN.cell[gi];if(c===WALLC)mctx.fillStyle='#222a1b';else if(c===HIGHC)mctx.fillStyle='#3a4a30';else if(c===HAZC)mctx.fillStyle='#2a4a44';else{var d=GEN.dist[gi],f=d<0?0:d/GEN.maxd;mctx.fillStyle='rgb('+(30+((f*40)|0))+','+(40+((f*6)|0))+',30)';}mctx.fillRect(gx*cs,gy*c2,cs+0.7,c2+0.7);if(!visGrid[gi]){mctx.fillStyle='rgba(8,10,8,0.5)';mctx.fillRect(gx*cs,gy*c2,cs+0.7,c2+0.7);}}
   mctx.fillStyle=COL.teal;mctx.fillRect(GEN.hq.x*sxr-2,GEN.hq.y*syr-2,5,5);mctx.fillStyle=COL.bad;mctx.fillRect(GEN.boss.x*sxr-2,GEN.boss.y*syr-2,5,5);})();
  enemies.forEach(function(e){if(e.hp<=0)return;if(e.kind==='spawner'){mctx.fillStyle=e.captured?COL.teal:(e.awake?COL.bad:COL.dim);mctx.fillRect(e.x*sxr-3,e.y*syr-3,6,6);return;}if(!cellVis(e.x,e.y))return;var ex=e.x*sxr,ey=e.y*syr;if(e.kind==='em'){mctx.fillStyle=COL.bad;mctx.beginPath();mctx.arc(ex,ey,1.4,0,7);mctx.fill();}else if(e.kind==='mb'){mctx.fillStyle=e.awake?(e.guardian?COL.shield:COL.warn):COL.dim;mctx.fillRect(ex-3,ey-3,6,6);}else{mctx.fillStyle=COL.bad;mctx.fillRect(ex-4,ey-4,8,8);}});
+ chests.forEach(function(c){if(c.opened)return;if(!c.def.beacon&&!cellVis(c.x,c.y))return; // 전설마커=비콘(탐색 무관)
+   mctx.fillStyle=c.sealed?COL.dim:c.def.glow;mctx.beginPath();mctx.arc(c.x*sxr,c.y*syr,c.def.beacon?3:2,0,7);mctx.fill();});
  MLS.forEach(function(m,idx){mctx.fillStyle=idx===sel?COL.text:COL.info;mctx.beginPath();mctx.arc(m.x*sxr,m.y*syr,idx===sel?3.5:2.5,0,7);mctx.fill();});
  mctx.strokeStyle=COL.info;mctx.lineWidth=1;mctx.strokeRect(cam.x*sxr,cam.y*syr,(VW/cam.z)*sxr,(VH/cam.z)*syr);
 }
