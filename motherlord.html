@@ -1225,10 +1225,10 @@ function updateElite(e,dt){if(modHas(e,'stun'))return;
 }
 // ── 적 거점(공습원, 적_설계 §2·§4) — 별도 엔티티. 미니언 러쉬 송출원. 비콘으로 위치/각성 표시(안개 무관) ──
 function mkSpawner(x,y,band){var hp=300+band*170;return{kind:'spawner',x:x,y:y,r:28,band:band,hp:hp,max:hp,def:8,mr:8,shield:0,mods:[],
-  awake:band===0,spawnCD:1.5+Math.random()*3,pulseT:0,counted:false,hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:'적 거점',reward:{core:1,gold:40+band*15}};}
+  awake:false,spawnCD:4+Math.random()*4,pulseT:0,counted:false,hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:'적 거점',reward:{core:1,gold:40+band*15}};} // 시작 시 전부 잠듦(초반 정적)
 function spawnerAwakenCheck(){for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind!=='spawner'||e.awake||e.hp<=0)continue;
-  if(gameTime>e.band*70){e.awake=true;toast('⚠ 적 거점 각성 — 미니언 러쉬 송출 개시');continue;}                          // 시간 전파(전진 압력)
-  for(var j=0;j<MLS.length;j++){if(!MLS[j].downed&&Math.hypot(MLS[j].x-e.x,MLS[j].y-e.y)<300){e.awake=true;toast('적 거점 각성');break;}}}} // 접근 각성
+  if(gameTime>60+e.band*70){e.awake=true;toast('⚠ 적 거점 각성 — 송출 개시');continue;}                          // 시간 램프업(초반 ~60s 정적 후)
+  for(var j=0;j<MLS.length;j++){if(!MLS[j].downed&&Math.hypot(MLS[j].x-e.x,MLS[j].y-e.y)<300){e.awake=true;toast('적 거점 각성');break;}}}} // 접근 각성(공격하러 가면 반격)
 function rushComp(){var t=gameTime,r=Math.random(); // §4.6 러쉬 진화형: 시간 경과 조성 고약(수↑ 아니라 질↑)
   if(t<140)return r<0.7?'infiltrator':'rusher';
   if(t<340)return r<0.4?'infiltrator':r<0.68?'rusher':r<0.85?'bomber':'shooter';
@@ -1245,7 +1245,7 @@ function updateSpawner(e,dt){if(e.pulseT>0)e.pulseT-=dt;
   if(emCount<EM_CAP){var n=rush?Math.max(1,Math.round((2+e.band*0.6)*rushPow)):(1+(e.band>=2?1:0)); // 러쉬=대거(부활반비례), 평시=소수 분산
     for(var i=0;i<n;i++){var et=rush?rushComp():pickEmType(gameTime);enemies.push(mkEm(e.x+(Math.random()*44-22),e.y+(Math.random()*44-22),emScaleNow(e.band),et));emCount++;}
     e.pulseT=0.55;}                                                                                  // 비콘 송출 펄스(본부 방향)
-  var base=Math.max(3.0,9-e.band*1.4-gameTime/130);if(rush)base*=Math.max(0.22,0.5/rushPow);          // 깊은 거점·후반일수록 빠름, 러쉬 시 폭증
+  var base=Math.max(5.0,13-e.band*1.2-gameTime/150);if(rush)base*=Math.max(0.22,0.5/rushPow);          // 상시 송출은 완만(주력 위협=주기 러쉬), 깊은 거점·후반일수록 빠름
   e.spawnCD=base*(0.8+Math.random()*0.4);}
 function drawSpawnerBeacon(e){var seen=cellVis(e.x,e.y),cap=e.captured,pul=cap?0.85:(e.awake?(0.5+0.5*Math.abs(Math.sin(gameTime*4))):0.4),col=cap?COL.teal:(e.awake?COL.bad:COL.dim);ctx.save();
   if(cap){ctx.globalAlpha=0.12;disc(e.x,e.y,HEAL_R,COL.teal);ctx.globalAlpha=0.3;ring(e.x,e.y,HEAL_R,COL.teal,1.5);ctx.globalAlpha=1;} // 교두보 회복·토템 영역
