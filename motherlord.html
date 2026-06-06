@@ -1646,14 +1646,8 @@ function updateBeachhead(e,dt){ // 아군 교두보(점령 거점): 송출X, 적
   else if(e.hp<e.max)e.hp=Math.min(e.max,e.hp+e.max*0.04*dt);}    // 무인 시 재건
 function updateSpawner(e,dt){if(e.pulseT>0)e.pulseT-=dt;
   if(e.captured){updateBeachhead(e,dt);return;}
-  if(!e.awake)return;
-  e.spawnCD-=dt;if(e.spawnCD>0)return;
-  var rush=rushT>0;
-  if(emCount<EM_CAP){var n=rush?Math.max(1,Math.round((2+e.band*0.6)*rushPow)):(1+(e.band>=2?1:0)); // 러쉬=대거(부활반비례), 평시=소수 분산
-    for(var i=0;i<n;i++){var et=rush?rushComp():pickEmType(gameTime);enemies.push(mkEm(e.x+(Math.random()*44-22),e.y+(Math.random()*44-22),emScaleNow(e.band),et));emCount++;}
-    e.pulseT=0.55;}                                                                                  // 비콘 송출 펄스(본부 방향)
-  var base=Math.max(5.0,13-e.band*1.2-gameTime/150);if(rush)base*=Math.max(0.22,0.5/rushPow);          // 상시 송출은 완만(주력 위협=주기 러쉬), 깊은 거점·후반일수록 빠름
-  e.spawnCD=base*(0.8+Math.random()*0.4);}
+  // 상시 송출 폐지: 위협은 전적으로 주기 미니언 러쉬(spawnRushSquad)에 의존. 거점은 러쉬 집결·송출원 역할만 한다.
+}
 function drawSpawnerBeacon(e){var seen=cellVis(e.x,e.y),cap=e.captured,pul=cap?0.85:(e.awake?(0.5+0.5*Math.abs(Math.sin(gameTime*4))):0.4),col=cap?COL.teal:(e.awake?COL.bad:COL.dim);ctx.save();
   if(cap){ctx.globalAlpha=0.12;disc(e.x,e.y,HEAL_R,COL.teal);ctx.globalAlpha=0.3;ring(e.x,e.y,HEAL_R,COL.teal,1.5);ctx.globalAlpha=1;} // 교두보 회복·토템 영역
   ctx.globalAlpha=pul;ctx.strokeStyle=col;ctx.lineWidth=3/cam.z;ctx.beginPath();ctx.moveTo(e.x,e.y-e.r-7);ctx.lineTo(e.x+e.r+7,e.y);ctx.lineTo(e.x,e.y+e.r+7);ctx.lineTo(e.x-e.r-7,e.y);ctx.closePath();ctx.stroke();ctx.globalAlpha=1; // 비콘 마름모(점멸)
@@ -1702,7 +1696,7 @@ function spawnRushSquad(){
   for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&!e.captured&&e.hp>0&&e.awake){var d=Math.hypot(e.x-myHQ.x,e.y-myHQ.y);if(d<od){od=d;origin=e;}}}
   if(!origin)for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&!e.captured&&e.hp>0){var d=Math.hypot(e.x-myHQ.x,e.y-myHQ.y);if(d<od){od=d;origin=e;}}}
   if(!origin)return;origin.awake=true;
-  var band=origin.band||0,n=6+band*2;
+  var band=origin.band||0,n=12+band*3; // 상시 송출 폐지분 보전: 러쉬를 주력 위협으로 — 한 번에 대거 진격
   for(var k=0;k<n&&emCount<EM_CAP;k++){var a=Math.random()*6.283,rr=Math.random()*42; // 한 점에 밀집 → 같은 속도로 뭉쳐 진격
     var et=(Math.random()<0.72?'rusher':'shield');var m=mkEm(origin.x+Math.cos(a)*rr,origin.y+Math.sin(a)*rr,emScaleNow(band),et);m.rushUnit=true;enemies.push(m);emCount++;}
   origin.pulseT=0.9;toast('⚠ 미니언 러쉬 — 스쿼드 집결, 본부 진격!');sfx('hqhit',0.15);addShake(6);}
