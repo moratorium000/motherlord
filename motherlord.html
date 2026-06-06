@@ -734,6 +734,8 @@ var ITEMS={
 };
 var ITEM_TIERS=[[],[],[],[]]; // [1]=컴포넌트 [2]=중위 [3]=완성
 Object.keys(ITEMS).forEach(function(id){ITEM_TIERS[ITEMS[id].tier].push(id);});
+var ITEM_PRICE_MUL=2.8; // 가격 일괄 배수(데이터=기준가). 재화 경제 대비 상향
+function costOf(it){return Math.round((it.cost||0)*ITEM_PRICE_MUL);}
 var ITEM_STAT_KEYS=['ad','ap','def','mr','hp','crit','pen','pctPen','as','cdr','spd','lifesteal','tenacity'];
 function itemStats(m){var s={};ITEM_STAT_KEYS.forEach(function(k){s[k]=0;});if(!m.items)return s;
   for(var i=0;i<m.items.length;i++){var it=ITEMS[m.items[i]];if(!it)continue;for(var k in it.stats)if(s[k]!==undefined)s[k]+=it.stats[k];}return s;}
@@ -742,27 +744,58 @@ function itemTwists(m){var t={};if(!m.items)return t;
 function itemStatLine(it){var p=[],S=it.stats;if(S.ad)p.push('공 +'+S.ad);if(S.ap)p.push('주 +'+S.ap);if(S.def)p.push('방 +'+S.def);if(S.mr)p.push('마저 +'+S.mr);if(S.hp)p.push('HP +'+S.hp);if(S.crit)p.push('치명 +'+Math.round(S.crit*100)+'%');if(S.pen)p.push('관통 +'+S.pen);if(S.as)p.push('공속 +'+Math.round(S.as*100)+'%');if(S.cdr)p.push('쿨감 +'+Math.round(S.cdr*100)+'%');if(S.spd)p.push('이속 +'+S.spd);if(S.lifesteal)p.push('흡혈 +'+Math.round(S.lifesteal*100)+'%');if(S.tenacity)p.push('저항 +'+Math.round(S.tenacity*100)+'%');return p.join(' · ');}
 function canBuyItem(m,id){var it=ITEMS[id];if(!it)return false;if(it.cls&&it.cls!==m.kind)return false;return true;}
 function firstEmptySlot(m){for(var i=0;i<m.items.length;i++)if(!m.items[i])return i;return -1;}
-function buyItem(m,id){var it=ITEMS[id];if(!it||!canBuyItem(m,id)||ECON.gold<it.cost)return false;var sl=firstEmptySlot(m);if(sl<0)return false;ECON.gold-=it.cost;m.items[sl]=id;applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('buy');return true;}
-function sellSlot(m,sl){var id=m.items[sl];if(!id)return;var it=ITEMS[id];ECON.gold+=Math.round(it.cost*0.7);m.items[sl]=null;applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('click');}
+function buyItem(m,id){var it=ITEMS[id];if(!it||!canBuyItem(m,id)||ECON.gold<costOf(it))return false;var sl=firstEmptySlot(m);if(sl<0)return false;ECON.gold-=costOf(it);m.items[sl]=id;applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('buy');return true;}
+function sellSlot(m,sl){var id=m.items[sl];if(!id)return;var it=ITEMS[id];ECON.gold+=Math.round(costOf(it)*0.7);m.items[sl]=null;applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('click');}
 
-function applyUpgrades(m){var u=m.up,cb=m.cardBonus||{},it=itemStats(m);
-  m.ad=Math.round(statVal(m,'ad',u.ad)*(cb.adMul||1))+it.ad;
-  m.ap=Math.round(statVal(m,'ap',u.ap)*(cb.apMul||1))+it.ap;
-  m.crit=statVal(m,'crit',u.crit)+(cb.critAdd||0)+it.crit;
-  m.flatPen=Math.round(statVal(m,'pen',u.pen))+(cb.flatPen||0)+it.pen;
-  m.pctPen=(cb.pctPen||0)+it.pctPen;
-  m.atkInt=m.K.atkInt/(1+u.as*USTEP.as.step+it.as);
-  m.cdr=Math.min(0.6,u.skl*USTEP.skl.step+it.cdr);
-  m.def=Math.round(statVal(m,'def',u.def)*(cb.defMul||1))+(cb.def||0)+it.def;
-  m.mr=Math.round(statVal(m,'mr',u.mr)*(cb.mrMul||1))+it.mr;
-  m.tenacity=Math.min(0.7,u.ten*USTEP.ten.step+it.tenacity);
-  m.speed=Math.round(statVal(m,'spd',u.spd)*(cb.spdMul||1))+it.spd;
-  var nm=Math.round(statVal(m,'hp',u.hp)*(cb.hpMul||1))+it.hp,frac=m.max?m.hp/m.max:1;m.max=nm;m.hp=Math.round(nm*frac);
-  m.itemLifesteal=it.lifesteal;m.itw=itemTwists(m);     // 완성템 고유효과(twist) 플래그
+/* ════════ 유물(보너스 변주 2칸) — 맵 드랍 전용, 소울당 2슬롯. 스탯+소형 기믹 ════════ */
+var RELICDEF={
+ // 일반(common): 단일 변주 스탯
+ rl_edge :{id:'rl_edge', grade:'common',name:'예리한 송곳니',gly:'🦷',stats:{ad:25}},
+ rl_focus:{id:'rl_focus',grade:'common',name:'집중의 눈',  gly:'👁',stats:{ap:30}},
+ rl_ward :{id:'rl_ward', grade:'common',name:'수호 부적',  gly:'🪬',stats:{def:22,hp:90}},
+ rl_swift:{id:'rl_swift',grade:'common',name:'바람 깃털',  gly:'🪶',stats:{spd:28}},
+ // 희귀(rare): 스탯 + 소형 효과
+ rl_fang :{id:'rl_fang', grade:'rare',name:'갈증의 이빨',  gly:'🩸',stats:{ad:30,lifesteal:0.06}},
+ rl_sage :{id:'rl_sage', grade:'rare',name:'현자의 인장',  gly:'📿',stats:{ap:38,cdr:0.08}},
+ rl_aegis:{id:'rl_aegis',grade:'rare',name:'불굴의 비늘',  gly:'🛡',stats:{mr:35,hp:120,tenacity:0.15}},
+ rl_hawk :{id:'rl_hawk', grade:'rare',name:'매의 시선',    gly:'🦅',stats:{crit:0.10,as:0.12}},
+ // 전설(legend): 강한 스탯 + 기믹
+ rl_titan :{id:'rl_titan', grade:'legend',name:'거인의 핵',  gly:'⛰',stats:{def:45,mr:45,hp:260}},
+ rl_doom  :{id:'rl_doom',  grade:'legend',name:'파멸의 보주',gly:'🔮',stats:{ad:35,ap:35,pen:18}},
+ rl_phoenix:{id:'rl_phoenix',grade:'legend',name:'불사조 깃',gly:'🔥',stats:{hp:200},tw:{lifeAll:0.10},twDesc:'모든 타격 10% 흡혈'},
+ rl_purifier:{id:'rl_purifier',grade:'legend',name:'정화의 성배',gly:'🏆',stats:{mr:40,hp:160,tenacity:0.20},tw:{autoPurge:1},twDesc:'3초마다 자동 정화+방어막'}
+};
+var RELIC_BY_GRADE={common:[],rare:[],legend:[]};
+Object.keys(RELICDEF).forEach(function(id){RELIC_BY_GRADE[RELICDEF[id].grade].push(id);});
+var relicBag=[]; // 미장착 유물 인벤(획득 순)
+function relicGradeKo(g){return g==='legend'?'전설':g==='rare'?'희귀':'일반';}
+function relicStats(m){var s={};ITEM_STAT_KEYS.forEach(function(k){s[k]=0;});if(!m.relics)return s;
+  for(var i=0;i<m.relics.length;i++){var r=RELICDEF[m.relics[i]];if(r&&r.stats)for(var k in r.stats)if(s[k]!==undefined)s[k]+=r.stats[k];}return s;}
+function relicTwists(m){var t={};if(!m.relics)return t;for(var i=0;i<m.relics.length;i++){var r=RELICDEF[m.relics[i]];if(r&&r.tw)for(var k in r.tw)t[k]=(typeof r.tw[k]==='number')?Math.max(t[k]||0,r.tw[k]):r.tw[k];}return t;}
+function mergeTw(a,b){var t=Object.assign({},a);for(var k in b)t[k]=(typeof b[k]==='number')?Math.max(t[k]||0,b[k]):b[k];return t;}
+function relicStatLine(r){var p=[],S=r.stats||{};if(S.ad)p.push('공+'+S.ad);if(S.ap)p.push('주+'+S.ap);if(S.def)p.push('방+'+S.def);if(S.mr)p.push('마저+'+S.mr);if(S.hp)p.push('HP+'+S.hp);if(S.crit)p.push('치명+'+Math.round(S.crit*100)+'%');if(S.pen)p.push('관통+'+S.pen);if(S.as)p.push('공속+'+Math.round(S.as*100)+'%');if(S.cdr)p.push('쿨감+'+Math.round(S.cdr*100)+'%');if(S.spd)p.push('이속+'+S.spd);if(S.lifesteal)p.push('흡혈+'+Math.round(S.lifesteal*100)+'%');if(S.tenacity)p.push('저항+'+Math.round(S.tenacity*100)+'%');if(r.twDesc)p.push('◆'+r.twDesc);return p.join(' · ');}
+function equipRelic(m,bagIdx){var sl=-1;for(var i=0;i<m.relics.length;i++)if(!m.relics[i]){sl=i;break;}if(sl<0||relicBag[bagIdx]==null)return false;m.relics[sl]=relicBag[bagIdx];relicBag.splice(bagIdx,1);applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('buy');return true;}
+function unequipRelic(m,sl){var id=m.relics[sl];if(!id)return;relicBag.push(id);m.relics[sl]=null;applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('click');}
+
+function armyCap(){var cc=(typeof enemies!=='undefined'&&enemies)?capturedCount():0;return Math.min(15,4+cc*2+Math.floor((gameTime||0)/90));} // 미니언 자동충원 상한(전진·시간 따라 4→15)
+function applyUpgrades(m){var u=m.up,cb=m.cardBonus||{},it=itemStats(m),rl=relicStats(m);
+  m.ad=Math.round(statVal(m,'ad',u.ad)*(cb.adMul||1))+it.ad+rl.ad;
+  m.ap=Math.round(statVal(m,'ap',u.ap)*(cb.apMul||1))+it.ap+rl.ap;
+  m.crit=statVal(m,'crit',u.crit)+(cb.critAdd||0)+it.crit+rl.crit;
+  m.flatPen=Math.round(statVal(m,'pen',u.pen))+(cb.flatPen||0)+it.pen+rl.pen;
+  m.pctPen=(cb.pctPen||0)+it.pctPen+rl.pctPen;
+  m.atkInt=m.K.atkInt/(1+u.as*USTEP.as.step+it.as+rl.as);
+  m.cdr=Math.min(0.6,u.skl*USTEP.skl.step+it.cdr+rl.cdr);
+  m.def=Math.round(statVal(m,'def',u.def)*(cb.defMul||1))+(cb.def||0)+it.def+rl.def;
+  m.mr=Math.round(statVal(m,'mr',u.mr)*(cb.mrMul||1))+it.mr+rl.mr;
+  m.tenacity=Math.min(0.7,u.ten*USTEP.ten.step+it.tenacity+rl.tenacity);
+  m.speed=Math.round(statVal(m,'spd',u.spd)*(cb.spdMul||1))+it.spd+rl.spd;
+  var nm=Math.round(statVal(m,'hp',u.hp)*(cb.hpMul||1))+it.hp+rl.hp,frac=m.max?m.hp/m.max:1;m.max=nm;m.hp=Math.round(nm*frac);
+  m.itemLifesteal=it.lifesteal+rl.lifesteal;m.itw=mergeTw(itemTwists(m),relicTwists(m)); // 완성템+유물 고유효과(twist)
   m.minMax=Math.round(statVal(m,'mhp',u.mhp)*(cb.minMul||1));
   m.minAd=Math.round(statVal(m,'mad',u.mad)*(cb.minMul||1));
   m.minAtk=1.0/(1+u.mas*USTEP.mas.step);
-  m.minCount=Math.min(20,4+u.mcount);
+  m.minCount=armyCap();
   syncMinions(m);
 }
 function clone(k){return k.map(function(s){return Object.assign({},s);});}
@@ -780,7 +813,7 @@ function syncMinions(m){var want=m.minCount||4;
 function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||600,max:K.hp||600,mana:100,maxMana:100,manaRegen:9,
   range:K.range,speed:92,ad:K.ad,ap:K.ap,def:K.def,mr:K.mr,crit:K.crit,critMult:K.critMult,flatPen:0,pctPen:0,tenacity:0,cdr:0,shield:0,
   minMax:80,minAd:7,minAtk:1.0,minCount:4,
-  dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:deepCloneSkills(K.skills),avatarSkills:K.avatarSkills?deepCloneSkills(K.avatarSkills):null,mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},cfx:{},itw:{},itemLifesteal:0,items:[null,null,null,null],recall:null,
+  dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:deepCloneSkills(K.skills),avatarSkills:K.avatarSkills?deepCloneSkills(K.avatarSkills):null,mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},cfx:{},itw:{},itemLifesteal:0,items:[null,null,null,null],relics:[null,null],recall:null,
   cmd:'escort',downed:false,downT:0,holdPt:null,lockT:0,tauntT:0,bigHitReduce:0, // 빙의 프레임: 아바타 커맨드 + 다운 + 신설계 상태
   hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:K.label};
   for(var i=0;i<4;i++)m.minions.push(mkMinion(m,i));
@@ -803,8 +836,11 @@ function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타�
   if(!direct&&!relay){toast('너무 멀다 — 가까이 가거나, 양쪽 모두 거점/본부 근처(빙의 사슬)');return;}
   sel=i;swapCD=(relay&&!direct)?3.0:2.2;snapTo(camT,a.x,a.y);toast(relay&&!direct?('빙의 사슬 — 거점 경유 횡단 → '+a.name):('빙의 → '+a.name));sfx('cast',0.1);
   for(var q=0;q<enemies.length;q++){var o=enemies[q];if(o.hp>0&&((o.kind==='mb'&&o.awake)||o.kind==='elite')&&Math.hypot(o.x-p.x,o.y-p.y)<300){var na=Math.atan2(a.y-o.y,a.x-o.x);tels.push({kind:'lane',x:o.x,y:o.y,a:na,r:300,w:36,windup:0.45,wmax:0.45,dmg:34,dtype:'phys',source:o,applied:false,life:0});}}} // ⑥ 반응형 스왑 처벌: 교전 중 스왑=갭클로즈 예고(예측형 스왑 학습)
-function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;MLS[i].cmd=c;if(c==='hold')MLS[i].holdPt={x:MLS[i].x,y:MLS[i].y};n++;}
-  toast(n?('아바타 '+n+'기 → '+(c==='escort'?'호위':c==='push'?'진격(보스 방면)':'수비(현 위치)')):'아바타 없음');}
+function nearestFriendlyBasePt(x,y){var best={x:myHQ.x,y:myHQ.y},bd=Math.hypot(x-myHQ.x,y-myHQ.y);for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0){var d=Math.hypot(x-e.x,y-e.y);if(d<bd){bd=d;best={x:e.x,y:e.y};}}}return {pt:best,d:bd};}
+function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;MLS[i].cmd=c;
+   if(c==='hold'){var nb=nearestFriendlyBasePt(MLS[i].x,MLS[i].y);MLS[i].holdPt=(nb.d<HEAL_R+70)?nb.pt:{x:MLS[i].x,y:MLS[i].y};} // 수비: 가까운 거점/본부면 거기 주둔(미니언 충원·방어), 아니면 현 위치
+   n++;}
+  toast(n?('아바타 '+n+'기 → '+(c==='escort'?'호위':c==='push'?'진격(거점 공성)':'수비(거점 주둔)')):'아바타 없음');}
 function reviveSoul(m){m.downed=false;m.hp=m.max;m.x=myHQ.x+(Math.random()*44-22);m.y=myHQ.y+(Math.random()*44-22);m.mods=[];m.shield=0;m.dest=m.tgt=m.amove=null;m.lockT=0;if(m.cfx){m.cfx._undy=0;m.cfx._rev=0;}reapplyPerm(m);
   for(var si=0;si<m.skills.length;si++)if(m.skills[si].on)m.skills[si].on=false; // 다운 시 토글 강제 해제(mods는 이미 비움)
   if(MLS.indexOf(m)===sel){overlordDead=false;toast('부활 — '+m.name+'에 다시 빙의');}else toast(m.name+' 재소환');}
@@ -962,7 +998,7 @@ function _placeChests(){var used=[];for(var i=0;i<enemies.length;i++)used.push({
 }
 // ── 유물 채널(보상 훅) — 효과/2칸 슬롯 시스템은 별도 채널, 여기선 획득만 기록 ──
 var RELICS=[];
-function grantRelic(grade){RELICS.push({grade:grade,t:gameTime});}
+function grantRelic(grade){var pool=RELIC_BY_GRADE[grade]||RELIC_BY_GRADE.common;var id=pool[(Math.random()*pool.length)|0];relicBag.push(id);RELICS.push({grade:grade,t:gameTime});var r=RELICDEF[id];toast('🏺 유물 획득: '+r.name+' ('+relicGradeKo(grade)+') — 상점에서 장착');}
 function updateChests(dt){for(var i=0;i<chests.length;i++){var c=chests[i];if(c.opened)continue;c.pulseT+=dt;
   if(c.sealed){if(c.lock&&c.lock.hp>0)continue; // 자물쇠 생존 = 봉인 유지
     c.sealed=false;toast('🔓 '+c.def.label+' 봉인 해제'+(c.lock?' — '+c.lock.name+' 처치':''));}
@@ -1026,6 +1062,13 @@ function updateAwaken(dt){
    FX / 플로팅 텍스트
    ============================================================ */
 function nearestEnemy(x,y,rng,awakeOnly){var best=null,bd=1e9;for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.hp<=0)continue;if(e.kind==='spawner'&&e.captured)continue;if(awakeOnly&&e.kind==='mb'&&!e.awake)continue;var d=Math.hypot(e.x-x,e.y-y);if(d<bd&&(!rng||d<=rng)){bd=d;best=e;}}return best;}
+// 진격(공성) 목표: 가장 가까운 미점령 적 거점 → 각성 미니보스 → 보스. 시야 무관하게 자율 공략(거점 함락)
+function siegeTarget(x,y){var best=null,bd=1e9,i,e,d;
+  for(i=0;i<enemies.length;i++){e=enemies[i];if(e.kind==='spawner'&&!e.captured&&e.hp>0){d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e;}}}
+  if(best)return best;
+  for(i=0;i<enemies.length;i++){e=enemies[i];if(e.kind==='mb'&&e.awake&&e.hp>0){d=Math.hypot(e.x-x,e.y-y);if(d<bd){bd=d;best=e;}}}
+  if(best)return best;
+  return (typeof BOSS!=='undefined'&&BOSS&&BOSS.hp>0)?BOSS:GEN.boss;}
 function spark(x,y,col){if(fx.length>240)fx.shift();fx.push({type:'spark',x:x,y:y,life:0.22,t:0.22,col:col||COL.spark});}
 function burst(x,y,col,n,spd){ // 방사형 파티클(죽음/획득)
   n=n||10;for(var i=0;i<n;i++){var a=Math.random()*6.283,s=(spd||60)*(0.4+Math.random());fx.push({type:'part',x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:0.5,t:0.5,col:col||COL.spark,rad:1.6+Math.random()*1.8});}}
@@ -1707,7 +1750,7 @@ function update(dt){
   if(!isP&&!m.dash&&!stun&&!chan){  // 아바타 커맨드(호위/진격/수비) → 목표 주입
    var gp,anchorX,anchorY,threatR,leashR;
    if(m.cmd==='hold'&&m.holdPt){gp=m.holdPt;anchorX=gp.x;anchorY=gp.y;threatR=230;leashR=300;}            // 수비: 거점 사수
-   else if(m.cmd==='push'){var bt=(BOSS&&BOSS.hp>0)?BOSS:GEN.boss;gp={x:bt.x,y:bt.y};anchorX=m.x;anchorY=m.y;threatR=320;leashR=1e9;} // 진격: 자기중심 광역 교전 허용
+   else if(m.cmd==='push'){var bt=siegeTarget(m.x,m.y);gp={x:bt.x,y:bt.y};anchorX=m.x;anchorY=m.y;threatR=340;leashR=1e9;} // 진격(공성): 가장 가까운 적 거점/목표로 자율 진군·공략(시야 무관)
    else{var P=MLS[sel],ea=i*2.39996;gp={x:P.x+Math.cos(ea)*ESCORT_R,y:P.y+Math.sin(ea)*ESCORT_R};anchorX=P.x;anchorY=P.y;threatR=175;leashR=ESCORT_R+150;} // 호위: 빙의체 주변 분산 + 빙의체 근처 위협만
    var foe=null;
    if(Math.hypot(m.x-anchorX,m.y-anchorY)<leashR)foe=nearestEnemy(anchorX,anchorY,threatR,true); // 위협 판정=앵커(빙의체/거점) 기준 → 자기 어그로로 이탈 안 함
@@ -1729,8 +1772,9 @@ function update(dt){
       else{lunge(m,atk.x,atk.y,9);slash(atk.x,atk.y,Math.atan2(atk.y-m.y,atk.x-m.x),m.K.col);resolveDamage(m,atk,m.ad,'phys',{canCrit:true});sfx('melee',0.07);}
       m.atkLeft=m.atkInt;}}
   }
+  m.minCount=armyCap(); // 자동충원 상한 갱신(전진·시간 따라 최대 15)
   if(!isP){ // 미니언 = 아바타 전용·소모성·거점(본부/교두보) 생산(작업로그 v2 §52)
-   if(m.minions.length<m.minCount&&nearFriendlyBase(m.x,m.y)){m.refillCD=(m.refillCD||0)-dt;if(m.refillCD<=0){m.minions.push(mkMinion(m,m.minions.length));m.refillCD=3.5;}} // 거점 근처서 충원
+   if(m.minions.length<m.minCount&&nearFriendlyBase(m.x,m.y)){m.refillCD=(m.refillCD||0)-dt;if(m.refillCD<=0){m.minions.push(mkMinion(m,m.minions.length));m.refillCD=2.2;}} // 거점 근처서 충원(2.2s마다 1기)
    for(var j=m.minions.length-1;j>=0;j--){var mn=m.minions[j];
     if(mn.hp<=0){m.minions.splice(j,1);continue;}                          // 죽으면 소멸(부활 X) → 거점서 재생산
     decay(mn,dt);tickMods(mn,dt);if(modHas(mn,'stun'))continue;
@@ -2378,13 +2422,30 @@ function renderShop(){
  var slots=document.createElement('div');slots.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
  for(var si=0;si<4;si++){(function(si){var id=m.items[si],it=ITEMS[id];
    var sd=document.createElement('div');sd.style.cssText='min-height:66px;border:1px solid '+(it?m.K.col:'#3a4a44')+';border-radius:6px;padding:6px;text-align:center;background:'+(it?'rgba(40,60,52,0.45)':'rgba(20,28,26,0.4)')+';cursor:'+(it?'pointer':'default');
-   if(it){sd.innerHTML='<div style="font-size:20px">'+it.gly+'</div><div style="font-size:11px;color:var(--text)">'+it.name+'</div><div style="font-size:9px;color:var(--dim)">판매 ₲'+Math.round(it.cost*0.7)+'</div>';sd.title='클릭=판매';sd.addEventListener('click',function(){sellSlot(m,si);renderShop();});}
+   if(it){sd.innerHTML='<div style="font-size:20px">'+it.gly+'</div><div style="font-size:11px;color:var(--text)">'+it.name+'</div><div style="font-size:9px;color:var(--dim)">판매 ₲'+Math.round(costOf(it)*0.7)+'</div>';sd.title='클릭=판매';sd.addEventListener('click',function(){sellSlot(m,si);renderShop();});}
    else sd.innerHTML='<div style="font-size:11px;color:#5a6a64;padding-top:20px">＋ 빈 칸</div>';
    slots.appendChild(sd);})(si);}
  board.appendChild(slots);
  var ss=document.createElement('div');ss.style.cssText='font-size:10px;color:var(--sub);line-height:1.8;border-top:1px solid #2a3a34;padding-top:6px';
  ss.innerHTML='합산 — 공 <b>'+m.ad+'</b> · 주 <b>'+m.ap+'</b> · 방 <b>'+m.def+'</b> · 마저 <b>'+m.mr+'</b> · HP <b>'+m.max+'</b><br>치명 '+Math.round(m.crit*100)+'% · 관통 '+m.flatPen+' · 쿨감 '+Math.round(m.cdr*100)+'% · 이속 '+m.speed+' · 저항 '+Math.round(m.tenacity*100)+'%';
  board.appendChild(ss);
+ // ── 유물 2칸 슬롯 + 인벤(획득 목록·장착) ──
+ var rh=document.createElement('div');rh.style.cssText='font-size:11px;color:var(--core);letter-spacing:.4px;font-weight:600;margin-top:4px';rh.textContent='🏺 유물 2칸 (보너스 변주)';board.appendChild(rh);
+ var rslots=document.createElement('div');rslots.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
+ for(var ri=0;ri<2;ri++){(function(ri){var id=m.relics[ri],r=RELICDEF[id];
+   var rd=document.createElement('div');rd.style.cssText='min-height:50px;border:1px dashed '+(r?'var(--core)':'#4a4a3a')+';border-radius:6px;padding:5px;text-align:center;background:'+(r?'rgba(50,46,30,0.4)':'rgba(24,24,18,0.4)')+';cursor:'+(r?'pointer':'default');
+   if(r){rd.innerHTML='<div style="font-size:16px">'+r.gly+'</div><div style="font-size:10px;color:var(--text)">'+r.name+'</div>';rd.title=relicStatLine(r)+'  · 클릭=해제';rd.addEventListener('click',function(){unequipRelic(m,ri);renderShop();});}
+   else rd.innerHTML='<div style="font-size:10px;color:#6a6a4a;padding-top:14px">빈 유물칸</div>';
+   rslots.appendChild(rd);})(ri);}
+ board.appendChild(rslots);
+ var rinv=document.createElement('div');rinv.style.cssText='font-size:9px;color:var(--dim);margin-top:2px';rinv.textContent=relicBag.length?('보유 유물 '+relicBag.length+'개 — 클릭해 '+JOBLABEL[m.kind]+'에 장착:'):'보유 유물 없음 (봉인 유물함 개봉 시 드랍)';board.appendChild(rinv);
+ if(relicBag.length){var rbag=document.createElement('div');rbag.style.cssText='display:flex;flex-wrap:wrap;gap:4px;max-height:100px;overflow-y:auto';
+   relicBag.forEach(function(rid,bi){var r=RELICDEF[rid];if(!r)return;var full=!!(m.relics[0]&&m.relics[1]);
+     var rb=document.createElement('div');rb.style.cssText='border:1px solid '+(r.grade==='legend'?'var(--core)':r.grade==='rare'?'var(--info)':'#3a4a44')+';border-radius:5px;padding:3px 6px;font-size:10px;color:var(--sub);cursor:'+(full?'default':'pointer')+';opacity:'+(full?0.5:1)+';background:rgba(30,30,22,0.5)';
+     rb.innerHTML=r.gly+' '+r.name;rb.title=relicStatLine(r)+(full?'  (유물칸 가득)':'  · 클릭=장착');
+     if(!full)rb.addEventListener('click',function(){if(equipRelic(m,bi))renderShop();});
+     rbag.appendChild(rb);});
+   board.appendChild(rbag);}
  wrap.appendChild(board);
  // ── 우: 아이템 브라우저(티어 탭 + 목록) ──
  var browser=document.createElement('div');browser.style.cssText='flex:1;display:flex;flex-direction:column;gap:8px;min-width:0';
@@ -2393,11 +2454,11 @@ function renderShop(){
  browser.appendChild(tierbar);
  var list=document.createElement('div');list.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:330px;overflow-y:auto;padding-right:4px';
  ITEM_TIERS[shopTier].forEach(function(id){var it=ITEMS[id];if(it.cls&&it.cls!==m.kind)return;
-   var afford=ECON.gold>=it.cost,full=firstEmptySlot(m)<0,buyable=afford&&!full;
+   var afford=ECON.gold>=costOf(it),full=firstEmptySlot(m)<0,buyable=afford&&!full;
    var card=document.createElement('div');card.style.cssText='border:1px solid '+(it.tier===3?'var(--warn)':'#3a4a44')+';border-radius:6px;padding:8px;background:rgba(28,38,34,0.6);cursor:'+(buyable?'pointer':'default')+';opacity:'+(buyable?1:0.55);
    var recipe=it.build?('<div style="font-size:9px;color:var(--dim);margin-top:2px">합성: '+it.build.map(function(b){return ITEMS[b]?ITEMS[b].name:b;}).join(' + ')+'</div>'):'';
    var tw=it.twistDesc?('<div style="font-size:9px;color:var(--warn);margin-top:3px;line-height:1.4">◆ '+it.twistDesc+'</div>'):'';
-   card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;color:var(--text)"><span style="font-size:16px">'+it.gly+'</span> '+it.name+(it.cls?' <span style="font-size:9px;color:'+m.K.col+'">['+JOBLABEL[it.cls]+']</span>':'')+'</span><span style="font-size:11px;color:var(--warn)">₲'+it.cost+'</span></div><div style="font-size:10px;color:var(--good);margin-top:3px;line-height:1.4">'+itemStatLine(it)+'</div>'+recipe+tw;
+   card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;color:var(--text)"><span style="font-size:16px">'+it.gly+'</span> '+it.name+(it.cls?' <span style="font-size:9px;color:'+m.K.col+'">['+JOBLABEL[it.cls]+']</span>':'')+'</span><span style="font-size:11px;color:var(--warn)">₲'+costOf(it)+'</span></div><div style="font-size:10px;color:var(--good);margin-top:3px;line-height:1.4">'+itemStatLine(it)+'</div>'+recipe+tw;
    if(buyable)card.addEventListener('click',function(){if(buyItem(m,id))renderShop();});
    list.appendChild(card);});
  if(firstEmptySlot(m)<0){var warn=document.createElement('div');warn.style.cssText='font-size:10px;color:var(--warn);grid-column:1/3';warn.textContent='⚠ 장비 4칸이 가득 찼습니다 — 슬롯을 판매해 비우세요.';list.appendChild(warn);}
