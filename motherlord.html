@@ -2871,7 +2871,7 @@ function buildJobGrid(){var g=document.getElementById('jobgrid');g.innerHTML='';
   g.appendChild(c);});
 }
 function startGame(job){
- MLS.length=0;MLS.push(mkML(job,HQX,HQY));sel=0;viewIdx=0;
+ MLS.length=0;MLS.push(mkML(job,HQX,HQY));sel=0;viewIdx=0;lastSel=-1; // lastSel 리셋: 같은 인덱스(0)라도 패널/스킬바 강제 갱신
  menuEl.style.display='none';charselEl.style.display='none';
  gameStarted=true;paused=false;gameOver=false;last=performance.now();
  buildRoster();snapTo(cam,myHQ.x,myHQ.y);snapTo(camT,myHQ.x,myHQ.y);
