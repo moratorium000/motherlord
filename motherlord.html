@@ -190,7 +190,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
     <button class="audiobtn" id="btnSfx" title="효과음">🔊</button>
     <button id="fsbtn">전체화면</button>
   </div>
-  <span class="chip" id="wave">다음 러쉬 1:30</span>
+  <span class="chip" id="wave">웨이브 0</span>
   <span class="chip" id="modetag">명령 대기</span>
 </div>
 
@@ -559,7 +559,7 @@ var KITS={
   avatarSkills:[
    S('Q','도발진','point',{cd:9,radius:150,col:COL.warn,fx:'taunt',tauntDur:2.5,desc:'반경 150 적 도발 — 오버로드가 받을 공격을 흡수. (보스 제압불가)'}),
    S('W','돌격 명령','self',{cd:12,dur:8,col:COL.warn,fx:'warcry',spdMul:1.30,nextMul:1.25,desc:'호위 오버로드·미니언 이속+30%, 피해+25%. 오버로드를 더 세게 박게.'}),
-   S('E','전선 구축','zone',{cd:14,dur:8,radius:110,col:COL.info,fx:'frontline',slow:0.7,zdmg:6,desc:'폭 진입 방해 지대 — 통과 적 둔화30%+소량 피해. 미니언 러쉬·엘리트 길목 차단.'}),
+   S('E','전선 구축','zone',{cd:14,dur:8,radius:110,col:COL.info,fx:'frontline',slow:0.7,zdmg:6,desc:'폭 진입 방해 지대 — 통과 적 둔화30%+소량 피해. 웨이브·엘리트 길목 차단.'}),
    S('R','불굴','passive',{fx:'inimitable',reduce:0.4,desc:'패시브: 보스급 단발 패턴 피해 −40%(다수 피해엔 미적용).'})
   ]},
  mage:{label:'마법사 · 마나형',gly:'마',res:'mana',col:COL.magic,range:165,atkInt:1.0,ranged:true,
@@ -971,6 +971,7 @@ function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타�
   sel=i;swapCD=(relay&&!direct)?3.0:2.2;snapTo(camT,a.x,a.y);toast(relay&&!direct?('빙의 사슬 — 거점 경유 횡단 → '+a.name):('빙의 → '+a.name));sfx('cast',0.1);
   for(var q=0;q<enemies.length;q++){var o=enemies[q];if(o.hp>0&&((o.kind==='mb'&&o.awake)||o.kind==='elite')&&Math.hypot(o.x-p.x,o.y-p.y)<300){var na=Math.atan2(a.y-o.y,a.x-o.x);tels.push({kind:'lane',x:o.x,y:o.y,a:na,r:300,w:36,windup:0.45,wmax:0.45,dmg:34,dtype:'phys',source:o,applied:false,life:0});}}} // ⑥ 반응형 스왑 처벌: 교전 중 스왑=갭클로즈 예고(예측형 스왑 학습)
 function nearestFriendlyBasePt(x,y){var best={x:myHQ.x,y:myHQ.y},bd=Math.hypot(x-myHQ.x,y-myHQ.y);for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0){var d=Math.hypot(x-e.x,y-e.y);if(d<bd){bd=d;best={x:e.x,y:e.y};}}}return {pt:best,d:bd};}
+function nearestFriendlyBaseEntity(x,y){var best=myHQ,bd=Math.hypot(x-myHQ.x,y-myHQ.y);for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0){var d=Math.hypot(x-e.x,y-e.y);if(d<bd){bd=d;best=e;}}}return best;} // 아군 거점 엔티티(본부 또는 점령 교두보) — 웨이브 표적용
 var STANCE_KO={escort:'호위',push:'진격',hold:'수비'};
 function applyStance(m,c){m.cmd=c;if(c==='hold'){var nb=nearestFriendlyBasePt(m.x,m.y);m.holdPt=(nb.d<HEAL_R+70)?nb.pt:{x:m.x,y:m.y};}} // 수비: 가까운 거점/본부면 거기 주둔
 function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;applyStance(MLS[i],c);n++;}rosterDirty=true;
@@ -1157,7 +1158,7 @@ function drawChest(c){if(c.opened)return;var pul=0.5+0.5*Math.abs(Math.sin(c.pul
 
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
 var coreExposed=false;
-var waveT=90,waveN=1;
+var waveT=90+Math.random()*90,waveN=0; // 웨이브: 90~180초 랜덤 간격, waveN=누적 웨이브 수
 var order=null,mouse={x:0,y:0,on:false},fx=[],projs=[],held={},tels=[],hazards=[],zones=[],ftxts=[];
 var shiftHeld=false,hoverSkill=-1,overPanel=false;
 // 화면 흔들림 / 본부 피격 비네트 / 유닛 이모지
@@ -1689,17 +1690,19 @@ function makeSquad(cell,band,mode){var sid=++squadSeq,anchor={x:cell.x,y:cell.y}
   for(var k=0;k<comp.length;k++){var ang=k/comp.length*6.283,e=mkElite(comp[k],cell.x+Math.cos(ang)*64,cell.y+Math.sin(ang)*64,1+band*0.38);e.squad=sid;e.anchor=anchor;e.mode=mode;if(!leader)leader=e;enemies.push(e);}
   var n=3+band+(mode==='garrison'?1:0);
   for(var i=0;i<n;i++){var aa=Math.random()*6.283,rr=48+Math.random()*72,m=mkEm(cell.x+Math.cos(aa)*rr,cell.y+Math.sin(aa)*rr,emScaleNow(band),pickSquadEm(band));m.squad=sid;m.leader=leader;m.anchor=anchor;m.mode=mode;enemies.push(m);}}
-// 미니언 러쉬 — 주기적으로 한 거점에서 미니언이 '모여' 본부로 진격(스쿼드 러쉬). 흩뿌리기 X.
+// 웨이브 — 주기적으로 한 거점에서 미니언이 '모여' 진격(본부 또는 가장 가까운 아군 거점). 흩뿌리기 X.
 function spawnRushSquad(){
   if(emCount>=EM_CAP)return;
   var origin=null,od=1e9; // 활성 적 거점 중 본부에 가장 가까운(전선) 곳
   for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&!e.captured&&e.hp>0&&e.awake){var d=Math.hypot(e.x-myHQ.x,e.y-myHQ.y);if(d<od){od=d;origin=e;}}}
   if(!origin)for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&!e.captured&&e.hp>0){var d=Math.hypot(e.x-myHQ.x,e.y-myHQ.y);if(d<od){od=d;origin=e;}}}
   if(!origin)return;origin.awake=true;
-  var band=origin.band||0,n=12+band*3; // 상시 송출 폐지분 보전: 러쉬를 주력 위협으로 — 한 번에 대거 진격
+  var band=origin.band||0,n=12+band*3; // 상시 송출 폐지분 보전: 웨이브를 주력 위협으로 — 한 번에 대거 진격
+  var goal=myHQ;                         // 일부 웨이브는 본부 대신 적 거점에서 가장 가까운 아군 거점(교두보)을 노린다
+  if(Math.random()<0.5)goal=nearestFriendlyBaseEntity(origin.x,origin.y);
   for(var k=0;k<n&&emCount<EM_CAP;k++){var a=Math.random()*6.283,rr=Math.random()*42; // 한 점에 밀집 → 같은 속도로 뭉쳐 진격
-    var et=(Math.random()<0.72?'rusher':'shield');var m=mkEm(origin.x+Math.cos(a)*rr,origin.y+Math.sin(a)*rr,emScaleNow(band),et);m.rushUnit=true;enemies.push(m);emCount++;}
-  origin.pulseT=0.9;toast('⚠ 미니언 러쉬 — 스쿼드 집결, 본부 진격!');sfx('hqhit',0.15);addShake(6);}
+    var et=(Math.random()<0.72?'rusher':'shield');var m=mkEm(origin.x+Math.cos(a)*rr,origin.y+Math.sin(a)*rr,emScaleNow(band),et);m.rushUnit=true;m.goal=goal;enemies.push(m);emCount++;}
+  origin.pulseT=0.9;toast('⚠ 웨이브 '+waveN+' — '+(goal===myHQ?'본부':'교두보')+'(으)로 진격!');sfx('hqhit',0.15);addShake(6);}
 function updateMb(e,dt){
   if(!e.awake)return;
   if(e.regen)e.hp=Math.min(e.max,e.hp+e.regen*dt);
@@ -1812,9 +1815,7 @@ function updateTels(dt){
    메인 업데이트
    ============================================================ */
 function awakenedMbs(){var a=[];for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='mb'&&e.awake&&e.hp>0&&e.arch!=='veil')a.push(e);}return a;}
-function waveInterval(){ // 미니언 러쉬 주기 ~1분 30초(링이 깨어날수록 약간 단축)
-  var awakeRings=0;for(var r=0;r<4;r++)if(ringAwake[r])awakeRings++;
-  return Math.max(72,96-awakeRings*6)+Math.random()*8;}
+function waveInterval(){ return 90+Math.random()*90; } // 웨이브 간격: 90~180초 랜덤(고정 타이머·예측 불가)
 
 function update(dt){
  if(paused||gameOver)return;
@@ -1848,7 +1849,7 @@ function update(dt){
 
  // 웨이브: 각성한 미니보스 중 하나가 부대를 본부로 보냄
  if(rushT>0)rushT-=dt; // 송출(평시·러쉬)은 거점(updateSpawner)이 전담
- waveT-=dt;if(waveT<=0){waveN++;spawnRushSquad();waveT=waveInterval();} // 미니언 러쉬 주기 발동
+ waveT-=dt;if(waveT<=0){waveN++;spawnRushSquad();waveT=waveInterval();} // 웨이브 발동(랜덤 90~180초)
 
  // 투사체
  for(var pi=projs.length-1;pi>=0;pi--){var p=projs[pi];if(!p.tgt||p.tgt.hp<=0){projs.splice(pi,1);continue;}p.px=p.x;p.py=p.y;var d=Math.hypot(p.tgt.x-p.x,p.tgt.y-p.y);
@@ -1941,7 +1942,8 @@ function update(dt){
   if(en.kind==='mb'){updateMb(en,dt);continue;}
   var stunE=modHas(en,'stun'),rootE=modHas(en,'root');if(stunE)continue;
   var fr=null,fd=1e9;for(var a=0;a<MLS.length;a++){var M=MLS[a];if(M.downed)continue;var d1=Math.hypot(M.x-en.x,M.y-en.y);if(d1<fd){fd=d1;fr=M;}for(var b=0;b<M.minions.length;b++){var d2=Math.hypot(M.minions[b].x-en.x,M.minions[b].y-en.y);if(d2<fd){fd=d2;fr=M.minions[b];}}}
-  var goHQ=Math.hypot(myHQ.x-en.x,myHQ.y-en.y),et=en.etype;
+  var goal=en.goal;if(!goal||(goal!==myHQ&&!(goal.kind==='spawner'&&goal.captured&&goal.hp>0)))goal=myHQ; // 웨이브 목표: 본부 또는 점령 교두보(파괴/탈환 시 본부로 폴백)
+  var goHQ=Math.hypot(goal.x-en.x,goal.y-en.y),et=en.etype;
   if(en.squad){ // 필드 스쿼드 미니언 러쉬: 리더 추종/방어, 근처 친군 교전. 리더 죽으면 해제→본부 러쉬.
     if(en.leader&&en.leader.hp<=0){en.squad=null;en.leader=null;en.anchor=null;}
     else{var ax=en.anchor.x,ay=en.anchor.y;
@@ -1955,20 +1957,20 @@ function update(dt){
     if(fr&&fd<en.standoff){en.facing=Math.atan2(fr.y-en.y,fr.x-en.x);
       if(fd<en.standoff*0.65&&!rootE)moveTo(en,en.x*2-fr.x,en.y*2-fr.y,eSpeed(en,en.spd),dt,1);
       en.fireCd-=dt;if(en.fireCd<=0){en.fireCd=en.fireInt;tels.push({kind:'lane',x:en.x,y:en.y,a:en.facing,r:en.standoff+50,w:34,windup:0.7,wmax:0.7,dmg:en.shot,dtype:'phys',source:en,applied:false,life:0});}
-    }else if(goHQ>40&&!rootE)moveTo(en,myHQ.x,myHQ.y,eSpeed(en,en.spd),dt,30);continue;}
+    }else if(goHQ>40&&!rootE)moveTo(en,goal.x,goal.y,eSpeed(en,en.spd),dt,30);continue;}
   if(et==='spore'){ // 포자체: 전진하며 주기 장판(고정원→도트)
     en.dotCd-=dt;if(en.dotCd<=0){en.dotCd=en.dotInt;tels.push({kind:'circle',x:en.x,y:en.y,r:58,windup:0.9,wmax:0.9,dmg:0,leaveDot:true,dtype:'magic',source:en,applied:false,life:0});}
-    if(goHQ>40&&!rootE)moveTo(en,myHQ.x,myHQ.y,eSpeed(en,en.spd),dt,30);else{en.atkLeft-=dt;if(en.atkLeft<=0){resolveDamage(en,myHQ,en.dmg,'phys',{});en.atkLeft=en.atkInt;}}continue;}
+    if(goHQ>40&&!rootE)moveTo(en,goal.x,goal.y,eSpeed(en,en.spd),dt,30);else{en.atkLeft-=dt;if(en.atkLeft<=0){resolveDamage(en,goal,en.dmg,'phys',{});en.atkLeft=en.atkInt;}}continue;}
   if(et==='bomber'){ // 자폭충: 표적에 붙어 확장링 폭발
-    var tb=(fr&&fd<goHQ)?fr:myHQ,db=Math.hypot(tb.x-en.x,tb.y-en.y);en.facing=Math.atan2(tb.y-en.y,tb.x-en.x);
+    var tb=(fr&&fd<goHQ)?fr:goal,db=Math.hypot(tb.x-en.x,tb.y-en.y);en.facing=Math.atan2(tb.y-en.y,tb.x-en.x);
     if(db>en.boomR*0.66&&!rootE)moveTo(en,tb.x,tb.y,eSpeed(en,en.spd),dt,2);
     else{tels.push({kind:'ringE',x:en.x,y:en.y,r:en.boomR,windup:0.2,wmax:0.2,dmg:en.boom,dtype:'phys',source:en,applied:false,life:0});en.hp=0;en.counted=true;deathPuff(en.x,en.y);}continue;}
   if(et==='infiltrator'){ // 침투체: 전선 무시 본부 직행
-    if(goHQ>30&&!rootE)moveTo(en,myHQ.x,myHQ.y,eSpeed(en,en.spd),dt,28);else{en.atkLeft-=dt;if(en.atkLeft<=0){lunge(en,myHQ.x,myHQ.y,7);resolveDamage(en,myHQ,en.dmg,'phys',{});en.atkLeft=en.atkInt;}}continue;}
+    if(goHQ>30&&!rootE)moveTo(en,goal.x,goal.y,eSpeed(en,en.spd),dt,28);else{en.atkLeft-=dt;if(en.atkLeft<=0){lunge(en,goal.x,goal.y,7);resolveDamage(en,goal,en.dmg,'phys',{});en.atkLeft=en.atkInt;}}continue;}
   // rusher / shield: 최근접 친군 또는 본부로 직진 근접
   if(fr&&fd<74){en.facing=Math.atan2(fr.y-en.y,fr.x-en.x);if(fd>14&&!rootE)moveTo(en,fr.x,fr.y,eSpeed(en,en.spd),dt,13);en.atkLeft-=dt;if(en.atkLeft<=0){lunge(en,fr.x,fr.y,7);resolveDamage(en,fr,en.dmg,'phys',{});en.atkLeft=en.atkInt;}}
-  else if(goHQ>32){if(!rootE){en.facing=Math.atan2(myHQ.y-en.y,myHQ.x-en.x);moveTo(en,myHQ.x,myHQ.y,eSpeed(en,en.spd),dt,30);}}
-  else{en.atkLeft-=dt;if(en.atkLeft<=0){lunge(en,myHQ.x,myHQ.y,7);resolveDamage(en,myHQ,en.dmg,'phys',{});en.atkLeft=en.atkInt;}}
+  else if(goHQ>32){if(!rootE){en.facing=Math.atan2(goal.y-en.y,goal.x-en.x);moveTo(en,goal.x,goal.y,eSpeed(en,en.spd),dt,30);}}
+  else{en.atkLeft-=dt;if(en.atkLeft<=0){lunge(en,goal.x,goal.y,7);resolveDamage(en,goal,en.dmg,'phys',{});en.atkLeft=en.atkInt;}}
  }
  if(myHQ.hitT>0)myHQ.hitT=Math.max(0,myHQ.hitT-dt);
 
@@ -2834,7 +2836,7 @@ function syncUI(){var m=MLS[sel];
    if(r2===sel){rosterPoss[r2].textContent='◆빙의';rosterStance[r2].textContent='◆ 빙의 중';rosterStance[r2].className='rstance poss';}
    else{rosterPoss[r2].textContent='';rosterStance[r2].textContent='▸ '+(STANCE_KO[rm.cmd]||'호위');rosterStance[r2].className='rstance';}}
  var _ihSig=sel+'|'+(m.items?m.items.join(','):'');if(_ihSig!==itemHudSig){itemHudSig=_ihSig;var _ih=gE('itemhud'),_ihh='';for(var _ii=0;_ii<4;_ii++){var _iit=ITEMS[m.items&&m.items[_ii]];_ihh+=_iit?'<div class="islot" title="'+_iit.name+'">'+_iit.gly+'</div>':'<div class="islot empty">·</div>';}_ih.innerHTML=_ihh;} // 전투 중 아이템 표시(읽기 전용)
- var _ws=Math.max(0,Math.ceil(waveT));EL.wave.textContent='다음 러쉬 '+Math.floor(_ws/60)+':'+((_ws%60)<10?'0':'')+(_ws%60);
+ EL.wave.textContent='웨이브 '+waveN;
  var pmode=overlordDead?('⚠ 오버로드 사망 — 부활 '+Math.ceil(MLS[sel].downT)+'s · 빙의 봉인'):(sealT>0?('⚠ 봉인 — 빙의/스왑 불가 '+sealT.toFixed(1)+'s'):(swapCD>0?('빙의 쿨 '+swapCD.toFixed(1)+'s — 이 몸에 묶임'):null));
  var chain=(!overlordDead&&m&&!m.downed&&nearFriendlyBase(m.x,m.y))?' · 빙의 사슬 활성(거점 경유 횡단)':'';
  EL.modetag.textContent=pmode||(order?(order.type==='amove'?'공격 이동 — 좌클릭 지정':(order.type==='skillAlly'?'아군 지정 — 좌클릭':'조준: '+MLS[order.mi].skills[order.si].name)):(paused?'정비 중 (P)':'◆ 빙의: '+m.K.label+chain));
