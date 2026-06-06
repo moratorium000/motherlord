@@ -675,6 +675,13 @@ var BOSS;
   enemies.push(mkMb({arch:'veil',ring:4,x:gp.x,y:gp.y,name:'본부 수호자',guardian:true,hp:1100}));
   BOSS=mkBoss(GEN.boss.x,GEN.boss.y);enemies.push(BOSS);
 })();
+// 엘리트 삼중주 배치(다대다 합성 무대·우선순위 퍼즐) — 거리 버킷별 군집
+(function(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
+  var trios=[['warden','bombardier','gladiator'],['hexer','sniper','berserker'],['summoner','lancer','colossus']]; // §3 포위·증폭·압살 외
+  var fr=[0.34,0.52,0.70];
+  for(var t=0;t<trios.length;t++){var c=pickCell(fr[t],used);used.push(c);var sc=1+fr[t]*0.6;
+    for(var k=0;k<3;k++){var an=k/3*6.283;enemies.push(mkElite(trios[t][k],c.x+Math.cos(an)*70,c.y+Math.sin(an)*70,sc));}}
+})();
 
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
 var coreExposed=false;
@@ -889,6 +896,50 @@ function rebuildFriends(){FRIENDS.length=0;for(var i=0;i<MLS.length;i++){FRIENDS
 function nearML(e){var b=null,bd=1e9;for(var i=0;i<MLS.length;i++){var d=Math.hypot(MLS[i].x-e.x,MLS[i].y-e.y);if(d<bd){bd=d;b=MLS[i];}}return{m:b,d:bd};}
 function aoeFriends(x,y,r,fn){for(var i=0;i<FRIENDS.length;i++){var u=FRIENDS[i];if(u.hp<=0)continue;if(Math.hypot(u.x-x,u.y-y)<=r)fn(u);}}
 
+// ── 엘리트 10종(적_설계 §4): 적 플레이어. 시그니처1+텔레그래프1+카운터1. 단독 약·삼중주 합성 위협. ──
+var ELITE_DEF={
+ gladiator:  {hp:340,spd:62,r:14,def:14,gly:'검',sig:'cone',   cd:2.4,reach:48, name:'검투사'},
+ lancer:     {hp:300,spd:44,r:13,def:12,gly:'창',sig:'lance',  cd:3.0,reach:230,name:'장창병'},
+ sniper:     {hp:230,spd:30,r:12,def:8, gly:'狙',sig:'snipe',  cd:3.8,reach:470,name:'저격수'},
+ hexer:      {hp:260,spd:46,r:13,def:10,gly:'呪',sig:'hex',    cd:3.4,reach:300,name:'저주사'},
+ warden:     {hp:300,spd:40,r:14,def:16,gly:'守',sig:'ward',   cd:2.6,reach:220,name:'수호자'},
+ stalker:    {hp:190,spd:78,r:11,def:8, gly:'刺',sig:'pounce', cd:4.2,reach:60, name:'추적자'},
+ colossus:   {hp:980,spd:20,r:23,def:40,gly:'巨',sig:'slam',   cd:3.6,reach:58, name:'거상'},
+ summoner:   {hp:270,spd:34,r:13,def:10,gly:'召',sig:'summon', cd:6.5,reach:300,name:'소환사'},
+ bombardier: {hp:250,spd:42,r:13,def:10,gly:'砲',sig:'barrage',cd:3.2,reach:340,name:'포격수'},
+ berserker:  {hp:360,spd:56,r:14,def:14,gly:'狂',sig:'rage',   cd:2.2,reach:48, name:'광폭체'}
+};
+function mkElite(type,x,y,scale){scale=scale||1;var D=ELITE_DEF[type]||ELITE_DEF.gladiator;
+  return{kind:'elite',etype:type,sig:D.sig,x:x,y:y,hp:Math.round(D.hp*scale),max:Math.round(D.hp*scale),r:D.r,def:D.def,mr:Math.round(D.def*0.6),shield:0,mods:[],
+   dmg:Math.round(18*scale),dtype:'phys',spd:D.spd,reach:D.reach,cd:Math.random()*D.cd,cdMax:D.cd,atkInt:1.1,atkLeft:0,facing:0,awake:true,ragePow:1,pounceT:0,
+   anchor:{x:x,y:y},wander:null,
+   hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:D.name,gly:D.gly,reward:{core:0,gold:22}};}
+function eliteBackline(e){var best=null,bd=-1;for(var i=0;i<MLS.length;i++){var M=MLS[i];if(M.downed)continue;var d=Math.hypot(M.x-e.x,M.y-e.y);if(d>bd){bd=d;best=M;}for(var j=0;j<M.minions.length;j++){var mn=M.minions[j],d2=Math.hypot(mn.x-e.x,mn.y-e.y);if(d2>bd){bd=d2;best=mn;}}}return best;}
+function eliteSig(e,fr){var a=e.facing;
+  if(e.sig==='cone'){tels.push({kind:'cone',x:e.x,y:e.y,a:a,ang:1.4,r:140,windup:0.4,wmax:0.4,dmg:30,dtype:'phys',source:e,applied:false,life:0});e.lungeT=0.12;e.ldx=Math.cos(a);e.ldy=Math.sin(a);e.lmax=10;}
+  else if(e.sig==='lance')tels.push({kind:'lane',x:e.x,y:e.y,a:a,r:300,w:40,windup:0.5,wmax:0.5,dmg:36,dtype:'phys',source:e,applied:false,life:0});
+  else if(e.sig==='snipe')tels.push({kind:'lane',x:e.x,y:e.y,a:a,r:560,w:26,windup:1.0,wmax:1.0,dmg:70,dtype:'phys',source:e,applied:false,life:0});
+  else if(e.sig==='hex')tels.push({kind:'mark',x:fr.x,y:fr.y,r:34,windup:0.7,wmax:0.7,dmg:18,dtype:'magic',source:e,follow:fr,applied:false,life:0,cc:{key:'hex',field:'moveSpd',op:'mul',value:0.6,dur:3.5,tickInt:0,dtype:'magic',tags:['slow','debuff'],name:'저주',col:COL.magic}});
+  else if(e.sig==='ward'){for(var i=0;i<enemies.length;i++){var o=enemies[i];if(o!==e&&(o.kind==='elite'||o.kind==='mb')&&o.hp>0&&Math.hypot(o.x-e.x,o.y-e.y)<260){o.shield=Math.max(o.shield,90);fx.push({x:o.x,y:o.y,r:o.r+6,t:0.4,life:0.4,col:COL.shield,fade:true,follow:o});}}}
+  else if(e.sig==='pounce'){var bk=eliteBackline(e)||fr;tels.push({kind:'mark',x:bk.x,y:bk.y,r:40,windup:0.45,wmax:0.45,dmg:0,dtype:'phys',source:e,follow:bk,applied:false,life:0});e.pounceT=0.45;e.pounceTgt=bk;}
+  else if(e.sig==='slam')tels.push({kind:'circle',x:fr.x,y:fr.y,r:120,windup:1.0,wmax:1.0,hold:0.4,dmg:90,dtype:'phys',source:e,applied:false,life:0});
+  else if(e.sig==='summon'){for(var s=0;s<3;s++){var an=Math.random()*6.283;enemies.push(mkEm(e.x+Math.cos(an)*30,e.y+Math.sin(an)*30,1,'rusher'));}fx.push({x:e.x,y:e.y,r:e.r+10,t:0.4,life:0.4,col:COL.bad,fade:true});}
+  else if(e.sig==='barrage'){for(var b=0;b<3;b++){var ox=fr.x+(Math.random()*220-110),oy=fr.y+(Math.random()*220-110);tels.push({kind:'circle',x:ox,y:oy,r:66,windup:0.8+b*0.15,wmax:0.8+b*0.15,dmg:40,dtype:'magic',source:e,applied:false,life:0});}}
+  else if(e.sig==='rage'){tels.push({kind:'cone',x:e.x,y:e.y,a:a,ang:1.0,r:120,windup:0.25,wmax:0.25,dmg:Math.round(26*e.ragePow),dtype:'phys',source:e,applied:false,life:0});e.lungeT=0.12;e.ldx=Math.cos(a);e.ldy=Math.sin(a);e.lmax=14;}
+}
+function updateElite(e,dt){if(modHas(e,'stun'))return;
+  if(e.shield>0)e.shield=Math.max(0,e.shield-14*dt);
+  if(e.pounceT>0){e.pounceT-=dt;if(e.pounceT<=0&&e.pounceTgt&&e.pounceTgt.hp>0){e.x=e.pounceTgt.x;e.y=e.pounceTgt.y;lunge(e,e.pounceTgt.x,e.pounceTgt.y,8);resolveDamage(e,e.pounceTgt,40,'phys',{});}return;}
+  var fr=null,fd=1e9;for(var a=0;a<MLS.length;a++){var M=MLS[a];if(M.downed)continue;var d=Math.hypot(M.x-e.x,M.y-e.y);if(d<fd){fd=d;fr=M;}for(var b=0;b<M.minions.length;b++){var d2=Math.hypot(M.minions[b].x-e.x,M.minions[b].y-e.y);if(d2<fd){fd=d2;fr=M.minions[b];}}}
+  if(!fr){mbWander(e,dt);return;}
+  e.facing=Math.atan2(fr.y-e.y,fr.x-e.x);
+  e.ragePow=(e.sig==='rage')?1+(1-e.hp/e.max)*1.4:1;
+  var reach=e.reach,root=modHas(e,'root');
+  if(fd>reach+18&&!root)moveTo(e,fr.x,fr.y,eSpeed(e,e.spd*e.ragePow),dt,reach);
+  else if(reach>140&&fd<reach*0.55&&!root)moveTo(e,e.x*2-fr.x,e.y*2-fr.y,eSpeed(e,e.spd),dt,1);
+  e.cd-=dt;if(e.cd<=0){e.cd=e.cdMax*(0.8+Math.random()*0.4);eliteSig(e,fr);}
+  if(reach<=80&&fd<reach+e.r+8){e.atkLeft-=dt;if(e.atkLeft<=0){lunge(e,fr.x,fr.y,7);resolveDamage(e,fr,e.dmg,'phys',{});e.atkLeft=e.atkInt;}}
+}
 function updateMb(e,dt){
   if(!e.awake)return;
   if(e.regen)e.hp=Math.min(e.max,e.hp+e.regen*dt);
@@ -1093,6 +1144,7 @@ function update(dt){
 
  // 적(미니보스 + 잡몹)
  for(var e=0;e<enemies.length;e++){var en=enemies[e];if(en.hp<=0)continue;if(en===BOSS)continue;decay(en,dt);tickMods(en,dt);
+  if(en.kind==='elite'){updateElite(en,dt);continue;}
   if(en.kind==='mb'){updateMb(en,dt);continue;}
   var stunE=modHas(en,'stun'),rootE=modHas(en,'root');if(stunE)continue;
   var fr=null,fd=1e9;for(var a=0;a<MLS.length;a++){var M=MLS[a];if(M.downed)continue;var d1=Math.hypot(M.x-en.x,M.y-en.y);if(d1<fd){fd=d1;fr=M;}for(var b=0;b<M.minions.length;b++){var d2=Math.hypot(M.minions[b].x-en.x,M.minions[b].y-en.y);if(d2<fd){fd=d2;fr=M.minions[b];}}}
@@ -1130,6 +1182,7 @@ function update(dt){
    if(en2.kind==='em'){en2.counted=true;grantGold(6);deathPuff(en2.x,en2.y);
      if(en2.etype==='bomber')tels.push({kind:'ringE',x:en2.x,y:en2.y,r:en2.boomR||74,windup:0.22,wmax:0.22,dmg:en2.boom||26,dtype:'phys',source:en2,applied:false,life:0}); // 사망 시 폭발
      else if(en2.etype==='spore')hazards.push({x:en2.x,y:en2.y,r:60,life:4,t:4,dmg:14,dtick:0.5,source:en2});}
+   else if(en2.kind==='elite'){en2.counted=true;grantGold(en2.reward.gold);deathPuff(en2.x,en2.y);sfx('impact',0.1);toast('엘리트 처치: '+en2.name+'  (+재화 '+en2.reward.gold+')');}
    else if(en2.kind==='mb'){en2.counted=true;grantCore(en2.reward.core);grantGold(en2.reward.gold);
      coreBurst(en2.x,en2.y);sfx('fall');sfx('core',0.05);
      toast('거점 함락: '+en2.name+'  (+코어 '+en2.reward.core+' · +재화 '+en2.reward.gold+')');
@@ -1222,6 +1275,12 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  // 적
  enemies.forEach(function(e){if(e.hp<=0)return;if(!cellVis(e.x,e.y))return;var ex=e.x+offX(e),ey=e.y+offY(e); // 안개: 시야 밖 적 비표시
    if(e.kind==='em'){var ec=e.etype==='shield'?'#9a5a3a':e.etype==='bomber'?'#e0a02c':e.etype==='spore'?'#7a9a3a':e.etype==='shooter'?'#c25a8a':e.etype==='infiltrator'?'#c2c24a':COL.bad;disc(ex,ey,e.r,ec);flashDisc(e,e.r);ccRing(e,e.r);ctx.save();ctx.fillStyle='#0d0f0d';ctx.font='bold '+(e.r*1.7)+'px Chakra Petch,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText((EMDEF[e.etype]||EMDEF.rusher).gly,ex,ey+1);ctx.restore();bars(e,15,-e.r-5);}
+   else if(e.kind==='elite'){var ecol=(e.sig==='ward'||e.sig==='hex'||e.sig==='summon')?'#b07ad6':'#d2643c'; // 지원형(끊을 1순위)=보라
+     ctx.save();ctx.fillStyle='#241e2a';ctx.fillRect(dX(ex)-e.r,dY(ey)-e.r,e.r*2,e.r*2);ctx.lineWidth=2;ctx.strokeStyle=ecol;ctx.shadowColor=ecol;ctx.shadowBlur=8;ctx.strokeRect(dX(ex)-e.r,dY(ey)-e.r,e.r*2,e.r*2);ctx.restore();
+     flashRect(e,e.r);ccRing(e,e.r);
+     ctx.save();ctx.fillStyle=ecol;ctx.font='bold '+(e.r*1.5)+'px Chakra Petch,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e.gly,ex,ey+1);ctx.restore();
+     if(e.shield>0){ctx.save();ctx.globalAlpha=0.5;ring(e.x,e.y,e.r+5,COL.shield,2);ctx.restore();}
+     label(e.x,e.y-e.r-13,e.name,ecol);bars(e,28,-e.r-8);}
    else{var isMb=e.kind==='mb',isBoss=e.kind==='boss';var sleeping=isMb&&!e.awake;
      var fill=isBoss?'#7a2f24':(sleeping?'#3a3530':(e.guardian?'#5b4a86':'#b14334'));
      ctx.save();if(sleeping)ctx.globalAlpha=0.55;ctx.fillStyle=fill;ctx.fillRect(dX(ex)-e.r,dY(ey)-e.r,e.r*2,e.r*2);
