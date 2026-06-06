@@ -734,7 +734,7 @@ var ITEMS={
 };
 var ITEM_TIERS=[[],[],[],[]]; // [1]=컴포넌트 [2]=중위 [3]=완성
 Object.keys(ITEMS).forEach(function(id){ITEM_TIERS[ITEMS[id].tier].push(id);});
-var ITEM_PRICE_MUL=2.8; // 가격 일괄 배수(데이터=기준가). 재화 경제 대비 상향
+var ITEM_PRICE_MUL=3.4; // 가격 일괄 배수(데이터=기준가). 재화 경제 대비 상향
 function costOf(it){return Math.round((it.cost||0)*ITEM_PRICE_MUL);}
 var ITEM_STAT_KEYS=['ad','ap','def','mr','hp','crit','pen','pctPen','as','cdr','spd','lifesteal','tenacity'];
 function itemStats(m){var s={};ITEM_STAT_KEYS.forEach(function(k){s[k]=0;});if(!m.items)return s;
@@ -804,10 +804,13 @@ function deepCloneSkills(k){return k.map(function(s){var c=Object.assign({},s);i
 // 미니언 대형 — 마더로드 주위 동심 배치(수 증가 대응)
 function minionOffset(i){var ring=Math.floor(i/6),idx=i%6,rad=20+ring*14,a=(idx/6)*6.283+ring*0.6;return [Math.cos(a)*rad,Math.sin(a)*rad];}
 function mkMinion(m,i){var o=minionOffset(i);return {x:m.x+o[0],y:m.y+o[1],o:o,hp:m.minMax||80,max:m.minMax||80,def:6,mr:6,shield:0,mods:[],atkLeft:Math.random(),hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:'미니언',owner:m};}
-function summonMinions(m,n){var cap=Math.min(18,(m.minCount||4)+12);for(var k=0;k<n&&m.minions.length<cap;k++){var mn=mkMinion(m,m.minions.length);mn.skel=true;m.minions.push(mn);}} // 네크로 소환(해골) — 임시 물량
-function syncMinions(m){var want=m.minCount||4;
-  while(m.minions.length<want)m.minions.push(mkMinion(m,m.minions.length));
-  if(m.minions.length>want)m.minions.length=want;
+function summonMinions(m,n){var SKEL_CAP=10,skelN=0;for(var i=0;i<m.minions.length;i++)if(m.minions[i].skel)skelN++; // 해골 군단 = 별도 상한(호위 미니언과 독립)
+  for(var k=0;k<n&&skelN<SKEL_CAP;k++){var mn=mkMinion(m,m.minions.length);mn.skel=true;m.minions.push(mn);skelN++;}}
+function syncMinions(m){var want=m.minCount||4,skels=[],regs=[];        // 해골(skel)은 별도 군단 — 카운트/트림에서 제외(소환물 보존)
+  for(var i=0;i<m.minions.length;i++){(m.minions[i].skel?skels:regs).push(m.minions[i]);}
+  while(regs.length<want)regs.push(mkMinion(m,regs.length));
+  if(regs.length>want)regs.length=want;
+  m.minions=regs.concat(skels);
   for(var i=0;i<m.minions.length;i++){var mn=m.minions[i];mn.o=minionOffset(i);var fr=mn.max?mn.hp/mn.max:1;mn.max=m.minMax||80;mn.hp=Math.min(mn.max,Math.round(mn.max*fr));}
 }
 function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||600,max:K.hp||600,mana:100,maxMana:100,manaRegen:9,
@@ -1438,7 +1441,8 @@ function mbWander(e,dt){if(modHas(e,'root'))return;
    각성한(awake) 미니보스만 이동/패턴/웨이브. 잠든 건 가만히.
    ============================================================ */
 var FRIENDS=[];
-function rebuildFriends(){FRIENDS.length=0;for(var i=0;i<MLS.length;i++){if(MLS[i].downed)continue;FRIENDS.push(MLS[i]);if(i===sel&&!overlordDead)continue;for(var j=0;j<MLS[i].minions.length;j++)FRIENDS.push(MLS[i].minions[j]);}FRIENDS.push(myHQ);} // 미니언=아바타 전용(빙의체 미니언 휴면)
+function rebuildFriends(){FRIENDS.length=0;for(var i=0;i<MLS.length;i++){if(MLS[i].downed)continue;FRIENDS.push(MLS[i]);
+  for(var j=0;j<MLS[i].minions.length;j++){var mn=MLS[i].minions[j];if(i===sel&&!overlordDead&&!mn.skel)continue;FRIENDS.push(mn);}}FRIENDS.push(myHQ);} // 빙의체 호위 미니언은 휴면(제외), 해골(skel)은 항상 아군 판정
 function nearML(e){if(e.tauntT>0&&e.tauntSrc&&e.tauntSrc.hp>0&&!e.tauntSrc.downed)return{m:e.tauntSrc,d:Math.hypot(e.tauntSrc.x-e.x,e.tauntSrc.y-e.y)}; // 도발: 도발원 강제 타겟
   var b=null,bd=1e9;for(var i=0;i<MLS.length;i++){var d=Math.hypot(MLS[i].x-e.x,MLS[i].y-e.y);if(d<bd){bd=d;b=MLS[i];}}return{m:b,d:bd};}
 function aoeFriends(x,y,r,fn){for(var i=0;i<FRIENDS.length;i++){var u=FRIENDS[i];if(u.hp<=0)continue;if(Math.hypot(u.x-x,u.y-y)<=r)fn(u);}}
@@ -1460,7 +1464,7 @@ function mkElite(type,x,y,scale){scale=scale||1;var D=ELITE_DEF[type]||ELITE_DEF
   return{kind:'elite',etype:type,sig:D.sig,x:x,y:y,hp:Math.round(D.hp*scale),max:Math.round(D.hp*scale),r:D.r,def:D.def,mr:Math.round(D.def*0.6),shield:0,mods:[],
    dmg:Math.round(18*scale),dtype:'phys',spd:D.spd,reach:D.reach,cd:Math.random()*D.cd,cdMax:D.cd,atkInt:1.1,atkLeft:0,facing:0,awake:true,ragePow:1,pounceT:0,
    anchor:{x:x,y:y},wander:null,
-   hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:D.name,gly:D.gly,reward:{core:0,gold:22}};}
+   hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:D.name,gly:D.gly,reward:{core:0,gold:12}};}
 function eliteBackline(e){var best=null,bd=-1;for(var i=0;i<MLS.length;i++){var M=MLS[i];if(M.downed)continue;var d=Math.hypot(M.x-e.x,M.y-e.y);if(d>bd){bd=d;best=M;}for(var j=0;j<M.minions.length;j++){var mn=M.minions[j],d2=Math.hypot(mn.x-e.x,mn.y-e.y);if(d2>bd){bd=d2;best=mn;}}}return best;}
 function eliteSig(e,fr){var a=e.facing;
   if(e.sig==='cone'){tels.push({kind:'cone',x:e.x,y:e.y,a:a,ang:1.4,r:140,windup:0.4,wmax:0.4,dmg:30,dtype:'phys',source:e,applied:false,life:0});e.lungeT=0.12;e.ldx=Math.cos(a);e.ldy=Math.sin(a);e.lmax=10;}
@@ -1684,7 +1688,7 @@ function waveInterval(){ // 미니언 러쉬 주기 ~1분 30초(링이 깨어날
 function update(dt){
  if(paused||gameOver)return;
  gameTime+=dt;
- totemAcc+=dt;if(totemAcc>=1){totemAcc-=1;var tm=1+capturedCount();grantGold(Math.round((2+gameTime/150)*tm));} // 자원토템: 본부+점령 교두보 = 전진 경제(§5.2)
+ totemAcc+=dt;if(totemAcc>=1){totemAcc-=1;grantGold(Math.round((0.8+capturedCount()*1.6)*(1+Math.min(0.5,gameTime/1200))));} // 자원토템: 수입 주력=점령 거점(전진경제). 시간 가산은 +50%에서 상한(무한 인플레 방지)
  rebuildFriends();
  fogAcc+=dt;if(fogAcc>=0.07){fogAcc=0;computeFog();}
  updateAwaken(dt);
@@ -1773,10 +1777,12 @@ function update(dt){
       m.atkLeft=m.atkInt;}}
   }
   m.minCount=armyCap(); // 자동충원 상한 갱신(전진·시간 따라 최대 15)
-  if(!isP){ // 미니언 = 아바타 전용·소모성·거점(본부/교두보) 생산(작업로그 v2 §52)
-   if(m.minions.length<m.minCount&&nearFriendlyBase(m.x,m.y)){m.refillCD=(m.refillCD||0)-dt;if(m.refillCD<=0){m.minions.push(mkMinion(m,m.minions.length));m.refillCD=2.2;}} // 거점 근처서 충원(2.2s마다 1기)
+  { // 미니언 갱신: 일반=아바타 전용 호위(빙의 중 휴면) / 해골(skel)=빙의·아바타 무관 상시 전투
+   if(!isP){var regN=0;for(var rj=0;rj<m.minions.length;rj++)if(!m.minions[rj].skel)regN++; // 충원은 일반 미니언만 카운트
+    if(regN<m.minCount&&nearFriendlyBase(m.x,m.y)){m.refillCD=(m.refillCD||0)-dt;if(m.refillCD<=0){m.minions.push(mkMinion(m,m.minions.length));m.refillCD=2.2;}}}
    for(var j=m.minions.length-1;j>=0;j--){var mn=m.minions[j];
-    if(mn.hp<=0){m.minions.splice(j,1);continue;}                          // 죽으면 소멸(부활 X) → 거점서 재생산
+    if(mn.hp<=0){m.minions.splice(j,1);continue;}                          // 죽으면 소멸(부활 X)
+    if(!mn.skel&&isP)continue;                                             // 일반 미니언은 빙의 중 휴면, 해골은 항상 활동
     decay(mn,dt);tickMods(mn,dt);if(modHas(mn,'stun'))continue;
     var me=nearestEnemy(mn.x,mn.y,78,true);var leash=Math.hypot(mn.x-m.x,mn.y-m.y);var mroot=modHas(mn,'root');
     if(me&&leash<150){if(Math.hypot(me.x-mn.x,me.y-mn.y)>26){if(!mroot)moveTo(mn,me.x,me.y,eSpeed(mn,118),dt,24);}else{mn.atkLeft-=dt;if(mn.atkLeft<=0){lunge(mn,me.x,me.y,6);resolveDamage(mn,me,(m.minAd||7),'phys',{});mn.atkLeft=(m.minAt||m.minAtk||1.0);}}}
