@@ -1344,11 +1344,35 @@ window.addEventListener('keydown',function(e){var k=e.key.toLowerCase();
 window.addEventListener('keyup',function(e){var k=e.key.toLowerCase();if(k==='shift'){shiftHeld=false;return;}if(held[k])delete held[k];});
 document.getElementById('fsbtn').addEventListener('click',function(){if(document.fullscreenElement)document.exitFullscreen();else document.documentElement.requestFullscreen();});
 
+/* ════════════════════════════════════════════════════════════
+   길찾기 — 플로우필드(타겟 셀 BFS, 8방향·대각 코너컷 금지). 벽이 정적이라
+   타겟 셀별 필드는 불변 → 메모이즈. moveTo가 직선 시야 막힐 때만 경유점 사용.
+   ════════════════════════════════════════════════════════════ */
+var NAV_MIN=72, navCache={}, navKeys=[], NAV_DX=[1,-1,0,0,1,1,-1,-1], NAV_DY=[0,0,1,-1,1,-1,1,-1];
+function navCellIdx(wx,wy){var gx=Math.floor(wx/CW),gy=Math.floor(wy/CH);if(gx<0||gy<0||gx>=COLS||gy>=ROWS)return -1;return gy*COLS+gx;}
+function navBuild(tci){ // 타겟 셀에서 BFS → step[c] = c에서 타겟으로 가는 다음 셀
+  var step=new Int32Array(COLS*ROWS).fill(-1);if(tci<0||GEN.cell[tci]===WALLC)return step;
+  var seen=new Uint8Array(COLS*ROWS),Q=[tci];seen[tci]=1;var h=0;
+  while(h<Q.length){var ci=Q[h++],cx=ci%COLS,cy=(ci/COLS)|0;
+    for(var k=0;k<8;k++){var xx=cx+NAV_DX[k],yy=cy+NAV_DY[k];if(xx<0||yy<0||xx>=COLS||yy>=ROWS)continue;var ni=yy*COLS+xx;if(seen[ni]||GEN.cell[ni]===WALLC)continue;
+      if(k>=4&&(GEN.cell[cy*COLS+xx]===WALLC||GEN.cell[yy*COLS+cx]===WALLC))continue; // 대각 코너컷 금지
+      seen[ni]=1;step[ni]=ci;Q.push(ni);}}
+  return step;}
+function navGetFlow(tci){var f=navCache[tci];if(f)return f;
+  if(navKeys.length>120){navCache={};navKeys=[];} // 캐시 상한(벽 정적이라 안전하게 비워도 됨)
+  f=navBuild(tci);navCache[tci]=f;navKeys.push(tci);return f;}
+function navWaypoint(o,tx,ty){var tci=navCellIdx(tx,ty),oci=navCellIdx(o.x,o.y);
+  if(tci<0||oci<0||tci===oci)return null;
+  var step=navGetFlow(tci),nx=step[oci];if(nx<0)return null; // 경로 없음 → 직진 폴백
+  return {x:(nx%COLS)*CW+CW/2,y:((nx/COLS)|0)*CH+CH/2};}
+function navBlocked(ax,ay,bx,by,rad){var dx=bx-ax,dy=by-ay,d=Math.hypot(dx,dy);if(d<CW*0.6)return false; // 반경 기반 직선 차단(모서리 클립까지 잡음). 전방 8셀까지만 검사(성능)
+  var look=Math.min(d,CW*8),ux=dx/d,uy=dy/d,step=CW*0.6,n=Math.ceil(look/step);for(var i=1;i<=n;i++){if(obstAt(ax+ux*step*i,ay+uy*step*i,rad||13))return true;}return false;}
 function obstAt(x,y,rad){var gx=Math.floor(x/CW),gy=Math.floor(y/CH);
   for(var yy=gy-1;yy<=gy+1;yy++)for(var xx=gx-1;xx<=gx+1;xx++){if(gAt(xx,yy)!==WALLC)continue;
     var lx=xx*CW,ly=yy*CH,nx=Math.max(lx,Math.min(x,lx+CW)),ny=Math.max(ly,Math.min(y,ly+CH));
     if(Math.hypot(x-nx,y-ny)<rad)return {t:'r',x:lx,y:ly,w:CW,h:CH};}return null;}
-function moveTo(o,gx,gy,sp,dt,stopAt){var ddx=gx-o.x,ddy=gy-o.y,d=Math.hypot(ddx,ddy);var s=stopAt||1;if(d<=s)return true;
+function moveTo(o,gx,gy,sp,dt,stopAt){var s=stopAt||1;var ddx=gx-o.x,ddy=gy-o.y,d=Math.hypot(ddx,ddy);if(d<=s)return true; // 도착 판정=원목표 기준
+  if(d>NAV_MIN&&navBlocked(o.x,o.y,gx,gy,(o.r||11)+3)){var wp=navWaypoint(o,gx,gy);if(wp){gx=wp.x;gy=wp.y;ddx=gx-o.x;ddy=gy-o.y;d=Math.hypot(ddx,ddy)||1;s=1;}} // 직선 막히면 경유점으로 우회
   var st=Math.min(d-s,sp*dt),ux=ddx/d,uy=ddy/d,rad=(o.r||11);
   var nx=o.x+ux*st,ny=o.y+uy*st,hit=obstAt(nx,ny,rad);
   if(hit){var cx,cy; // 접선으로 비껴 간다(스티어링). 벽=최근접점 기준 → 벽 타고 길목으로 흐름
@@ -1681,25 +1705,30 @@ function update(dt){
   var stun=modHas(m,'stun'),root=modHas(m,'root');
   if(m.dash){advDash(m,dt);}
   if(!isP&&!m.dash&&!stun&&!chan){  // 아바타 커맨드(호위/진격/수비) → 목표 주입
-   var gp;
-   if(m.cmd==='hold'&&m.holdPt)gp=m.holdPt;
-   else if(m.cmd==='push')gp=(BOSS&&BOSS.hp>0)?BOSS:GEN.boss;
-   else{var P=MLS[sel],ea=i*2.39996;gp={x:P.x+Math.cos(ea)*ESCORT_R,y:P.y+Math.sin(ea)*ESCORT_R};} // 호위: 빙의체 주변 반경 분산(딱 붙지 않게)
-   var anear=nearestEnemy(m.x,m.y,m.cmd==='escort'?300:260,true);
-   if(anear){m.tgt=anear;m.amove=null;m.dest=null;}else{m.tgt=null;m.dest=null;m.amove={x:gp.x,y:gp.y};}
+   var gp,anchorX,anchorY,threatR,leashR;
+   if(m.cmd==='hold'&&m.holdPt){gp=m.holdPt;anchorX=gp.x;anchorY=gp.y;threatR=230;leashR=300;}            // 수비: 거점 사수
+   else if(m.cmd==='push'){var bt=(BOSS&&BOSS.hp>0)?BOSS:GEN.boss;gp={x:bt.x,y:bt.y};anchorX=m.x;anchorY=m.y;threatR=320;leashR=1e9;} // 진격: 자기중심 광역 교전 허용
+   else{var P=MLS[sel],ea=i*2.39996;gp={x:P.x+Math.cos(ea)*ESCORT_R,y:P.y+Math.sin(ea)*ESCORT_R};anchorX=P.x;anchorY=P.y;threatR=175;leashR=ESCORT_R+150;} // 호위: 빙의체 주변 분산 + 빙의체 근처 위협만
+   var foe=null;
+   if(Math.hypot(m.x-anchorX,m.y-anchorY)<leashR)foe=nearestEnemy(anchorX,anchorY,threatR,true); // 위협 판정=앵커(빙의체/거점) 기준 → 자기 어그로로 이탈 안 함
+   if(foe){m.tgt=foe;m.amove=null;m.dest=null;}else{m.tgt=null;m.dest=null;m.amove={x:gp.x,y:gp.y};}
   }
-  var eng=null,locked=(m.lockT>0);
-  if(m.tgt){if(m.tgt.hp<=0)m.tgt=null;else eng=m.tgt;}
-  if(!eng&&m.amove)eng=nearestEnemy(m.x,m.y,m.range+44,true);
-  if(!chan&&!eng&&!m.dest&&!m.tgt&&!m.amove)eng=nearestEnemy(m.x,m.y,m.range,true);
-  if(!m.dash&&!stun&&!chan&&!locked&&eng){var de=Math.hypot(eng.x-m.x,eng.y-m.y);
-    if(de>m.range-4){if((m.tgt||m.amove)&&!root)moveTo(m,eng.x,eng.y,eSpeed(m,m.speed),dt,m.range-6);}
-    else{m.atkLeft-=dt*modMul(m,'atkSpd');if(m.atkLeft<=0){
-      if(m.K.ranged)shoot(m,eng,m.ad,(m.kind==='mage'||m.kind==='cleric'||m.kind==='curser')?'magic':'phys',m.K.col,m.kind==='archer'?640:460,m.kind==='archer'?2.5:5,{canCrit:true});
-      else{lunge(m,eng.x,eng.y,9);slash(eng.x,eng.y,Math.atan2(eng.y-m.y,eng.x-m.x),m.K.col);resolveDamage(m,eng,m.ad,'phys',{canCrit:true});sfx('melee',0.07);}
-      m.atkLeft=m.atkInt;}}}
-  else if(!m.dash&&!stun&&!root&&!locked&&m.dest){if(moveTo(m,m.dest.x,m.dest.y,eSpeed(m,m.speed),dt,2))m.dest=null;}
-  else if(!m.dash&&!stun&&!root&&!locked&&m.amove){if(moveTo(m,m.amove.x,m.amove.y,eSpeed(m,m.speed),dt,2))m.amove=null;}
+  var locked=(m.lockT>0);
+  if(m.tgt&&m.tgt.hp<=0)m.tgt=null;
+  // ── 이동(공격과 분리): 의도적 타겟 추격 > 수동 목적지 > 대형/공격이동. 호위는 추격으로 이탈 안 하고 대형을 유지하며 따라온다 ──
+  if(!m.dash&&!stun&&!root&&!locked){
+    if(m.tgt){if(Math.hypot(m.tgt.x-m.x,m.tgt.y-m.y)>m.range-4)moveTo(m,m.tgt.x,m.tgt.y,eSpeed(m,m.speed),dt,m.range-6);}
+    else if(m.dest){if(moveTo(m,m.dest.x,m.dest.y,eSpeed(m,m.speed),dt,2))m.dest=null;}
+    else if(m.amove){if(moveTo(m,m.amove.x,m.amove.y,eSpeed(m,m.speed),dt,2))m.amove=null;}
+  }
+  // ── 공격(이동과 독립): 의도적 타겟, 또는 따라가며/유휴 시 사거리 내 적에 평타(수동 이동 중엔 평타 안 함=원동작 보존) ──
+  if(!m.dash&&!stun&&!chan&&!locked){
+    var atk=(m.tgt&&m.tgt.hp>0)?m.tgt:((m.amove||(!m.dest&&!m.tgt))?nearestEnemy(m.x,m.y,m.range,true):null);
+    if(atk&&Math.hypot(atk.x-m.x,atk.y-m.y)<=m.range){m.atkLeft-=dt*modMul(m,'atkSpd');if(m.atkLeft<=0){
+      if(m.K.ranged)shoot(m,atk,m.ad,(m.kind==='mage'||m.kind==='cleric'||m.kind==='curser')?'magic':'phys',m.K.col,m.kind==='archer'?640:460,m.kind==='archer'?2.5:5,{canCrit:true});
+      else{lunge(m,atk.x,atk.y,9);slash(atk.x,atk.y,Math.atan2(atk.y-m.y,atk.x-m.x),m.K.col);resolveDamage(m,atk,m.ad,'phys',{canCrit:true});sfx('melee',0.07);}
+      m.atkLeft=m.atkInt;}}
+  }
   if(!isP){ // 미니언 = 아바타 전용·소모성·거점(본부/교두보) 생산(작업로그 v2 §52)
    if(m.minions.length<m.minCount&&nearFriendlyBase(m.x,m.y)){m.refillCD=(m.refillCD||0)-dt;if(m.refillCD<=0){m.minions.push(mkMinion(m,m.minions.length));m.refillCD=3.5;}} // 거점 근처서 충원
    for(var j=m.minions.length-1;j>=0;j--){var mn=m.minions[j];
