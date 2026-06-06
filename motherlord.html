@@ -53,6 +53,10 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
 .rnum{width:17px;height:17px;border-radius:4px;background:var(--panel2);color:var(--sub);font-size:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
 .rgly{font-size:12px;color:var(--sub);min-width:14px;}
 .rtx{font-size:11px;color:var(--dim);min-width:30px;text-align:right;font-variant-numeric:tabular-nums;}
+/* 전투 중 아이템 표시(읽기 전용·우상단 반투명, §8.2) */
+#itemhud{top:52px;right:14px;display:flex;gap:5px;opacity:0.6;pointer-events:none;}
+#itemhud .islot{width:36px;height:36px;border:1px solid var(--border);border-radius:7px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:17px;}
+#itemhud .islot.empty{opacity:.35;font-size:12px;color:var(--dim);}
 /* 호버 툴팁 */
 #tip{position:fixed;z-index:30;max-width:300px;background:rgba(14,17,14,0.97);border:1px solid var(--border2);border-radius:9px;padding:9px 11px;font-size:12px;line-height:1.5;color:var(--text);pointer-events:none;display:none;box-shadow:0 6px 22px rgba(0,0,0,0.55);}
 #tip .t-name{font-weight:600;font-size:13px;letter-spacing:.3px;margin-bottom:4px;}
@@ -181,18 +185,19 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
   <div id="rlist"></div>
 </div>
 
+<div class="hud" id="itemhud"></div>
+
 <div id="tip"></div>
 <div id="toast"></div>
 <div id="vignette"></div>
 
 <!-- 상점 — 재화 · 일반강화 (P / 정비 버튼) -->
 <div id="shopOverlay" class="overlay"><div class="modal">
-  <h2>상점 · 일반강화</h2>
-  <div class="msub">재화로 <b>마더로드별</b> 수치를 강화합니다. 칸을 고른 뒤 아래 <b>강화 ▸</b> 버튼으로 확정하세요(오조작 방지). 같은 축은 올릴수록 비용이 오릅니다.</div>
+  <h2>상점 · 장비</h2>
+  <div class="msub">재화(₲)로 <b>아이템</b>을 구매·장착합니다. 소울당 <b>4칸</b>. 컴포넌트→중위템→완성템으로 빌드업. 완성템엔 <b style="color:var(--warn)">고유효과(◆)</b>. 슬롯 클릭=판매(70% 환급). 액티브 버튼 없음 — 전부 패시브/자동.</div>
   <div class="mcur"><span class="chip">재화 <b id="shopGold" style="color:var(--warn)">0</b></span></div>
   <div id="shopTabs" class="shoptabs"></div>
   <div id="shopGrid" class="shopgrid"></div>
-  <div class="shopfoot"><span id="shopSelLbl">강화할 칸을 선택하세요.</span><button class="mclose" id="shopBuy" disabled>강화 ▸</button></div>
   <button class="mclose ghost" id="shopClose">전투로 돌아가기</button>
 </div></div>
 
@@ -392,6 +397,7 @@ function grantCore(n){ECON.core+=n;}
    ============================================================ */
 function addMod(e,m){
   if(!e.mods)e.mods=[];
+  if(e.itw&&e.itw.ccImmune&&m.tags&&m.tags.indexOf('cc')>=0)return; // 아이템 수호자의 성벽: CC 면역
   if(e.tenacity&&m.tags&&(m.tags.indexOf('cc')>=0||m.tags.indexOf('dot')>=0))m.dur*=(1-e.tenacity); // 상태이상저항
   if(m.key){for(var i=0;i<e.mods.length;i++){if(e.mods[i].key===m.key){ // 같은 효과는 갱신(스택 X)
     e.mods[i].dur=m.dur; if(m.value!==undefined)e.mods[i].value=m.value; return; }}}
@@ -426,12 +432,14 @@ function resolveDamage(src,tgt,base,dtype,opt){
   if(src&&opt.canCrit!==false&&src.crit){if(Math.random()<src.crit){crit=true;amt*=(src.critMult||1.7);}}
   if(src)amt*=modMul(src,'dmgDealt');
   if(src&&src.cfx)amt*=cardOutMul(src);              // 진화: 가한피해 배수(최후의 광란 등)
+  if(src&&src.itw&&src.itw.execAmp&&tgt.hp<tgt.max*0.3)amt*=1.6; // 아이템 처형자의 도끼: 저HP 적 +60%
   amt*=modMul(tgt,'dmgTaken');                       // ← 저주술사 파멸의 인장이 여기로
   if(dtype!=='true'){
     var raw=(dtype==='magic')?(tgt.mr||0):(tgt.def||0);
     var ds=defValue(tgt,raw,(dtype==='magic'?'mr':'def')); // ← 저주술사 쇠약(방깎)이 여기로
     var pen=src?(src.flatPen||0):0, pp=src?(src.pctPen||0):0;
     if(opt.pen||(opt.truestrikeTaunt&&modHas(tgt,'taunt')))pp=1; // 진화: 방어무시(파쇄격·가드브레이크)
+    if(src&&src.itw&&src.itw.armorPen)pp=Math.max(pp,Math.min(0.55,ds*0.0045)); // 아이템 관통의 표창: 방어 비례 관통
     var eff=Math.max(0,(ds-pen))*(1-pp);
     amt*=100/(100+eff);
   }
@@ -688,19 +696,69 @@ function statVal(m,k,lvl){var K=m.K,s=USTEP[k].step;switch(k){
  case 'mcount':return 4+lvl; case 'mhp':return 80+lvl*s; case 'mad':return 7+lvl*s; case 'mas':return lvl*s;}return 0;}
 function upCost(k,lvl){return USTEP[k].c0+lvl*USTEP[k].cs;}
 
-function applyUpgrades(m){var u=m.up,cb=m.cardBonus||{};
-  m.ad=Math.round(statVal(m,'ad',u.ad)*(cb.adMul||1));
-  m.ap=Math.round(statVal(m,'ap',u.ap)*(cb.apMul||1));
-  m.crit=statVal(m,'crit',u.crit)+(cb.critAdd||0);
-  m.flatPen=Math.round(statVal(m,'pen',u.pen))+(cb.flatPen||0);
-  m.pctPen=(cb.pctPen||0);
-  m.atkInt=m.K.atkInt/(1+u.as*USTEP.as.step);
-  m.cdr=Math.min(0.6,u.skl*USTEP.skl.step);
-  m.def=Math.round(statVal(m,'def',u.def)*(cb.defMul||1))+(cb.def||0);
-  m.mr=Math.round(statVal(m,'mr',u.mr)*(cb.mrMul||1));
-  m.tenacity=Math.min(0.6,u.ten*USTEP.ten.step);
-  m.speed=Math.round(statVal(m,'spd',u.spd)*(cb.spdMul||1));
-  var nm=Math.round(statVal(m,'hp',u.hp)*(cb.hpMul||1)),frac=m.max?m.hp/m.max:1;m.max=nm;m.hp=Math.round(nm*frac);
+/* ════════════════════════════════════════════════════════════
+   아이템 시스템(아이템_상점 설계 v0.1) — 컴포넌트9 → 중위7 → 완성8.
+   스탯=항상 적용 / 완성템 고유효과(twist)=cfx와 별개 m.itw로 빌드(장착·해체 가역).
+   소울당 4칸. 재화(₲) 구매, 판매 70% 환급. 액티브 버튼 없음(전부 패시브/자동).
+   ════════════════════════════════════════════════════════════ */
+function _it(o){o.stats=o.stats||{};return o;}
+var ITEMS={
+ // ── T1 컴포넌트 9종 ──
+ c_sword:_it({id:'c_sword',tier:1,name:'강철검',gly:'⚔',cost:50,stats:{ad:45}}),
+ c_tome :_it({id:'c_tome', tier:1,name:'법서',  gly:'📖',cost:50,stats:{ap:55}}),
+ c_knife:_it({id:'c_knife',tier:1,name:'사냥칼',gly:'🔪',cost:55,stats:{as:0.20,crit:0.12}}),
+ c_pike :_it({id:'c_pike', tier:1,name:'천공침',gly:'🗡',cost:50,stats:{pen:20}}),
+ c_gear :_it({id:'c_gear', tier:1,name:'가속의 톱니',gly:'⚙',cost:55,stats:{cdr:0.12}}),
+ c_mail :_it({id:'c_mail', tier:1,name:'사슬갑옷',gly:'🛡',cost:55,stats:{def:45,hp:100}}),
+ c_cloak:_it({id:'c_cloak',tier:1,name:'비단망토',gly:'🧣',cost:55,stats:{mr:45,hp:100}}),
+ c_vita :_it({id:'c_vita', tier:1,name:'활력석',gly:'💎',cost:60,stats:{hp:200,tenacity:0.20}}),
+ c_boot :_it({id:'c_boot', tier:1,name:'신속화',gly:'👟',cost:50,stats:{spd:35}}),
+ // ── T2 중위템 7종 ──
+ m_zerk:_it({id:'m_zerk',tier:2,name:'광폭의 검',gly:'⚔',cost:140,build:['c_sword','c_knife'],stats:{ad:45,as:0.20,crit:0.12}}),
+ m_fang:_it({id:'m_fang',tier:2,name:'흡혈 송곳니',gly:'🦷',cost:140,build:['c_sword','c_pike'],stats:{ad:45,pen:20,lifesteal:0.08}}),
+ m_orb :_it({id:'m_orb', tier:2,name:'마력 응집체',gly:'🔮',cost:140,build:['c_tome','c_gear'],stats:{ap:55,cdr:0.12}}),
+ m_plate:_it({id:'m_plate',tier:2,name:'수호의 판금',gly:'🛡',cost:150,build:['c_mail','c_vita'],stats:{def:45,hp:300,tenacity:0.20}}),
+ m_hood:_it({id:'m_hood',tier:2,name:'현자의 두건',gly:'🎓',cost:145,build:['c_cloak','c_gear'],stats:{mr:45,hp:100,cdr:0.12}}),
+ m_track:_it({id:'m_track',tier:2,name:'추적자의 부츠',gly:'👢',cost:140,build:['c_boot','c_knife'],stats:{spd:35,as:0.20,crit:0.12}}),
+ m_sigil:_it({id:'m_sigil',tier:2,name:'광전사의 인장',gly:'🔻',cost:145,build:['c_vita','c_gear'],stats:{hp:200,cdr:0.12,tenacity:0.20}}),
+ // ── T3 완성템: 전사 특화 5 ──
+ t_thirst:_it({id:'t_thirst',tier:3,cls:'warrior',name:'갈증의 대검',gly:'🩸',cost:300,build:['m_fang','c_knife'],stats:{ad:90,pen:20,as:0.20,lifesteal:0.08},twist:'lifeAll',tw:{lifeAll:0.3},twistDesc:'모든 타격 30% 흡혈(혈투 중 자생 엔진).'}),
+ t_exec:_it({id:'t_exec',tier:3,cls:'warrior',name:'처형자의 도끼',gly:'🪓',cost:320,build:['m_zerk','c_pike'],stats:{ad:90,as:0.20,crit:0.12,pen:20},twist:'exec',tw:{execAmp:1,killCdrFrac:0.4},twistDesc:'HP30%↓ 적 피해 +60% · 처치 시 전 스킬 쿨 40% 환급.'}),
+ t_spur:_it({id:'t_spur',tier:3,cls:'warrior',name:'돌격병의 박차',gly:'🌀',cost:300,build:['m_track','c_sword'],stats:{spd:35,as:0.20,crit:0.12,ad:45},twist:'dash',tw:{dashCdr:0.6},twistDesc:'돌진베기(E) 쿨 −60% — 맞히는 한 연속 돌진.'}),
+ t_wall:_it({id:'t_wall',tier:3,cls:'warrior',name:'수호자의 성벽',gly:'🏰',cost:320,build:['m_plate','c_cloak'],stats:{def:90,mr:45,hp:400,tenacity:0.40},twist:'guard',tw:{shieldShare:1,ccImmune:1},twistDesc:'전장 장악(W) 방어막 범위 아군 분배 + 본인 CC 면역.'}),
+ t_heart:_it({id:'t_heart',tier:3,cls:'warrior',name:'광전사의 심장',gly:'❤️‍🔥',cost:320,build:['m_sigil','c_vita'],stats:{hp:400,cdr:0.12,tenacity:0.40},twist:'bers',tw:{bersHpCostMul:0.5,lifeAll:0.1},twistDesc:'혈투 자해 −50% + 모든 타격 10% 흡혈.'}),
+ // ── T3 완성템: 범용 3(대표 빌드 관통/정화/CC) ──
+ t_pierce:_it({id:'t_pierce',tier:3,name:'관통의 표창',gly:'🎯',cost:280,build:['m_fang','c_pike'],stats:{ad:45,pen:40,lifesteal:0.08},twist:'armor',tw:{armorPen:1},twistDesc:'대상 방어/마저 비례 관통 — 탱일수록 더 뚫는다.'}),
+ t_purge:_it({id:'t_purge',tier:3,name:'정화의 성수',gly:'💧',cost:300,build:['m_hood','c_vita'],stats:{mr:45,hp:300,cdr:0.12,tenacity:0.20},twist:'purge',tw:{autoPurge:1},twistDesc:'3초마다 디버프 자동 정화 + 정화 수만큼 방어막.'}),
+ t_bind:_it({id:'t_bind',tier:3,name:'속박의 인장',gly:'🔗',cost:300,build:['m_orb','m_hood'],stats:{ap:55,cdr:0.24,mr:45,hp:100},twist:'cc',tw:{ccAmp:1},twistDesc:'CC 적중 시 대상 받는 피해 +25%(취약 낙인).'})
+};
+var ITEM_TIERS=[[],[],[],[]]; // [1]=컴포넌트 [2]=중위 [3]=완성
+Object.keys(ITEMS).forEach(function(id){ITEM_TIERS[ITEMS[id].tier].push(id);});
+var ITEM_STAT_KEYS=['ad','ap','def','mr','hp','crit','pen','pctPen','as','cdr','spd','lifesteal','tenacity'];
+function itemStats(m){var s={};ITEM_STAT_KEYS.forEach(function(k){s[k]=0;});if(!m.items)return s;
+  for(var i=0;i<m.items.length;i++){var it=ITEMS[m.items[i]];if(!it)continue;for(var k in it.stats)if(s[k]!==undefined)s[k]+=it.stats[k];}return s;}
+function itemTwists(m){var t={};if(!m.items)return t;
+  for(var i=0;i<m.items.length;i++){var it=ITEMS[m.items[i]];if(it&&it.tw)for(var k in it.tw)t[k]=(typeof it.tw[k]==='number')?Math.max(t[k]||0,it.tw[k]):it.tw[k];}return t;}
+function itemStatLine(it){var p=[],S=it.stats;if(S.ad)p.push('공 +'+S.ad);if(S.ap)p.push('주 +'+S.ap);if(S.def)p.push('방 +'+S.def);if(S.mr)p.push('마저 +'+S.mr);if(S.hp)p.push('HP +'+S.hp);if(S.crit)p.push('치명 +'+Math.round(S.crit*100)+'%');if(S.pen)p.push('관통 +'+S.pen);if(S.as)p.push('공속 +'+Math.round(S.as*100)+'%');if(S.cdr)p.push('쿨감 +'+Math.round(S.cdr*100)+'%');if(S.spd)p.push('이속 +'+S.spd);if(S.lifesteal)p.push('흡혈 +'+Math.round(S.lifesteal*100)+'%');if(S.tenacity)p.push('저항 +'+Math.round(S.tenacity*100)+'%');return p.join(' · ');}
+function canBuyItem(m,id){var it=ITEMS[id];if(!it)return false;if(it.cls&&it.cls!==m.kind)return false;return true;}
+function firstEmptySlot(m){for(var i=0;i<m.items.length;i++)if(!m.items[i])return i;return -1;}
+function buyItem(m,id){var it=ITEMS[id];if(!it||!canBuyItem(m,id)||ECON.gold<it.cost)return false;var sl=firstEmptySlot(m);if(sl<0)return false;ECON.gold-=it.cost;m.items[sl]=id;applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('buy');return true;}
+function sellSlot(m,sl){var id=m.items[sl];if(!id)return;var it=ITEMS[id];ECON.gold+=Math.round(it.cost*0.7);m.items[sl]=null;applyUpgrades(m);reapplyPerm(m);rosterDirty=true;sfx('click');}
+
+function applyUpgrades(m){var u=m.up,cb=m.cardBonus||{},it=itemStats(m);
+  m.ad=Math.round(statVal(m,'ad',u.ad)*(cb.adMul||1))+it.ad;
+  m.ap=Math.round(statVal(m,'ap',u.ap)*(cb.apMul||1))+it.ap;
+  m.crit=statVal(m,'crit',u.crit)+(cb.critAdd||0)+it.crit;
+  m.flatPen=Math.round(statVal(m,'pen',u.pen))+(cb.flatPen||0)+it.pen;
+  m.pctPen=(cb.pctPen||0)+it.pctPen;
+  m.atkInt=m.K.atkInt/(1+u.as*USTEP.as.step+it.as);
+  m.cdr=Math.min(0.6,u.skl*USTEP.skl.step+it.cdr);
+  m.def=Math.round(statVal(m,'def',u.def)*(cb.defMul||1))+(cb.def||0)+it.def;
+  m.mr=Math.round(statVal(m,'mr',u.mr)*(cb.mrMul||1))+it.mr;
+  m.tenacity=Math.min(0.7,u.ten*USTEP.ten.step+it.tenacity);
+  m.speed=Math.round(statVal(m,'spd',u.spd)*(cb.spdMul||1))+it.spd;
+  var nm=Math.round(statVal(m,'hp',u.hp)*(cb.hpMul||1))+it.hp,frac=m.max?m.hp/m.max:1;m.max=nm;m.hp=Math.round(nm*frac);
+  m.itemLifesteal=it.lifesteal;m.itw=itemTwists(m);     // 완성템 고유효과(twist) 플래그
   m.minMax=Math.round(statVal(m,'mhp',u.mhp)*(cb.minMul||1));
   m.minAd=Math.round(statVal(m,'mad',u.mad)*(cb.minMul||1));
   m.minAtk=1.0/(1+u.mas*USTEP.mas.step);
@@ -722,7 +780,7 @@ function syncMinions(m){var want=m.minCount||4;
 function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||600,max:K.hp||600,mana:100,maxMana:100,manaRegen:9,
   range:K.range,speed:92,ad:K.ad,ap:K.ap,def:K.def,mr:K.mr,crit:K.crit,critMult:K.critMult,flatPen:0,pctPen:0,tenacity:0,cdr:0,shield:0,
   minMax:80,minAd:7,minAtk:1.0,minCount:4,
-  dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:deepCloneSkills(K.skills),avatarSkills:K.avatarSkills?deepCloneSkills(K.avatarSkills):null,mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},cfx:{},recall:null,
+  dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:deepCloneSkills(K.skills),avatarSkills:K.avatarSkills?deepCloneSkills(K.avatarSkills):null,mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},cfx:{},itw:{},itemLifesteal:0,items:[null,null,null,null],recall:null,
   cmd:'escort',downed:false,downT:0,holdPt:null,lockT:0,tauntT:0,bigHitReduce:0, // 빙의 프레임: 아바타 커맨드 + 다운 + 신설계 상태
   hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:K.label};
   for(var i=0;i<4;i++)m.minions.push(mkMinion(m,i));
@@ -1002,6 +1060,7 @@ function applyDebuff(tgt,src,s){
   if(s.fx==='mark')markHit(tgt,src); // 궁수 표식(받는 물리↑, 중첩3)
   if(s.fx==='curse')curseHit(tgt,src); // 저주술사 저주 스택(중첩5)
   if(s.fx==='silence'){if(tgt.kind!=='boss')addMod(tgt,{key:'silence',field:'moveSpd',op:'mul',value:0,dur:s.dur||1.5,tags:['stun','cc','debuff'],source:src,name:'침묵',col:COL.magic});} // 시전 봉인=행동 정지(기존 stun 핸들러 재사용·보스 제압불가)
+  if(src&&src.itw&&src.itw.ccAmp&&(s.fx==='slow'||s.fx==='root'||s.fx==='freeze'||s.fx==='silence'||s.fx==='weaken'))addMod(tgt,{key:'ccamp',field:'dmgTaken',op:'mul',value:1.25,dur:3,tags:['debuff'],source:src,name:'취약 낙인',col:COL.bad}); // 아이템 속박의 인장: CC 적중 시 받피 +25%
 }
 /* ── 스택 디버프(표식·저주): 같은 key는 중첩 증가·갱신, value는 스택수로 산출 ── */
 function getStacks(tgt,key){if(tgt.mods)for(var i=0;i<tgt.mods.length;i++)if(tgt.mods[i].key===key)return tgt.mods[i].stacks||0;return 0;}
@@ -1021,7 +1080,7 @@ function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdL
   if(s.type==='combo'){doCombo(m,s,tx,ty,te);return;}   // 연격: 자체 쿨 관리
   if(s.type==='toggle'){doToggle(m,s);return;}          // 토글: 자체 쿨 관리
   if(s.type==='passive')return;
-  s.cdLeft=s.cd*(1-(m.cdr||0));if(m.K.res==='mana')m.mana-=Math.round(s.mana*(1-(m.cdr||0)*0.6));var sd=skillDmg(m,s);
+  s.cdLeft=s.cd*(1-(m.cdr||0));if(s.type==='dash'&&m.itw&&m.itw.dashCdr)s.cdLeft*=(1-m.itw.dashCdr);if(m.K.res==='mana')m.mana-=Math.round(s.mana*(1-(m.cdr||0)*0.6));var sd=skillDmg(m,s);
   if(s.stealthBonus&&m.stealthT>0){sd=Math.round(sd*s.stealthBonus);m.stealthT=0;removeModKey(m,'stealth');removeModKey(m,'stealthspd');ftext(m,'기습',COL.crit,false);} // 도적 급습: 은신 중 ×배수
   if(s.fx==='sanctuary'||s.type==='auto'||(s.type==='ally'))sfx('heal');
   else if(s.fx==='weaken'||s.fx==='amp'||s.fx==='root'||s.fx==='dot'||m.kind==='curser')sfx('castDark');
@@ -1113,7 +1172,7 @@ function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdL
       pullToward(m.x,m.y,s.radius,s.pull||120,m);
       for(var rj=0;rj<enemies.length;rj++){var re=enemies[rj];if(re.hp>0&&Math.hypot(re.x-m.x,re.y-m.y)<=s.radius){resolveDamage(m,re,sd,s.dtype,{canCrit:true});applyTaunt(re,m,s.tauntDur);}}
       var _sh=Math.round(s.shield+s.ratio*m.ad);m.shield=Math.max(m.shield,_sh);
-      if(m.cfx&&m.cfx.shieldShare)for(var _ss=0;_ss<MLS.length;_ss++){var _am=MLS[_ss];if(_am!==m&&!_am.downed&&_am.hp>0&&Math.hypot(_am.x-m.x,_am.y-m.y)<=s.radius)_am.shield=Math.max(_am.shield,Math.round(_sh*0.6));} // 수호자 정의: 방어막 범위 분배
+      if((m.cfx&&m.cfx.shieldShare)||(m.itw&&m.itw.shieldShare))for(var _ss=0;_ss<MLS.length;_ss++){var _am=MLS[_ss];if(_am!==m&&!_am.downed&&_am.hp>0&&Math.hypot(_am.x-m.x,_am.y-m.y)<=s.radius)_am.shield=Math.max(_am.shield,Math.round(_sh*0.6));} // 수호자 정의 / 아이템 성벽: 방어막 범위 분배
     }
     else if(s.fx==='taunt'){ // 아바타 도발진 — 반경 적 도발
       fx.push({x:m.x,y:m.y,r:s.radius,t:0.5,life:0.5,col:s.col,fade:true,follow:m});
@@ -1609,10 +1668,11 @@ function update(dt){
   if(m.shield>0&&!modHas(m,'guard'))m.shield=Math.max(0,m.shield-26*dt);
   for(var s=0;s<m.skills.length;s++){var sk=m.skills[s];if(sk.cdLeft>0)sk.cdLeft=Math.max(0,sk.cdLeft-dt);
     if(sk.type==='combo'&&sk.winLeft>0){sk.winLeft-=dt;if(sk.winLeft<=0)sk.step=0;}                 // 연격 윈도우 만료 → 1타 리셋
-    if(sk.on){if(!isP){toggleOff(m,sk);} else {m.hp-=m.max*sk.hpCost*dt;if(m.hp<=m.max*(sk.offHp||0.2)||m.hp<=1){m.hp=Math.max(1,m.hp);toggleOff(m,sk);sk.cdLeft=sk.cd*(1-(m.cdr||0));}}}} // 토글: 빙의체 전용. 자해 + HP20% 자동 해제
+    if(sk.on){if(!isP){toggleOff(m,sk);} else {m.hp-=m.max*sk.hpCost*((m.itw&&m.itw.bersHpCostMul)||1)*dt;if(m.hp<=m.max*(sk.offHp||0.2)||m.hp<=1){m.hp=Math.max(1,m.hp);toggleOff(m,sk);sk.cdLeft=sk.cd*(1-(m.cdr||0));}}}} // 토글: 빙의체 전용. 자해(아이템 심장 −50%) + HP20% 자동 해제
   if(m.avatarSkills)for(var sa=0;sa<m.avatarSkills.length;sa++)if(m.avatarSkills[sa].cdLeft>0)m.avatarSkills[sa].cdLeft=Math.max(0,m.avatarSkills[sa].cdLeft-dt);
   if(m.lockT>0)m.lockT=Math.max(0,m.lockT-dt); // 피니셔 후딜 무방비
   if(m.stealthT>0)m.stealthT=Math.max(0,m.stealthT-dt); // 도적 은신 타이머
+  if(m.itw&&m.itw.autoPurge){m.purgeT=(m.purgeT||0)-dt;if(m.purgeT<=0){m.purgeT=3;var _pn=purge(m);m.shield=Math.max(m.shield,80+_pn*60);if(_pn)ftext(m,'정화',COL.teal,false);}} // 아이템 정화의 성수: 3초마다 자동 정화 + 방어막
   if(m.K.res==='mana')m.mana=Math.min(m.maxMana,m.mana+m.manaRegen*dt);
   if(nearFriendlyBase(m.x,m.y))m.hp=Math.min(m.max,m.hp+m.max*HEAL_RATE*dt); // 본부·교두보 근처 자동회복
   if(m.recall!=null){m.recall-=dt;if(m.recall<=0)doRecall(m);}
@@ -1939,7 +1999,8 @@ function cardIncoming(tgt,amt,src,dtype){var c=tgt.cfx;if(!c)return amt;
   return amt;}
 // 가한 피해 측(아군 ML) — 흡혈 라이더 등
 function cardOnHit(src,tgt,amt,dtype){var c=src.cfx;if(!c)return;
-  if(c.bersLifesteal&&src.skills&&src.skills[3]&&src.skills[3].on){var h=Math.round(amt*c.bersLifesteal);if(h>0)heal(src,h);}}
+  if(c.bersLifesteal&&src.skills&&src.skills[3]&&src.skills[3].on){var h=Math.round(amt*c.bersLifesteal);if(h>0)heal(src,h);}
+  var ls=(src.itemLifesteal||0)+((src.itw&&src.itw.lifeAll)||0);if(ls>0)heal(src,Math.round(amt*ls));} // 아이템 흡혈(컴포넌트 + 갈증의 대검/광전사의 심장)
 // 처치 트리거(아군 ML)
 function cardOnKill(src,tgt){var c=src.cfx;if(!c)return;
   if(c.frenzy){var f=null;if(src.mods)for(var i=0;i<src.mods.length;i++)if(src.mods[i].key==='frenzy'){f=src.mods[i];break;}
@@ -1948,6 +2009,7 @@ function cardOnKill(src,tgt){var c=src.cfx;if(!c)return;
   if(c.killSpd){addMod(src,{key:'killspd',field:'moveSpd',op:'mul',value:1.4,dur:5,tags:['buff'],source:src,name:'추격',col:COL.warn});if(src.skills[2])src.skills[2].cdLeft=Math.max(0,(src.skills[2].cdLeft||0)-2);}
   if(c.killMana&&src.K&&src.K.res==='mana')src.mana=Math.min(src.maxMana,src.mana+c.killMana);
   if(c.killCurseSpread){var best=null,bd=170;for(var q=0;q<enemies.length;q++){var e=enemies[q];if(e.hp>0&&e!==tgt){var dd=Math.hypot(e.x-tgt.x,e.y-tgt.y);if(dd<bd){bd=dd;best=e;}}}if(best)for(var s2=0;s2<5;s2++)curseHit(best,src);}
+  if(src.itw&&src.itw.killCdrFrac)for(var ik=0;ik<src.skills.length;ik++)if(src.skills[ik].cdLeft>0)src.skills[ik].cdLeft*=(1-src.itw.killCdrFrac); // 아이템 처형자의 도끼: 처치 시 쿨 환급
   if(c.killStealth){addMod(src,{key:'stealth',field:'dmgReduction',op:'add',value:0.6,dur:1.5,tags:['buff'],source:src,name:'재은신',col:COL.magic});src.stealthT=1.5;} // 도적 그림자 분신
   if(c.killSummon)summonMinions(src,c.killSummon); // 네크로 끝없는 군대
   if(c.killGold){ECON.gold+=c.killGold;ftext(src,'+'+c.killGold,COL.warn,false);}} // 고고 보물 사냥꾼
@@ -2267,43 +2329,53 @@ function anyOverlayOpen(){return shopOverlay.style.display==='flex'||coreOverlay
 function hasAvailCards(){return MLS.some(function(m){var o=ownedCardIds(m);return (CARDS[m.kind]||[]).some(function(cd){return o.indexOf(cd.id)<0;});});}
 
 /* ---------- 상점 (재화 · 마더로드별 일반강화) ---------- */
-var shopSel=0,shopCell=null; // 선택된 마더로드 / 선택된 강화 축
-var COLDEF={off:{t:'공세',c:'var(--warn)'},sur:{t:'생존',c:'var(--good)'},army:{t:'군세',c:'var(--info)'}};
-function fmtVal(k,v){var d=USTEP[k];if(d.disp==='pct'||d.disp==='rate')return '+'+Math.round(v*100)+'%';return Math.round(v);}
+var shopSel=0,shopTier=1; // 선택된 마더로드 / 아이템 티어 탭(1=컴포넌트 2=중위 3=완성)
 function toggleShop(){if(gameOver||coreOverlay.style.display==='flex')return;if(shopOverlay.style.display==='flex')closeShop();else openShop();}
-function openShop(){if(gameOver||coreOverlay.style.display==='flex')return;paused=true;order=null;if(shopSel>=MLS.length)shopSel=0;shopCell=null;shopOverlay.style.display='flex';sfx('click');renderShop();}
+function openShop(){if(gameOver||coreOverlay.style.display==='flex')return;paused=true;order=null;if(shopSel>=MLS.length)shopSel=0;shopOverlay.style.display='flex';sfx('click');renderShop();}
 function closeShop(){shopOverlay.style.display='none';if(coreOverlay.style.display!=='flex'){paused=false;last=performance.now();}sfx('click');}
 function renderShop(){
  if(shopSel>=MLS.length)shopSel=0;
  document.getElementById('shopGold').textContent=ECON.gold;
  // 마더로드 탭
  var tb=document.getElementById('shopTabs');tb.innerHTML='';
- MLS.forEach(function(m,i){var t=document.createElement('div');t.className='shoptab'+(i===shopSel?' sel':'');
-  t.innerHTML='<span class="se">'+(MLEMO[m.kind]||'')+'</span>'+JOBLABEL[m.kind];
-  t.addEventListener('click',function(){shopSel=i;shopCell=null;sfx('click');renderShop();});tb.appendChild(t);});
- // 3열 그리드
- var m=MLS[shopSel];var grid=document.getElementById('shopGrid');grid.innerHTML='';
- ['off','sur','army'].forEach(function(col){
-  var cd=COLDEF[col],c=document.createElement('div');c.className='ucol';
-  c.innerHTML='<h4 style="border-color:'+cd.c+';color:'+cd.c+'">'+cd.t+'</h4>';
-  UKEYS.forEach(function(k){if(USTEP[k].col!==col)return;var def=USTEP[k],lvl=m.up[k],capped=lvl>=def.cap,cost=upCost(k,lvl);
-   var cur=statVal(m,k,lvl),nxt=statVal(m,k,lvl+1),afford=ECON.gold>=cost;
-   var cell=document.createElement('div');cell.className='ucell'+(shopCell===k?' sel':'')+(capped?' cap':'');
-   var valStr=capped?(fmtVal(k,cur)+' (최대)'):(fmtVal(k,cur)+' → '+fmtVal(k,nxt));
-   cell.innerHTML='<div class="un">'+def.label+'<span class="lv">Lv '+lvl+'/'+def.cap+'</span></div>'+
-     '<div class="uv">'+valStr+'</div>'+(capped?'':'<div class="uc'+(afford?'':' no')+'">재화 '+cost+'</div>');
-   if(!capped)cell.addEventListener('click',function(){shopCell=k;sfx('click');renderShop();});
-   c.appendChild(cell);});
-  grid.appendChild(c);});
- // 푸터 — 선택 미리보기 + 확정 버튼
- var lbl=document.getElementById('shopSelLbl'),btn=document.getElementById('shopBuy');
- if(shopCell){var k=shopCell,lvl=m.up[k],cost=upCost(k,lvl),afford=ECON.gold>=cost,capped=lvl>=USTEP[k].cap;
-  lbl.innerHTML='<b style="color:var(--text)">'+JOBLABEL[m.kind]+'</b> · '+USTEP[k].label+' '+fmtVal(k,statVal(m,k,lvl))+' → '+fmtVal(k,statVal(m,k,lvl+1))+' · 재화 '+cost;
-  btn.disabled=!afford||capped;btn.textContent=capped?'최대':'강화 ▸ ('+cost+')';}
- else{lbl.textContent='강화할 칸을 선택하세요.';btn.disabled=true;btn.textContent='강화 ▸';}
+ MLS.forEach(function(mm,i){var t=document.createElement('div');t.className='shoptab'+(i===shopSel?' sel':'');
+  t.innerHTML='<span class="se">'+(MLEMO[mm.kind]||'')+'</span>'+JOBLABEL[mm.kind];
+  t.addEventListener('click',function(){shopSel=i;sfx('click');renderShop();});tb.appendChild(t);});
+ var m=MLS[shopSel];var grid=document.getElementById('shopGrid');grid.innerHTML='';grid.style.display='block';
+ var wrap=document.createElement('div');wrap.style.cssText='display:flex;gap:14px;align-items:flex-start';
+ // ── 좌: 장비 보드(4칸 + 스탯요약) ──
+ var board=document.createElement('div');board.style.cssText='flex:0 0 230px;display:flex;flex-direction:column;gap:8px';
+ var bh=document.createElement('div');bh.style.cssText='font-size:12px;color:'+m.K.col+';letter-spacing:.4px;font-weight:600';bh.textContent=(MLEMO[m.kind]||'')+' '+JOBLABEL[m.kind]+' · 장비 4칸';board.appendChild(bh);
+ var slots=document.createElement('div');slots.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px';
+ for(var si=0;si<4;si++){(function(si){var id=m.items[si],it=ITEMS[id];
+   var sd=document.createElement('div');sd.style.cssText='min-height:66px;border:1px solid '+(it?m.K.col:'#3a4a44')+';border-radius:6px;padding:6px;text-align:center;background:'+(it?'rgba(40,60,52,0.45)':'rgba(20,28,26,0.4)')+';cursor:'+(it?'pointer':'default');
+   if(it){sd.innerHTML='<div style="font-size:20px">'+it.gly+'</div><div style="font-size:11px;color:var(--text)">'+it.name+'</div><div style="font-size:9px;color:var(--dim)">판매 ₲'+Math.round(it.cost*0.7)+'</div>';sd.title='클릭=판매';sd.addEventListener('click',function(){sellSlot(m,si);renderShop();});}
+   else sd.innerHTML='<div style="font-size:11px;color:#5a6a64;padding-top:20px">＋ 빈 칸</div>';
+   slots.appendChild(sd);})(si);}
+ board.appendChild(slots);
+ var ss=document.createElement('div');ss.style.cssText='font-size:10px;color:var(--sub);line-height:1.8;border-top:1px solid #2a3a34;padding-top:6px';
+ ss.innerHTML='합산 — 공 <b>'+m.ad+'</b> · 주 <b>'+m.ap+'</b> · 방 <b>'+m.def+'</b> · 마저 <b>'+m.mr+'</b> · HP <b>'+m.max+'</b><br>치명 '+Math.round(m.crit*100)+'% · 관통 '+m.flatPen+' · 쿨감 '+Math.round(m.cdr*100)+'% · 이속 '+m.speed+' · 저항 '+Math.round(m.tenacity*100)+'%';
+ board.appendChild(ss);
+ wrap.appendChild(board);
+ // ── 우: 아이템 브라우저(티어 탭 + 목록) ──
+ var browser=document.createElement('div');browser.style.cssText='flex:1;display:flex;flex-direction:column;gap:8px;min-width:0';
+ var tierbar=document.createElement('div');tierbar.style.cssText='display:flex;gap:6px';
+ [[1,'컴포넌트 9'],[2,'중위템 7'],[3,'완성템']].forEach(function(t){var t2=document.createElement('div');t2.className='shoptab'+(shopTier===t[0]?' sel':'');t2.textContent=t[1];t2.addEventListener('click',function(){shopTier=t[0];sfx('click');renderShop();});tierbar.appendChild(t2);});
+ browser.appendChild(tierbar);
+ var list=document.createElement('div');list.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:8px;max-height:330px;overflow-y:auto;padding-right:4px';
+ ITEM_TIERS[shopTier].forEach(function(id){var it=ITEMS[id];if(it.cls&&it.cls!==m.kind)return;
+   var afford=ECON.gold>=it.cost,full=firstEmptySlot(m)<0,buyable=afford&&!full;
+   var card=document.createElement('div');card.style.cssText='border:1px solid '+(it.tier===3?'var(--warn)':'#3a4a44')+';border-radius:6px;padding:8px;background:rgba(28,38,34,0.6);cursor:'+(buyable?'pointer':'default')+';opacity:'+(buyable?1:0.55);
+   var recipe=it.build?('<div style="font-size:9px;color:var(--dim);margin-top:2px">합성: '+it.build.map(function(b){return ITEMS[b]?ITEMS[b].name:b;}).join(' + ')+'</div>'):'';
+   var tw=it.twistDesc?('<div style="font-size:9px;color:var(--warn);margin-top:3px;line-height:1.4">◆ '+it.twistDesc+'</div>'):'';
+   card.innerHTML='<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:13px;color:var(--text)"><span style="font-size:16px">'+it.gly+'</span> '+it.name+(it.cls?' <span style="font-size:9px;color:'+m.K.col+'">['+JOBLABEL[it.cls]+']</span>':'')+'</span><span style="font-size:11px;color:var(--warn)">₲'+it.cost+'</span></div><div style="font-size:10px;color:var(--good);margin-top:3px;line-height:1.4">'+itemStatLine(it)+'</div>'+recipe+tw;
+   if(buyable)card.addEventListener('click',function(){if(buyItem(m,id))renderShop();});
+   list.appendChild(card);});
+ if(firstEmptySlot(m)<0){var warn=document.createElement('div');warn.style.cssText='font-size:10px;color:var(--warn);grid-column:1/3';warn.textContent='⚠ 장비 4칸이 가득 찼습니다 — 슬롯을 판매해 비우세요.';list.appendChild(warn);}
+ browser.appendChild(list);
+ wrap.appendChild(browser);
+ grid.appendChild(wrap);
 }
-function buyUpgrade(){if(!shopCell)return;var m=MLS[shopSel],k=shopCell,lvl=m.up[k];if(lvl>=USTEP[k].cap)return;var cost=upCost(k,lvl);if(ECON.gold<cost)return;
- ECON.gold-=cost;m.up[k]++;applyUpgrades(m);rosterDirty=true;sfx('buy');renderShop();}
 
 /* ---------- 코어 이벤트 (거점 함락) — 2단계 ---------- */
 var coreStep2Mode='recruit';
@@ -2340,7 +2412,7 @@ function renderStep2(){
     if(afford&&!have)c.addEventListener('click',function(){recruit(job,cost);});
     row.appendChild(c);});}
  } else {
-  document.getElementById('step2Title').textContent='진화 — 깊이(운영 변혁)';
+  document.getElementById('step2Title').textContent='진화 — 하위직업당 1택 (3 선택지)';
   var tabs=document.getElementById('evoTabs');tabs.innerHTML='';
   var avail=MLS.filter(function(m){var o=ownedCardIds(m);return (CARDS[m.kind]||[]).some(function(cd){return o.indexOf(cd.id)<0;});}); // 미획득 카드 보유 ML만
   if(!avail.length){tabs.style.display='none';row.innerHTML='<div class="card disabled" style="cursor:default"><div class="cname">모든 특수강화 적용됨</div><div class="cdesc">현재 로스터의 카드를 전부 획득했습니다.</div></div>';return;}
@@ -2348,12 +2420,16 @@ function renderStep2(){
   avail.forEach(function(m,i){var t=document.createElement('div');t.className='shoptab'+(i===evoSel?' sel':'');
    t.innerHTML='<span class="se">'+(MLEMO[m.kind]||'')+'</span>'+JOBLABEL[m.kind];
    t.addEventListener('click',function(){evoSel=i;sfx('click');renderStep2();});tabs.appendChild(t);});
-  var em=avail[evoSel],owned=ownedCardIds(em),lastSub=null;
-  (CARDS[em.kind]||[]).forEach(function(cd){if(owned.indexOf(cd.id)>=0)return;
-   if(cd.sub&&cd.sub!==lastSub){lastSub=cd.sub;var h=document.createElement('div');h.style.cssText='flex-basis:100%;font-size:11px;color:'+em.K.col+';letter-spacing:.5px;margin:4px 0 2px;opacity:.85';h.textContent='— '+cd.sub+' —';row.appendChild(h);}
-   var afford=ECON.core>=CARD_COST;
-   var c=document.createElement('div');c.className='card'+(afford?'':' disabled');
-   c.innerHTML='<span class="ccost core">코어 '+CARD_COST+'</span><span class="ctag" style="color:'+em.K.col+'">'+(MLEMO[em.kind]||'')+' '+cd.tag+'</span><div class="cname">'+cd.name+'</div><div class="cdesc">'+cd.desc+'</div>';
+  // 하위직업당 1개씩(현재 레인의 다음 미획득 카드) = 3 선택지
+  var em=avail[evoSel],owned=ownedCardIds(em),arr=CARDS[em.kind]||[],afford=ECON.core>=CARD_COST,subs=[];
+  arr.forEach(function(c){if(subs.indexOf(c.sub)<0)subs.push(c.sub);});
+  subs.forEach(function(sub){
+   var cands=arr.filter(function(c){return c.sub===sub&&owned.indexOf(c.id)<0;});
+   var c=document.createElement('div');
+   if(!cands.length){c.className='card disabled';c.style.cursor='default';c.innerHTML='<span class="ctag" style="color:'+em.K.col+'">'+sub+'</span><div class="cname">✓ 완성</div><div class="cdesc">이 하위직업 카드를 모두 획득했습니다.</div>';row.appendChild(c);return;}
+   var cd=cands[0];
+   c.className='card'+(afford?'':' disabled');
+   c.innerHTML='<span class="ccost core">코어 '+CARD_COST+'</span><span class="ctag" style="color:'+em.K.col+'">'+(MLEMO[em.kind]||'')+' '+sub+'</span><div class="cname">'+cd.name+'</div><div class="cdesc">'+cd.desc+'</div>';
    if(afford)c.addEventListener('click',function(){buyCard(em,cd);});
    row.appendChild(c);});
  }
@@ -2479,7 +2555,6 @@ gE('panel').addEventListener('mouseenter',function(){overPanel=true;});
 gE('panel').addEventListener('mouseleave',function(){overPanel=false;});
 gE('btnUpgrade').addEventListener('click',function(){toggleShop();});
 gE('shopClose').addEventListener('click',function(){closeShop();});
-gE('shopBuy').addEventListener('click',function(){buyUpgrade();});
 gE('coreSkip').addEventListener('click',function(){closeCore();});
 gE('coreBack').addEventListener('click',function(){sfx('click');coreShowStep1();});
 gE('coreDone').addEventListener('click',function(){closeCore();});
@@ -2499,7 +2574,7 @@ function doRecall(m){var ang=Math.random()*6.283;m.x=myHQ.x+Math.cos(ang)*52;m.y
 window.addEventListener('pointerdown',function(){audioUnlock();},{once:true});
 window.addEventListener('keydown',function(){audioUnlock();},{once:true});
 
-var rosterHp=[],rosterTx=[],rosterCard=[],rosterDirty=true;
+var rosterHp=[],rosterTx=[],rosterCard=[],rosterDirty=true,itemHudSig='';
 function buildRoster(){var rl=EL.rlist;rl.innerHTML='';rosterCard=[];rosterHp=[];rosterTx=[];
  for(var r=0;r<4;r++){var c=document.createElement('div');
   if(r<MLS.length){c.className='rcard';
@@ -2517,6 +2592,7 @@ function syncUI(){var m=MLS[sel];
  for(var i=0;i<skBtns.length;i++){var s=m.skills[i];skCdov[i].style.height=Math.round((s.cd>0?s.cdLeft/s.cd:0)*100)+'%';skCdtx[i].textContent=s.cdLeft>0.05?Math.ceil(s.cdLeft):'';var poor=m.K.res==='mana'&&m.mana<s.mana;skBtns[i].style.opacity=(s.cdLeft>0||poor)?'0.5':'1';skBtns[i].style.borderColor=(order&&(order.type==='skill'||order.type==='skillAlly')&&order.mi===sel&&order.si===i)?COL.info:'';}
  if(rosterDirty)buildRoster();
  for(var r2=0;r2<MLS.length;r2++){rosterCard[r2].style.borderColor=r2===sel?'var(--info)':'';rosterHp[r2].style.width=Math.round(MLS[r2].hp/MLS[r2].max*100)+'%';rosterTx[r2].textContent=Math.round(MLS[r2].hp);}
+ var _ihSig=sel+'|'+(m.items?m.items.join(','):'');if(_ihSig!==itemHudSig){itemHudSig=_ihSig;var _ih=gE('itemhud'),_ihh='';for(var _ii=0;_ii<4;_ii++){var _iit=ITEMS[m.items&&m.items[_ii]];_ihh+=_iit?'<div class="islot" title="'+_iit.name+'">'+_iit.gly+'</div>':'<div class="islot empty">·</div>';}_ih.innerHTML=_ihh;} // 전투 중 아이템 표시(읽기 전용)
  var _ws=Math.max(0,Math.ceil(waveT));EL.wave.textContent='다음 러쉬 '+Math.floor(_ws/60)+':'+((_ws%60)<10?'0':'')+(_ws%60);
  var pmode=overlordDead?('⚠ 오버로드 사망 — 부활 '+Math.ceil(MLS[sel].downT)+'s · 빙의 봉인'):(sealT>0?('⚠ 봉인 — 빙의/스왑 불가 '+sealT.toFixed(1)+'s'):(swapCD>0?('빙의 쿨 '+swapCD.toFixed(1)+'s — 이 몸에 묶임'):null));
  var chain=(!overlordDead&&m&&!m.downed&&nearFriendlyBase(m.x,m.y))?' · 빙의 사슬 활성(거점 경유 횡단)':'';
