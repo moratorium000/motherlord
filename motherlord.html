@@ -904,7 +904,7 @@ function mbWander(e,dt){if(modHas(e,'root'))return;
    각성한(awake) 미니보스만 이동/패턴/웨이브. 잠든 건 가만히.
    ============================================================ */
 var FRIENDS=[];
-function rebuildFriends(){FRIENDS.length=0;for(var i=0;i<MLS.length;i++){FRIENDS.push(MLS[i]);for(var j=0;j<MLS[i].minions.length;j++)FRIENDS.push(MLS[i].minions[j]);}FRIENDS.push(myHQ);}
+function rebuildFriends(){FRIENDS.length=0;for(var i=0;i<MLS.length;i++){if(MLS[i].downed)continue;FRIENDS.push(MLS[i]);if(i===sel&&!overlordDead)continue;for(var j=0;j<MLS[i].minions.length;j++)FRIENDS.push(MLS[i].minions[j]);}FRIENDS.push(myHQ);} // 미니언=아바타 전용(빙의체 미니언 휴면)
 function nearML(e){var b=null,bd=1e9;for(var i=0;i<MLS.length;i++){var d=Math.hypot(MLS[i].x-e.x,MLS[i].y-e.y);if(d<bd){bd=d;b=MLS[i];}}return{m:b,d:bd};}
 function aoeFriends(x,y,r,fn){for(var i=0;i<FRIENDS.length;i++){var u=FRIENDS[i];if(u.hp<=0)continue;if(Math.hypot(u.x-x,u.y-y)<=r)fn(u);}}
 
@@ -1210,10 +1210,15 @@ function update(dt){
       m.atkLeft=m.atkInt;}}}
   else if(!m.dash&&!stun&&!root&&m.dest){if(moveTo(m,m.dest.x,m.dest.y,eSpeed(m,m.speed),dt,2))m.dest=null;}
   else if(!m.dash&&!stun&&!root&&m.amove){if(moveTo(m,m.amove.x,m.amove.y,eSpeed(m,m.speed),dt,2))m.amove=null;}
-  for(var j=0;j<m.minions.length;j++){var mn=m.minions[j];decay(mn,dt);tickMods(mn,dt);if(modHas(mn,'stun'))continue;
-   var me=nearestEnemy(mn.x,mn.y,78,true);var leash=Math.hypot(mn.x-m.x,mn.y-m.y);var mroot=modHas(mn,'root');
-   if(me&&leash<150){if(Math.hypot(me.x-mn.x,me.y-mn.y)>26){if(!mroot)moveTo(mn,me.x,me.y,eSpeed(mn,118),dt,24);}else{mn.atkLeft-=dt;if(mn.atkLeft<=0){lunge(mn,me.x,me.y,6);resolveDamage(mn,me,(m.minAd||7),'phys',{});mn.atkLeft=(m.minAt||m.minAtk||1.0);}}}
-   else if(!mroot)moveTo(mn,m.x+mn.o[0],m.y+mn.o[1],eSpeed(mn,130),dt,1);
+  if(!isP){ // 미니언 = 아바타 전용·소모성·거점(본부/교두보) 생산(작업로그 v2 §52)
+   if(m.minions.length<m.minCount&&nearFriendlyBase(m.x,m.y)){m.refillCD=(m.refillCD||0)-dt;if(m.refillCD<=0){m.minions.push(mkMinion(m,m.minions.length));m.refillCD=3.5;}} // 거점 근처서 충원
+   for(var j=m.minions.length-1;j>=0;j--){var mn=m.minions[j];
+    if(mn.hp<=0){m.minions.splice(j,1);continue;}                          // 죽으면 소멸(부활 X) → 거점서 재생산
+    decay(mn,dt);tickMods(mn,dt);if(modHas(mn,'stun'))continue;
+    var me=nearestEnemy(mn.x,mn.y,78,true);var leash=Math.hypot(mn.x-m.x,mn.y-m.y);var mroot=modHas(mn,'root');
+    if(me&&leash<150){if(Math.hypot(me.x-mn.x,me.y-mn.y)>26){if(!mroot)moveTo(mn,me.x,me.y,eSpeed(mn,118),dt,24);}else{mn.atkLeft-=dt;if(mn.atkLeft<=0){lunge(mn,me.x,me.y,6);resolveDamage(mn,me,(m.minAd||7),'phys',{});mn.atkLeft=(m.minAt||m.minAtk||1.0);}}}
+    else if(!mroot)moveTo(mn,m.x+mn.o[0],m.y+mn.o[1],eSpeed(mn,130),dt,1);
+   }
   }
  }
 
@@ -1292,7 +1297,7 @@ function update(dt){
   if(!mm.downed&&mm.hp<=0){mm.downed=true;mm.hp=0;mm.dest=mm.tgt=mm.amove=null;mm.dash=null;mm.mods=[];mm.shield=0;mm.recall=null;
    if(k2===sel){overlordDead=true;var fr=Math.min(1,gameTime/1800);mm.downT=5+35*fr;rushT=30;rushAcc=0;rushPow=Math.max(0.15,Math.min(1.4,5/mm.downT));/* §4.4 부활반비례: 초반 강·후반 약 */toast('⚠ 오버로드 사망 — 빙의 봉인, 적 거점 개떼 러쉬!');sfx('fall',0.2);addShake(12);} // §4.2 부활 5~40s
    else{mm.downT=10;toast(mm.name+' 쓰러짐 — 재소환 대기');}}
-  mm.minions.forEach(function(x){if(x.hp<=0){x.hp=x.max;x.x=mm.x;x.y=mm.y;x.mods=[];}});}
+  }
 
  // 패배: 본부 파괴
  if(myHQ.hp<=0){lose();return;}
@@ -1405,7 +1410,7 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  // 미니언 + 마더로드
  for(var i=0;i<MLS.length;i++){var m=MLS[i];
   if(m.downed){ctx.save();ctx.globalAlpha=0.5;ctx.setLineDash([3,4]);ring(m.x,m.y,12,COL.dim,1.5);ctx.setLineDash([]);label(m.x,m.y-20,(i===sel?'부활 ':'재소환 ')+Math.ceil(m.downT)+'s',COL.dim);ctx.restore();continue;}
-  m.minions.forEach(function(mn){var mx=mn.x+offX(mn),my=mn.y+offY(mn);disc(mx,my,4.5,m.K.col);flashDisc(mn,4.5);ccRing(mn,5);bars(mn,13,-9);});
+  if(!(i===sel&&!overlordDead))m.minions.forEach(function(mn){var mx=mn.x+offX(mn),my=mn.y+offY(mn);disc(mx,my,4.5,m.K.col);flashDisc(mn,4.5);ccRing(mn,5);bars(mn,13,-9);}); // 빙의체 미니언 휴면(비표시)
   var poss=(i===sel&&!overlordDead);
   if(poss){ctx.save();ctx.globalAlpha=0.4;ring(m.x,m.y,m.range,COL.info,1);ctx.restore();ring(m.x,m.y,15,m.K.col,2);ring(m.x,m.y,19,COL.info,2);
    var marker=m.dest||m.amove;if(marker){ctx.save();ctx.globalAlpha=0.65;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(dX(m.x),dY(m.y));ctx.lineTo(dX(marker.x),dY(marker.y));ctx.strokeStyle=m.amove?COL.bad:COL.info;ctx.lineWidth=1.2;ctx.stroke();ctx.setLineDash([]);ring(marker.x,marker.y,5,m.amove?COL.bad:COL.info,1.4);ctx.restore();}}
