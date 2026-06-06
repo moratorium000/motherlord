@@ -398,7 +398,8 @@ function fogView(wx,wy,R){var cx=Math.floor(wx/CW),cy=Math.floor(wy/CH);
   for(var gy=Math.max(0,cy-R);gy<=Math.min(ROWS-1,cy+R);gy++)for(var gx=Math.max(0,cx-R);gx<=Math.min(COLS-1,cx+R);gx++){var ddx=gx-cx,ddy=gy-cy;if(ddx*ddx+ddy*ddy>R*R)continue;var i=gy*COLS+gx;if(visGrid[i])continue;if(losClear(cx,cy,gx,gy)){visGrid[i]=1;explGrid[i]=1;}}}
 function computeFog(){visGrid.fill(0);
   for(var i=0;i<MLS.length;i++){if(MLS[i].hp>0)fogView(MLS[i].x,MLS[i].y,8);for(var j=0;j<MLS[i].minions.length;j++){var mn=MLS[i].minions[j];if(mn.hp>0)fogView(mn.x,mn.y,3);}}
-  fogView(myHQ.x,myHQ.y,7);}
+  fogView(myHQ.x,myHQ.y,7);
+  for(var k=0;k<enemies.length;k++){var sp=enemies[k];if(sp.kind==='spawner'&&sp.captured&&sp.hp>0)fogView(sp.x,sp.y,7);}} // 아군 거점: 살아있으면 인근 전장의 안개 제거(전진 시야)
 
 /* ============================================================
    지형지물 — 이동/접근을 제한·이용. 충돌은 볼록 도형(원/사각)만 써
