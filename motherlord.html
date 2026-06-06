@@ -46,13 +46,25 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
 .sk .key{font-size:14px;color:var(--text);font-weight:600;}
 .sk .cdov{position:absolute;left:0;right:0;top:0;background:rgba(0,0,0,0.6);height:0;}
 .sk .cdtx{position:absolute;font-size:15px;color:var(--text);font-weight:600;}
-#roster{bottom:14px;right:14px;width:160px;}
-#roster .lab{font-size:11px;color:var(--dim);margin:0 0 4px 2px;}
-.rcard{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:5px 7px;margin-bottom:5px;cursor:pointer;}
-.rcard.empty{border-style:dashed;opacity:.55;cursor:default;font-size:11px;color:var(--dim);}
+#roster{bottom:14px;right:14px;width:192px;}
+#roster .lab{font-size:11px;color:var(--core);margin:0 0 5px 2px;letter-spacing:.2px;}
+#cmdbar{display:flex;gap:4px;margin:0 0 6px 0;}
+#cmdbar .cb{flex:1;font-size:10px;padding:4px 0;text-align:center;border-radius:6px;background:var(--panel2);border:1px solid var(--border);color:var(--sub);cursor:pointer;}
+#cmdbar .cb:hover{border-color:var(--border2);color:var(--text);}
+.rcard{display:flex;flex-direction:column;align-items:stretch;gap:3px;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:5px 7px;margin-bottom:5px;cursor:pointer;}
+.rcard.empty{border-style:dashed;opacity:.5;cursor:default;font-size:11px;color:var(--dim);flex-direction:row;align-items:center;gap:7px;}
+.rcard.sel{border-color:var(--info);box-shadow:0 0 0 1px var(--info) inset;background:rgba(40,52,60,0.6);}
+.rcard.down{opacity:.5;}
+.rtop{display:flex;align-items:center;gap:6px;}
 .rnum{width:17px;height:17px;border-radius:4px;background:var(--panel2);color:var(--sub);font-size:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;}
 .rgly{font-size:12px;color:var(--sub);min-width:14px;}
+.rname{flex:1;font-size:11px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rposs{font-size:10px;color:var(--info);font-weight:600;flex:0 0 auto;}
+.rbar{display:flex;align-items:center;gap:5px;}
 .rtx{font-size:11px;color:var(--dim);min-width:30px;text-align:right;font-variant-numeric:tabular-nums;}
+.rstance{font-size:10px;padding:2px 0;border-radius:5px;background:var(--panel2);border:1px solid var(--border);color:var(--sub);cursor:pointer;text-align:center;}
+.rstance:hover{border-color:var(--border2);color:var(--text);}
+.rstance.poss{color:var(--info);border-color:var(--info);cursor:default;background:transparent;}
 /* 전투 중 아이템 표시(읽기 전용·우상단 반투명, §8.2) */
 #itemhud{top:52px;right:14px;display:flex;gap:5px;opacity:0.6;pointer-events:none;}
 #itemhud .islot{width:36px;height:36px;border:1px solid var(--border);border-radius:7px;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:17px;}
@@ -161,7 +173,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
   <span class="chip" id="modetag">명령 대기</span>
 </div>
 
-<div class="hud" id="help">빙의체: 우클릭=이동/공격 · QWER=스킬 · A=공격이동 · S=정지 · B=귀환 │ 아바타 클릭=빙의 전환(가까이) · 1=호위 2=진격 3=수비 │ Tab=시점순환 · 휠=줌 · MMB=맵끌기 · P=상점</div>
+<div class="hud" id="help">빙의체: 우클릭=이동/공격 · QWER=스킬 · A=공격이동 · S=정지 · B=귀환 │ <b>1~4=혼에 빙의</b> · 로스터 카드 클릭=빙의 · 칩=개별 명령 │ <b>Z/X/C=전체 호위/진격/수비</b> · Tab=시점 · 휠=줌 · P=상점</div>
 
 <div class="hud" id="minimap">
   <div class="lab">미니맵 · 좌클릭 시점 / 우클릭 이동</div>
@@ -181,7 +193,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
 </div>
 
 <div class="hud" id="roster">
-  <div class="lab">편성 1~4 · 실시간 체력</div>
+  <div class="lab">⩕ 오버로드 지휘 · 카드=빙의 / 칩=명령</div>
+  <div id="cmdbar"><div class="cb" data-cmd="escort">전체 호위<span style="opacity:.6"> Z</span></div><div class="cb" data-cmd="push">전체 진격<span style="opacity:.6"> X</span></div><div class="cb" data-cmd="hold">전체 수비<span style="opacity:.6"> C</span></div></div>
   <div id="rlist"></div>
 </div>
 
@@ -840,10 +853,13 @@ function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타�
   sel=i;swapCD=(relay&&!direct)?3.0:2.2;snapTo(camT,a.x,a.y);toast(relay&&!direct?('빙의 사슬 — 거점 경유 횡단 → '+a.name):('빙의 → '+a.name));sfx('cast',0.1);
   for(var q=0;q<enemies.length;q++){var o=enemies[q];if(o.hp>0&&((o.kind==='mb'&&o.awake)||o.kind==='elite')&&Math.hypot(o.x-p.x,o.y-p.y)<300){var na=Math.atan2(a.y-o.y,a.x-o.x);tels.push({kind:'lane',x:o.x,y:o.y,a:na,r:300,w:36,windup:0.45,wmax:0.45,dmg:34,dtype:'phys',source:o,applied:false,life:0});}}} // ⑥ 반응형 스왑 처벌: 교전 중 스왑=갭클로즈 예고(예측형 스왑 학습)
 function nearestFriendlyBasePt(x,y){var best={x:myHQ.x,y:myHQ.y},bd=Math.hypot(x-myHQ.x,y-myHQ.y);for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0){var d=Math.hypot(x-e.x,y-e.y);if(d<bd){bd=d;best={x:e.x,y:e.y};}}}return {pt:best,d:bd};}
-function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;MLS[i].cmd=c;
-   if(c==='hold'){var nb=nearestFriendlyBasePt(MLS[i].x,MLS[i].y);MLS[i].holdPt=(nb.d<HEAL_R+70)?nb.pt:{x:MLS[i].x,y:MLS[i].y};} // 수비: 가까운 거점/본부면 거기 주둔(미니언 충원·방어), 아니면 현 위치
-   n++;}
+var STANCE_KO={escort:'호위',push:'진격',hold:'수비'};
+function applyStance(m,c){m.cmd=c;if(c==='hold'){var nb=nearestFriendlyBasePt(m.x,m.y);m.holdPt=(nb.d<HEAL_R+70)?nb.pt:{x:m.x,y:m.y};}} // 수비: 가까운 거점/본부면 거기 주둔
+function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;applyStance(MLS[i],c);n++;}rosterDirty=true;
   toast(n?('아바타 '+n+'기 → '+(c==='escort'?'호위':c==='push'?'진격(거점 공성)':'수비(거점 주둔)')):'아바타 없음');}
+function setOneAvatarCmd(idx,c){var m=MLS[idx];if(!m||idx===sel||m.downed)return;applyStance(m,c);rosterDirty=true;sfx('click');toast(JOBLABEL[m.kind]+' → '+(c==='escort'?'호위':c==='push'?'진격(공성)':'수비(주둔)'));}
+function cycleStance(idx){var ord=['escort','push','hold'],cur=MLS[idx]?(MLS[idx].cmd||'escort'):'escort',ni=(ord.indexOf(cur)+1)%3;setOneAvatarCmd(idx,ord[ni]);}
+function rosterClick(idx){if(idx>=MLS.length||MLS[idx].downed)return;snapTo(camT,MLS[idx].x,MLS[idx].y);if(idx!==sel)tryPossess(idx);} // 로스터 클릭=빙의(가능 시) + 카메라 포커스
 function reviveSoul(m){m.downed=false;m.hp=m.max;m.x=myHQ.x+(Math.random()*44-22);m.y=myHQ.y+(Math.random()*44-22);m.mods=[];m.shield=0;m.dest=m.tgt=m.amove=null;m.lockT=0;if(m.cfx){m.cfx._undy=0;m.cfx._rev=0;}reapplyPerm(m);
   for(var si=0;si<m.skills.length;si++)if(m.skills[si].on)m.skills[si].on=false; // 다운 시 토글 강제 해제(mods는 이미 비움)
   if(MLS.indexOf(m)===sel){overlordDead=false;toast('부활 — '+m.name+'에 다시 빙의');}else toast(m.name+' 재소환');}
@@ -1381,7 +1397,10 @@ window.addEventListener('keydown',function(e){var k=e.key.toLowerCase();
  if(k===' '){e.preventDefault();held[' ']=1;return;}
  if(k==='escape'){order=null;return;}
  if(k==='tab'){e.preventDefault();viewIdx=(viewIdx+1)%MLS.length;snapTo(camT,MLS[viewIdx].x,MLS[viewIdx].y);return;} // 카메라만 순환(빙의 이전 X)
- if(k>='1'&&k<='3'){setAvatarCmd(['escort','push','hold'][parseInt(k)-1]);return;}  // 아바타 커맨드
+ if(k==='z'){setAvatarCmd('escort');return;}  // 전체 호위
+ if(k==='x'){setAvatarCmd('push');return;}    // 전체 진격(공성)
+ if(k==='c'){setAvatarCmd('hold');return;}    // 전체 수비(주둔)
+ if(k>='1'&&k<='4'){var pi=parseInt(k)-1;if(pi<MLS.length){snapTo(camT,MLS[pi].x,MLS[pi].y);if(pi!==sel)tryPossess(pi);}return;}  // 숫자키=해당 혼에 빙의
  if(overlordDead)return; // 사망 중 빙의체 명령 불가
  if(k==='q'){pressSkill(0);}else if(k==='w'){pressSkill(1);}else if(k==='e'){pressSkill(2);}else if(k==='r'){pressSkill(3);}
  else if(k==='a'){order={type:'amove'};}
@@ -2658,6 +2677,7 @@ gE('btnMusic').addEventListener('click',function(){audioUnlock();toggleMusic();}
 gE('btnSfx').addEventListener('click',function(){audioUnlock();toggleSfx();});
 gE('btnAuto').addEventListener('click',function(){toggleAuto();});
 gE('btnRecall').addEventListener('click',function(){startRecall();});
+Array.prototype.forEach.call(document.querySelectorAll('#cmdbar .cb'),function(b){b.addEventListener('click',function(){setAvatarCmd(b.getAttribute('data-cmd'));});}); // 전체 명령 버튼
 function toggleAuto(){AUTO_SKILLS=!AUTO_SKILLS;var b=gE('btnAuto');b.classList.toggle('off',!AUTO_SKILLS);b.textContent=AUTO_SKILLS?'자동 ⚙':'수동 ⚙';sfx('click');toast(AUTO_SKILLS?'스킬 자동시전 ON':'스킬 수동 (QWER)');}
 // 귀환 — B로 시전, 5초 채널링(이동/정지 시 취소), 완료 시 본부로
 function startRecall(){if(paused||gameOver)return;var m=MLS[sel];
@@ -2670,14 +2690,18 @@ function doRecall(m){var ang=Math.random()*6.283;m.x=myHQ.x+Math.cos(ang)*52;m.y
 window.addEventListener('pointerdown',function(){audioUnlock();},{once:true});
 window.addEventListener('keydown',function(){audioUnlock();},{once:true});
 
-var rosterHp=[],rosterTx=[],rosterCard=[],rosterDirty=true,itemHudSig='';
-function buildRoster(){var rl=EL.rlist;rl.innerHTML='';rosterCard=[];rosterHp=[];rosterTx=[];
+var rosterHp=[],rosterTx=[],rosterCard=[],rosterStance=[],rosterPoss=[],rosterDirty=true,itemHudSig='';
+function buildRoster(){var rl=EL.rlist;rl.innerHTML='';rosterCard=[];rosterHp=[];rosterTx=[];rosterStance=[];rosterPoss=[];
  for(var r=0;r<4;r++){var c=document.createElement('div');
   if(r<MLS.length){c.className='rcard';
-   c.innerHTML='<span class="rnum">'+(r+1)+'</span><span class="rgly">'+MLS[r].K.gly+'</span><div class="track" style="flex:1;height:6px;"><div class="fill rhp" style="background:var(--good);width:100%;"></div></div><span class="rtx"></span>';
-   c.addEventListener('click',(function(idx){return function(){snapTo(camT,MLS[idx].x,MLS[idx].y);};})(r));
-   rosterCard.push(c);rosterHp.push(c.querySelector('.rhp'));rosterTx.push(c.querySelector('.rtx'));}
-  else{c.className='rcard empty';c.innerHTML='<span class="rnum">'+(r+1)+'</span>미충원';rosterCard.push(c);rosterHp.push(null);rosterTx.push(null);}
+   c.innerHTML='<div class="rtop"><span class="rnum">'+(r+1)+'</span><span class="rgly">'+MLS[r].K.gly+'</span><span class="rname">'+JOBLABEL[MLS[r].kind]+'</span><span class="rposs"></span></div>'+
+     '<div class="rbar"><div class="track" style="flex:1;height:6px;"><div class="fill rhp" style="background:var(--good);width:100%;"></div></div><span class="rtx"></span></div>'+
+     '<div class="rstance">호위</div>';
+   c.addEventListener('click',(function(idx){return function(){rosterClick(idx);};})(r));
+   var st=c.querySelector('.rstance');
+   st.addEventListener('click',(function(idx){return function(ev){ev.stopPropagation();if(idx!==sel)cycleStance(idx);};})(r));
+   rosterCard.push(c);rosterHp.push(c.querySelector('.rhp'));rosterTx.push(c.querySelector('.rtx'));rosterStance.push(st);rosterPoss.push(c.querySelector('.rposs'));}
+  else{c.className='rcard empty';c.innerHTML='<span class="rnum">'+(r+1)+'</span>미충원';rosterCard.push(c);rosterHp.push(null);rosterTx.push(null);rosterStance.push(null);rosterPoss.push(null);}
   rl.appendChild(c);}
  rosterDirty=false;}
 function syncUI(){var m=MLS[sel];
@@ -2687,7 +2711,12 @@ function syncUI(){var m=MLS[sel];
  if(m.K.res==='mana'){EL.res.style.width=Math.round(m.mana/m.maxMana*100)+'%';EL.restx.textContent=Math.round(m.mana)+'/'+m.maxMana;}
  for(var i=0;i<skBtns.length;i++){var s=m.skills[i];skCdov[i].style.height=Math.round((s.cd>0?s.cdLeft/s.cd:0)*100)+'%';skCdtx[i].textContent=s.cdLeft>0.05?Math.ceil(s.cdLeft):'';var poor=m.K.res==='mana'&&m.mana<s.mana;skBtns[i].style.opacity=(s.cdLeft>0||poor)?'0.5':'1';skBtns[i].style.borderColor=(order&&(order.type==='skill'||order.type==='skillAlly')&&order.mi===sel&&order.si===i)?COL.info:'';}
  if(rosterDirty)buildRoster();
- for(var r2=0;r2<MLS.length;r2++){rosterCard[r2].style.borderColor=r2===sel?'var(--info)':'';rosterHp[r2].style.width=Math.round(MLS[r2].hp/MLS[r2].max*100)+'%';rosterTx[r2].textContent=Math.round(MLS[r2].hp);}
+ for(var r2=0;r2<MLS.length;r2++){var rm=MLS[r2],hf=rm.hp/rm.max;
+   rosterCard[r2].className='rcard'+(r2===sel?' sel':'')+(rm.downed?' down':'');
+   rosterHp[r2].style.width=Math.round(Math.max(0,hf)*100)+'%';rosterHp[r2].style.background=hf<0.3?'#d9534f':hf<0.6?'var(--warn)':'var(--good)';
+   rosterTx[r2].textContent=rm.downed?('다운 '+Math.ceil(rm.downT)):Math.round(rm.hp);
+   if(r2===sel){rosterPoss[r2].textContent='◆빙의';rosterStance[r2].textContent='◆ 빙의 중';rosterStance[r2].className='rstance poss';}
+   else{rosterPoss[r2].textContent='';rosterStance[r2].textContent='▸ '+(STANCE_KO[rm.cmd]||'호위');rosterStance[r2].className='rstance';}}
  var _ihSig=sel+'|'+(m.items?m.items.join(','):'');if(_ihSig!==itemHudSig){itemHudSig=_ihSig;var _ih=gE('itemhud'),_ihh='';for(var _ii=0;_ii<4;_ii++){var _iit=ITEMS[m.items&&m.items[_ii]];_ihh+=_iit?'<div class="islot" title="'+_iit.name+'">'+_iit.gly+'</div>':'<div class="islot empty">·</div>';}_ih.innerHTML=_ihh;} // 전투 중 아이템 표시(읽기 전용)
  var _ws=Math.max(0,Math.ceil(waveT));EL.wave.textContent='다음 러쉬 '+Math.floor(_ws/60)+':'+((_ws%60)<10?'0':'')+(_ws%60);
  var pmode=overlordDead?('⚠ 오버로드 사망 — 부활 '+Math.ceil(MLS[sel].downT)+'s · 빙의 봉인'):(sealT>0?('⚠ 봉인 — 빙의/스왑 불가 '+sealT.toFixed(1)+'s'):(swapCD>0?('빙의 쿨 '+swapCD.toFixed(1)+'s — 이 몸에 묶임'):null));
