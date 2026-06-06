@@ -212,6 +212,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
 
   <div id="coreStep2" style="display:none">
     <h3 id="step2Title" style="font-size:13px;color:var(--good);margin:0 0 10px;letter-spacing:.4px;border-left:3px solid var(--good);padding-left:8px;"></h3>
+    <div id="evoTabs" style="display:none;gap:6px;flex-wrap:wrap;margin:0 0 10px;"></div>
     <div class="cardrow" id="step2Row"></div>
     <div class="mbtns">
       <button class="mclose ghost" id="coreBack">← 뒤로</button>
@@ -424,21 +425,25 @@ function resolveDamage(src,tgt,base,dtype,opt){
   if(tgt.front>0&&src){var fa=Math.atan2(src.y-tgt.y,src.x-tgt.x)-tgt.facing;while(fa>Math.PI)fa-=6.283;while(fa<-Math.PI)fa+=6.283;if(Math.abs(fa)<1.2)amt*=(1-tgt.front);} // 방패병 전면 피해감소
   if(src&&opt.canCrit!==false&&src.crit){if(Math.random()<src.crit){crit=true;amt*=(src.critMult||1.7);}}
   if(src)amt*=modMul(src,'dmgDealt');
+  if(src&&src.cfx)amt*=cardOutMul(src);              // 진화: 가한피해 배수(최후의 광란 등)
   amt*=modMul(tgt,'dmgTaken');                       // ← 저주술사 파멸의 인장이 여기로
   if(dtype!=='true'){
     var raw=(dtype==='magic')?(tgt.mr||0):(tgt.def||0);
     var ds=defValue(tgt,raw,(dtype==='magic'?'mr':'def')); // ← 저주술사 쇠약(방깎)이 여기로
     var pen=src?(src.flatPen||0):0, pp=src?(src.pctPen||0):0;
+    if(opt.pen||(opt.truestrikeTaunt&&modHas(tgt,'taunt')))pp=1; // 진화: 방어무시(파쇄격·가드브레이크)
     var eff=Math.max(0,(ds-pen))*(1-pp);
     amt*=100/(100+eff);
   }
   amt*=(1-modReduction(tgt));
   if(tgt.bigHitReduce&&amt>tgt.max*0.12)amt*=(1-tgt.bigHitReduce); // 전사 아바타 불굴: 단발 고피해만 경감
   amt=Math.max(1,Math.round(amt));
+  if(tgt.cfx){amt=cardIncoming(tgt,amt,src,dtype);amt=Math.max(0,Math.round(amt));} // 진화: 받는피해 조건부 경감·반사·부활
   if(tgt.shield&&tgt.shield>0){var ab=Math.min(tgt.shield,amt);tgt.shield-=ab;amt-=ab;if(ab>0)ftext(tgt,ab,COL.shield,false);}
   if(amt>0){tgt.hp=Math.max(0,tgt.hp-amt);
     var col=crit?COL.crit:(opt.dot?COL.dot:(dtype==='magic'?COL.magic:COL.white));
     ftext(tgt,amt,col,crit);}
+  if(src&&src.K&&src.cfx&&amt>0){cardOnHit(src,tgt,amt,dtype);if(tgt.hp<=0)cardOnKill(src,tgt);} // 진화: 온힛·온킬 트리거
   tgt.hitT=HIT;spark(tgt.x,tgt.y,COL.spark);
   if(tgt===myHQ&&amt>0){hqFlash=Math.min(1,hqFlash+0.5);addShake(4);sfx('hqhit',0.25);}
   return amt;
@@ -591,18 +596,18 @@ function statVal(m,k,lvl){var K=m.K,s=USTEP[k].step;switch(k){
 function upCost(k,lvl){return USTEP[k].c0+lvl*USTEP[k].cs;}
 
 function applyUpgrades(m){var u=m.up,cb=m.cardBonus||{};
-  m.ad=Math.round(statVal(m,'ad',u.ad));
-  m.ap=Math.round(statVal(m,'ap',u.ap));
-  m.crit=statVal(m,'crit',u.crit);
+  m.ad=Math.round(statVal(m,'ad',u.ad)*(cb.adMul||1));
+  m.ap=Math.round(statVal(m,'ap',u.ap)*(cb.apMul||1));
+  m.crit=statVal(m,'crit',u.crit)+(cb.critAdd||0);
   m.flatPen=Math.round(statVal(m,'pen',u.pen))+(cb.flatPen||0);
   m.pctPen=(cb.pctPen||0);
   m.atkInt=m.K.atkInt/(1+u.as*USTEP.as.step);
   m.cdr=Math.min(0.6,u.skl*USTEP.skl.step);
-  m.def=Math.round(statVal(m,'def',u.def))+(cb.def||0);
-  m.mr=Math.round(statVal(m,'mr',u.mr));
+  m.def=Math.round(statVal(m,'def',u.def)*(cb.defMul||1))+(cb.def||0);
+  m.mr=Math.round(statVal(m,'mr',u.mr)*(cb.mrMul||1));
   m.tenacity=Math.min(0.6,u.ten*USTEP.ten.step);
-  m.speed=Math.round(statVal(m,'spd',u.spd));
-  var nm=Math.round(statVal(m,'hp',u.hp)),frac=m.max?m.hp/m.max:1;m.max=nm;m.hp=Math.round(nm*frac);
+  m.speed=Math.round(statVal(m,'spd',u.spd)*(cb.spdMul||1));
+  var nm=Math.round(statVal(m,'hp',u.hp)*(cb.hpMul||1)),frac=m.max?m.hp/m.max:1;m.max=nm;m.hp=Math.round(nm*frac);
   m.minMax=Math.round(statVal(m,'mhp',u.mhp));
   m.minAd=Math.round(statVal(m,'mad',u.mad));
   m.minAtk=1.0/(1+u.mas*USTEP.mas.step);
@@ -623,7 +628,7 @@ function syncMinions(m){var want=m.minCount||4;
 function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||600,max:K.hp||600,mana:100,maxMana:100,manaRegen:9,
   range:K.range,speed:92,ad:K.ad,ap:K.ap,def:K.def,mr:K.mr,crit:K.crit,critMult:K.critMult,flatPen:0,pctPen:0,tenacity:0,cdr:0,shield:0,
   minMax:80,minAd:7,minAtk:1.0,minCount:4,
-  dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:deepCloneSkills(K.skills),avatarSkills:K.avatarSkills?deepCloneSkills(K.avatarSkills):null,mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},recall:null,
+  dest:null,tgt:null,amove:null,atkInt:K.atkInt,atkLeft:0,skills:deepCloneSkills(K.skills),avatarSkills:K.avatarSkills?deepCloneSkills(K.avatarSkills):null,mods:[],minions:[],cards:[],up:newUp(),cardBonus:{},cfx:{},recall:null,
   cmd:'escort',downed:false,downT:0,holdPt:null,lockT:0,tauntT:0,bigHitReduce:0, // 빙의 프레임: 아바타 커맨드 + 다운 + 신설계 상태
   hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:K.label};
   for(var i=0;i<4;i++)m.minions.push(mkMinion(m,i));
@@ -648,7 +653,7 @@ function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타�
   for(var q=0;q<enemies.length;q++){var o=enemies[q];if(o.hp>0&&((o.kind==='mb'&&o.awake)||o.kind==='elite')&&Math.hypot(o.x-p.x,o.y-p.y)<300){var na=Math.atan2(a.y-o.y,a.x-o.x);tels.push({kind:'lane',x:o.x,y:o.y,a:na,r:300,w:36,windup:0.45,wmax:0.45,dmg:34,dtype:'phys',source:o,applied:false,life:0});}}} // ⑥ 반응형 스왑 처벌: 교전 중 스왑=갭클로즈 예고(예측형 스왑 학습)
 function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;MLS[i].cmd=c;if(c==='hold')MLS[i].holdPt={x:MLS[i].x,y:MLS[i].y};n++;}
   toast(n?('아바타 '+n+'기 → '+(c==='escort'?'호위':c==='push'?'진격(보스 방면)':'수비(현 위치)')):'아바타 없음');}
-function reviveSoul(m){m.downed=false;m.hp=m.max;m.x=myHQ.x+(Math.random()*44-22);m.y=myHQ.y+(Math.random()*44-22);m.mods=[];m.shield=0;m.dest=m.tgt=m.amove=null;m.lockT=0;
+function reviveSoul(m){m.downed=false;m.hp=m.max;m.x=myHQ.x+(Math.random()*44-22);m.y=myHQ.y+(Math.random()*44-22);m.mods=[];m.shield=0;m.dest=m.tgt=m.amove=null;m.lockT=0;if(m.cfx){m.cfx._undy=0;m.cfx._rev=0;}reapplyPerm(m);
   for(var si=0;si<m.skills.length;si++)if(m.skills[si].on)m.skills[si].on=false; // 다운 시 토글 강제 해제(mods는 이미 비움)
   if(MLS.indexOf(m)===sel){overlordDead=false;toast('부활 — '+m.name+'에 다시 빙의');}else toast(m.name+' 재소환');}
 var myHQ={x:HQX,y:HQY,hp:1600,max:1600,r:24,def:20,mr:20,shield:0,mods:[],hitT:0,lungeT:0,name:'본부'};
@@ -896,7 +901,8 @@ function applyDebuff(tgt,src,s){
   if(s.fx==='amp')addMod(tgt,{key:'amp',field:'dmgTaken',op:'mul',value:s.ampMul,dur:s.dur,tags:['debuff'],source:src,name:'파멸의 인장',col:COL.bad});
   if(s.fx==='vuln')addMod(tgt,{key:'vuln',field:'dmgTaken',op:'mul',value:s.ampMul,dur:s.dur,tags:['debuff'],source:src,name:'취약',col:COL.magic});
   // ── 신설계 태그 ──
-  if(s.fx==='ignite')addMod(tgt,{key:'ignite',field:'_dot',op:'mul',value:s.dotDmg,dur:s.dotDur,tickInt:s.dotTick,dtype:'magic',tags:['dot','debuff','ignite'],source:src,name:'점화',col:COL.dot}); // 마법사 반응 연료
+  if(s.fx==='ignite'){addMod(tgt,{key:'ignite',field:'_dot',op:'mul',value:s.dotDmg,dur:s.dotDur,tickInt:s.dotTick,dtype:'magic',tags:['dot','debuff','ignite'],source:src,name:'점화',col:COL.dot}); // 마법사 반응 연료
+    if(src&&src.cfx&&src.cfx.igniteSpread){var bs=null,bd=130;for(var gi=0;gi<enemies.length;gi++){var ge=enemies[gi];if(ge.hp>0&&ge!==tgt&&!modHas(ge,'ignite')){var gd=Math.hypot(ge.x-tgt.x,ge.y-tgt.y);if(gd<bd){bd=gd;bs=ge;}}}if(bs)addMod(bs,{key:'ignite',field:'_dot',op:'mul',value:s.dotDmg,dur:s.dotDur,tickInt:s.dotTick,dtype:'magic',tags:['dot','debuff','ignite'],source:src,name:'점화 전염',col:COL.dot});}}
   if(s.fx==='freeze'){addMod(tgt,{key:'slow',field:'moveSpd',op:'mul',value:s.slow,dur:s.dur||1.5,tags:['slow','debuff','freeze'],source:src,name:'빙결',col:COL.info});
     if(s.rootDur>0)addMod(tgt,{key:'root',field:'moveSpd',op:'mul',value:0,dur:s.rootDur,tags:['root','cc','freeze'],source:src,name:'빙결',col:COL.info});}
   if(s.fx==='mark')markHit(tgt,src); // 궁수 표식(받는 물리↑, 중첩3)
@@ -906,12 +912,16 @@ function applyDebuff(tgt,src,s){
 /* ── 스택 디버프(표식·저주): 같은 key는 중첩 증가·갱신, value는 스택수로 산출 ── */
 function getStacks(tgt,key){if(tgt.mods)for(var i=0;i<tgt.mods.length;i++)if(tgt.mods[i].key===key)return tgt.mods[i].stacks||0;return 0;}
 function consumeStacks(tgt,key){if(tgt.mods)for(var i=tgt.mods.length-1;i>=0;i--)if(tgt.mods[i].key===key){var n=tgt.mods[i].stacks||0;tgt.mods.splice(i,1);return n;}return 0;}
-function markHit(tgt,src){var f=null;if(tgt.mods)for(var i=0;i<tgt.mods.length;i++)if(tgt.mods[i].key==='mark'){f=tgt.mods[i];break;}
-  if(f){f.stacks=Math.min(3,(f.stacks||1)+1);f.value=1+0.15*f.stacks;f.dur=5;}
-  else addMod(tgt,{key:'mark',stacks:1,field:'dmgTaken',op:'mul',value:1.15,dur:5,tags:['debuff','mark'],source:src,name:'표식',col:COL.good});}
-function curseHit(tgt,src){var f=null;if(tgt.mods)for(var i=0;i<tgt.mods.length;i++)if(tgt.mods[i].key==='curse'){f=tgt.mods[i];break;}
-  if(f){f.stacks=Math.min(5,(f.stacks||1)+1);f.dur=8;}
-  else addMod(tgt,{key:'curse',stacks:1,field:'_curse',op:'mul',value:1,dur:8,tags:['debuff','curse'],source:src,name:'저주',col:COL.magic});}
+function markHit(tgt,src){var c=(src&&src.cfx)||{},mx=c.markMax||3,per=c.markPer||0.15,gain=1+(c.markGain||0);
+  var f=null;if(tgt.mods)for(var i=0;i<tgt.mods.length;i++)if(tgt.mods[i].key==='mark'){f=tgt.mods[i];break;}
+  if(f){f.stacks=Math.min(mx,(f.stacks||1)+gain);f.value=1+per*f.stacks;f.dur=5;}
+  else addMod(tgt,{key:'mark',stacks:gain,field:'dmgTaken',op:'mul',value:1+per*gain,dur:5,tags:['debuff','mark'],source:src,name:'표식',col:COL.good});}
+function curseHit(tgt,src){var c=(src&&src.cfx)||{},mx=c.curseMax||5,dr=c.curseInf?1e9:8;
+  var f=null;if(tgt.mods)for(var i=0;i<tgt.mods.length;i++)if(tgt.mods[i].key==='curse'){f=tgt.mods[i];break;}
+  if(f){f.stacks=Math.min(mx,(f.stacks||1)+1);f.dur=dr;}
+  else addMod(tgt,{key:'curse',stacks:1,field:'_curse',op:'mul',value:1,dur:dr,tags:['debuff','curse'],source:src,name:'저주',col:COL.magic});
+  if(c.curseDot)addMod(tgt,{key:'cursedot',field:'_dot',op:'mul',value:c.curseDot,dur:dr,tickInt:1,dtype:'magic',tags:['dot','debuff'],source:src,name:'저주 잠식',col:COL.magic});
+  if(c.curseWeaken)addMod(tgt,{key:'curseweak',field:'def',op:'add',value:-c.curseWeaken,dur:6,tags:['debuff'],source:src,name:'쇠약 누적',col:COL.magic});}
 function lowestHpAlly(){var b=null,bf=2;for(var i=0;i<MLS.length;i++){var m=MLS[i];var f=m.hp/m.max;if(f<bf){bf=f;b=m;}}return b;}
 function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdLeft>0)return;if(modHas(m,'stun')||modHas(m,'silence'))return;if(m.K.res==='mana'&&m.mana<s.mana)return;
   if(s.type==='combo'){doCombo(m,s,tx,ty,te);return;}   // 연격: 자체 쿨 관리
@@ -962,17 +972,18 @@ function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdL
     if(s.fx==='detonate'){ // 저주술사 R 파멸의 인장 — 저주 스택 전소모 누킹(스택당 피해)
       var stk=consumeStacks(te,'curse'),dd2=Math.round((s.base+s.ratio*m.ap)*Math.max(1,stk));
       if(m.K.ranged)shoot(m,te,dd2,s.dtype,s.col,560,7,{canCrit:true});else{lunge(m,te.x,te.y,10);resolveDamage(m,te,dd2,s.dtype,{canCrit:true});}
-      if(stk>=5&&te.hp>0&&te.hp<te.max*0.2&&te.kind!=='boss')te.hp=0; // 5스택 처형 라인
+      if(stk>=(s.execStk||5)&&te.hp>0&&te.hp<te.max*(s.execHp||0.2)&&te.kind!=='boss')te.hp=0; // 스택 처형 라인(카드로 임계 완화)
       ftext(te,(stk||0)+'중첩',COL.magic,false);
     }
     else if(m.K.ranged&&!s.melee)shoot(m,te,sd,s.dtype,s.col,560,5,{canCrit:true,applySkill:(s.fx?s:null)});
-    else{lunge(m,te.x,te.y,12);slash(te.x,te.y,Math.atan2(te.y-m.y,te.x-m.x),s.col);var dlt=resolveDamage(m,te,sd,s.dtype,{canCrit:true});applyDebuff(te,m,s);
+    else{lunge(m,te.x,te.y,12);slash(te.x,te.y,Math.atan2(te.y-m.y,te.x-m.x),s.col);var dlt=resolveDamage(m,te,sd,s.dtype,{canCrit:true});applyDebuff(te,m,s);if(s.execFrac)tryExecute(m,te,s);
       if(s.lifesteal){var hv=Math.round(dlt*s.lifesteal);heal(m,hv);m.healDone=(m.healDone||0)+hv;}} // 성전사 자힐
   }}
   else if(s.type==='dash'){
     var dx=tx-m.x,dy=ty-m.y,dd=Math.hypot(dx,dy)||1;var L=Math.min(s.dashRange,dd);
     var blink=(s.base===0&&s.ratio===0); // 점멸형 = 즉시 순간이동(피해 없음)
-    m.dash={fx:m.x,fy:m.y,tx:m.x+dx/dd*L,ty:m.y+dy/dd*L,p:0,time:blink?0.06:0.18,dmg:sd,dtype:s.dtype,radius:s.radius,pathR:30,col:s.col,hit:[],knock:s.knock||0,landFear:s.rootDur||0,src:m};
+    m.dash={fx:m.x,fy:m.y,tx:m.x+dx/dd*L,ty:m.y+dy/dd*L,p:0,time:blink?0.06:0.18,dmg:sd,dtype:s.dtype,radius:s.radius,pathR:30,col:s.col,hit:[],knock:s.knock||0,landFear:s.rootDur||0,execFrac:s.execFrac||0,src:m};
+    if(s.dashInvuln&&m.skills[3]&&m.skills[3].on)addMod(m,{key:'dashguard',field:'dmgReduction',op:'add',value:0.9,dur:0.35,tags:['buff'],source:m,name:'무적 돌진',col:COL.warn}); // 분노의 돌진
     if(s.shield)m.shield=Math.max(m.shield,Math.round(s.shield+s.ratio*m.ap)); // 성직자 약진 방어막
     if(s.atkspd>0)addMod(m,{key:'rollnext',field:'dmgDealt',op:'mul',value:s.atkspd,dur:3,tags:['buff'],source:m,name:'구르기',col:s.col}); // 궁수 구르기: 다음 타격 강화
     m.dest=null;m.tgt=null;m.amove=null;
@@ -986,7 +997,8 @@ function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdL
       fx.push({x:m.x,y:m.y,r:s.radius,t:0.5,life:0.5,col:s.col,fade:true,follow:m});impact(m.x,m.y,s.radius*0.5,s.col);
       pullToward(m.x,m.y,s.radius,s.pull||120,m);
       for(var rj=0;rj<enemies.length;rj++){var re=enemies[rj];if(re.hp>0&&Math.hypot(re.x-m.x,re.y-m.y)<=s.radius){resolveDamage(m,re,sd,s.dtype,{canCrit:true});applyTaunt(re,m,s.tauntDur);}}
-      m.shield=Math.max(m.shield,Math.round(s.shield+s.ratio*m.ad));
+      var _sh=Math.round(s.shield+s.ratio*m.ad);m.shield=Math.max(m.shield,_sh);
+      if(m.cfx&&m.cfx.shieldShare)for(var _ss=0;_ss<MLS.length;_ss++){var _am=MLS[_ss];if(_am!==m&&!_am.downed&&_am.hp>0&&Math.hypot(_am.x-m.x,_am.y-m.y)<=s.radius)_am.shield=Math.max(_am.shield,Math.round(_sh*0.6));} // 수호자 정의: 방어막 범위 분배
     }
     else if(s.fx==='taunt'){ // 아바타 도발진 — 반경 적 도발
       fx.push({x:m.x,y:m.y,r:s.radius,t:0.5,life:0.5,col:s.col,fade:true,follow:m});
@@ -1002,32 +1014,33 @@ function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdL
       for(var rk=0;rk<enemies.length;rk++){var ee=enemies[rk];if(ee.hp<=0||Math.hypot(ee.x-tx,ee.y-ty)>s.radius)continue;
         resolveDamage(m,ee,sd,'magic',{canCrit:true});
         if(modHas(ee,'ignite')){resolveDamage(m,ee,Math.round(60+0.4*m.ap),'magic',{canCrit:false});ftext(ee,'증발',COL.dot,true);} // 점화 반응
-        if(modHas(ee,'freeze')){resolveDamage(m,ee,Math.round(30+0.2*m.ap),'magic',{canCrit:false});if(ee.kind!=='boss')addMod(ee,{key:'stun',field:'moveSpd',op:'mul',value:0,dur:1,tags:['stun','cc'],source:m,name:'빙폭 기절',col:COL.info});ftext(ee,'빙폭',COL.info,true);}} // 빙결 반응
+        if(modHas(ee,'freeze')){resolveDamage(m,ee,Math.round(30+0.2*m.ap),'magic',{canCrit:false});if(ee.kind!=='boss')addMod(ee,{key:'stun',field:'moveSpd',op:'mul',value:0,dur:1,tags:['stun','cc'],source:m,name:'빙폭 기절',col:COL.info});ftext(ee,'빙폭',COL.info,true);}
+        if(s.execFrac)tryExecute(m,ee,s);} // 빙결 반응 + 일점소멸 처형
     }
     else if(s.fx==='pierce'){ // 궁수 R 관통사격 — 표식 중첩당 +12%
       fx.push({x:tx,y:ty,r:s.radius,t:0.5,life:0.5,col:s.col,fade:true});impact(tx,ty,s.radius*0.5,s.col);
       for(var pk=0;pk<enemies.length;pk++){var pe=enemies[pk];if(pe.hp<=0||Math.hypot(pe.x-tx,pe.y-ty)>s.radius)continue;
-        var mk=getStacks(pe,'mark'),dmgP=Math.round(sd*(1+0.12*mk));resolveDamage(m,pe,dmgP,s.dtype,{canCrit:true});if(mk)ftext(pe,'관통×'+mk,COL.good,false);}
+        var mk=getStacks(pe,'mark'),dmgP=Math.round(sd*(1+0.12*mk));resolveDamage(m,pe,dmgP,s.dtype,{canCrit:true});if(s.markOnHit)markHit(pe,m);if(s.execFrac)tryExecute(m,pe,s);if(mk)ftext(pe,'관통×'+mk,COL.good,false);}
     }
     else if(s.fx==='smite'){ // 성직자 R 천벌 — 누적 회복량의 30%를 추가 피해로
-      var bonus=Math.min(Math.round((m.healDone||0)*0.3),Math.round(m.max*2));m.healDone=0;
+      var bonus=Math.min(Math.round((m.healDone||0)*(s.healMul||0.3)),Math.round(m.max*3));m.healDone=0;
       fx.push({x:tx,y:ty,r:s.radius,t:0.6,life:0.6,col:s.col,fade:true});impact(tx,ty,s.radius*0.6,s.col);
       for(var sk2=0;sk2<enemies.length;sk2++){var se=enemies[sk2];if(se.hp<=0||Math.hypot(se.x-tx,se.y-ty)>s.radius)continue;resolveDamage(m,se,sd+bonus,'magic',{canCrit:true});}
       if(bonus)ftext(m,'천벌 +'+bonus,COL.crit,true);
     }
     else { // 적 광역
       fx.push({x:tx,y:ty,r:s.radius,t:0.5,life:0.5,col:s.col,fade:true});impact(tx,ty,s.radius*0.5,s.col);
-      for(var j=0;j<enemies.length;j++){var e=enemies[j];if(e.hp>0&&Math.hypot(e.x-tx,e.y-ty)<=s.radius){resolveDamage(m,e,sd,s.dtype,{canCrit:true});applyDebuff(e,m,s);}}
+      for(var j=0;j<enemies.length;j++){var e=enemies[j];if(e.hp>0&&Math.hypot(e.x-tx,e.y-ty)<=s.radius){resolveDamage(m,e,sd,s.dtype,{canCrit:true});applyDebuff(e,m,s);if(s.execFrac)tryExecute(m,e,s);}}
     }
   }
 }
 // 돌진 진행
 function advDash(m,dt){var d=m.dash;d.p+=dt/d.time;var p=Math.min(1,d.p);
   m.x=d.fx+(d.tx-d.fx)*p;m.y=d.fy+(d.ty-d.fy)*p;lunge(m,d.tx,d.ty,4);
-  for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.hp<=0||d.hit.indexOf(e)>=0)continue;if(Math.hypot(e.x-m.x,e.y-m.y)<=d.pathR){d.hit.push(e);resolveDamage(m,e,d.dmg,d.dtype,{canCrit:true});if(d.knock)knockback(e,d.fx,d.fy,d.knock);}}
+  for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.hp<=0||d.hit.indexOf(e)>=0)continue;if(Math.hypot(e.x-m.x,e.y-m.y)<=d.pathR){d.hit.push(e);resolveDamage(m,e,d.dmg,d.dtype,{canCrit:true});if(d.execFrac)tryExecute(m,e,{execFrac:d.execFrac});if(d.knock)knockback(e,d.fx,d.fy,d.knock);}}
   if(p>=1){if(d.radius>0||d.landFear){fx.push({x:m.x,y:m.y,r:d.radius||60,t:0.5,life:0.5,col:d.col,fade:true});impact(m.x,m.y,(d.radius||60)*0.5,d.col);}
     for(var k=0;k<enemies.length;k++){var e2=enemies[k];if(e2.hp<=0)continue;var dist=Math.hypot(e2.x-m.x,e2.y-m.y);
-      if(d.radius>0&&dist<=d.radius&&d.hit.indexOf(e2)<0){resolveDamage(m,e2,d.dmg,d.dtype,{canCrit:true});if(d.knock)knockback(e2,d.fx,d.fy,d.knock);}
+      if(d.radius>0&&dist<=d.radius&&d.hit.indexOf(e2)<0){resolveDamage(m,e2,d.dmg,d.dtype,{canCrit:true});if(d.execFrac)tryExecute(m,e2,{execFrac:d.execFrac});if(d.knock)knockback(e2,d.fx,d.fy,d.knock);}
       if(d.landFear&&dist<=(d.radius||80)&&e2.kind!=='boss')addMod(e2,{key:'root',field:'moveSpd',op:'mul',value:0,dur:d.landFear,tags:['root','cc'],source:m,name:'공포',col:COL.magic});} // 그림자 도약 착지 공포(약CC)
     m.dash=null;}
 }
@@ -1053,10 +1066,15 @@ function coneHit(m,tx,ty,range,coneDeg,dmg,dtype,opt){var aim=Math.atan2(ty-m.y,
 function doCombo(m,s,tx,ty,te){var step=s.step||0,st=s.combo[step];if(!st)return;
   var ax=tx,ay=ty;if(te&&te.hp>0){ax=te.x;ay=te.y;}
   lunge(m,ax,ay,11);slash(ax,ay,Math.atan2(ay-m.y,ax-m.x),COL.info);sfx('melee',0.05);
-  var dmg=Math.round(st.dmgBase+st.dmgRatio*m.ad),hit=coneHit(m,ax,ay,st.r,st.cone,dmg,'phys',{canCrit:true});
+  var dmg=Math.round(st.dmgBase+st.dmgRatio*m.ad),copt={canCrit:true};if(s.pen)copt.pen=1;if(s.truestrikeTaunt)copt.truestrikeTaunt=1;
+  var hit=coneHit(m,ax,ay,st.r,st.cone,dmg,'phys',copt);
+  if(s.extraHit)coneHit(m,ax,ay,st.r,st.cone,Math.round(dmg*s.extraHit),'phys',copt); // 연속 강타: 추가타
+  if(s.execFrac)for(var xe=0;xe<hit.length;xe++)tryExecute(m,hit[xe],s);               // 처형자: 강타 처형
   if(st.knock)for(var i=0;i<hit.length;i++)knockback(hit[i],m.x,m.y,st.knock);
   if(st.finisher){var killed=false;for(var k=0;k<hit.length;k++)if(hit[k].hp<=0){killed=true;break;}
-    s.cdLeft=s.cd*(1-(m.cdr||0))*((killed&&st.killRefund)?(1-st.killRefund):1);
+    var _rf=(killed&&st.killRefund)?(1-st.killRefund):1;if(killed&&s.execRefund)_rf=0; // 처형자 정의: 처치 시 완전 초기화
+    if(m.cfx&&m.cfx.painAcc>0){var _pa=Math.round(m.cfx.painAcc);m.cfx.painAcc=0;for(var _pk=0;_pk<hit.length;_pk++)if(hit[_pk].hp>0)resolveDamage(m,hit[_pk],_pa,'true',{});} // 고통 전환: 적립 피해 방출
+    s.cdLeft=s.cd*(1-(m.cdr||0))*_rf;
     s.step=0;s.winLeft=0;if(st.lock)m.lockT=st.lock;
     fx.push({x:m.x,y:m.y,r:st.r*0.7,t:0.35,life:0.35,col:COL.warn,fade:true,follow:m});
     if(killed)ftext(m,'쿨 환급',COL.warn,false);
@@ -1459,7 +1477,7 @@ function update(dt){
  // 투사체
  for(var pi=projs.length-1;pi>=0;pi--){var p=projs[pi];if(!p.tgt||p.tgt.hp<=0){projs.splice(pi,1);continue;}p.px=p.x;p.py=p.y;var d=Math.hypot(p.tgt.x-p.x,p.tgt.y-p.y);
    if(d<(p.tgt.r||10)+4){resolveDamage(p.source,p.tgt,p.dmg,p.dtype,{canCrit:p.canCrit});impact(p.tgt.x,p.tgt.y,p.r*2.5,p.col);sfx('impact',0.06);
-     if(p.applySkill)applyDebuff(p.tgt,p.source,p.applySkill);
+     if(p.applySkill){applyDebuff(p.tgt,p.source,p.applySkill);tryExecute(p.source,p.tgt,p.applySkill);}
      if(p.applyMod)addMod(p.tgt,Object.assign({source:p.source},p.applyMod));
      projs.splice(pi,1);continue;}
    var st=p.spd*dt;p.x+=(p.tgt.x-p.x)/d*st;p.y+=(p.tgt.y-p.y)/d*st;}
@@ -1770,36 +1788,184 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  mctx.strokeStyle=COL.info;mctx.lineWidth=1;mctx.strokeRect(cam.x*sxr,cam.y*syr,(VW/cam.z)*sxr,(VH/cam.z)*syr);
 }
 
+/* ════════════════════════════════════════════════════════════
+   진화 카드 런타임 레이어 — cfx 플래그 + 스킬 필드 라이더를 전투 훅이 읽는다.
+   영구 모드(받피·공속·딜 배수)는 cfx에 저장하고 reapplyPerm으로 (다운 후에도) 복원.
+   ════════════════════════════════════════════════════════════ */
+function permMod(m,key,field,op,value,name,col){removeModKey(m,key);addMod(m,{key:key,field:field,op:op,value:value,dur:1e9,tags:['buff'],source:m,name:name||'진화',col:col||COL.info});}
+function reapplyPerm(m){if(!m.cfx)return;var c=m.cfx;
+  if(c.permRed)permMod(m,'cd_red','dmgReduction','add',Math.min(0.8,c.permRed),'진화 가호',COL.good);
+  if(c.permAtkSpd)permMod(m,'cd_as','atkSpd','mul',c.permAtkSpd,'진화 가속',COL.warn);
+  if(c.permDmgMul)permMod(m,'cd_dmg','dmgDealt','mul',c.permDmgMul,'진화 부담',COL.dim);}
+// 처형 — 스킬에 execFrac 지정 시, 비보스 대상 HP가 임계 미만이면 즉사(조건: 표식/반응 요구 가능)
+function tryExecute(src,tgt,s){if(!s||!s.execFrac||!tgt||tgt.hp<=0||tgt.kind==='boss'||tgt.guardian||tgt.kind==='spawner')return false;
+  if(s.execNeedMark&&getStacks(tgt,'mark')<s.execNeedMark)return false;
+  if(s.execNeedReaction&&!(modHas(tgt,'ignite')&&modHas(tgt,'freeze')))return false;
+  if(tgt.hp<tgt.max*s.execFrac){tgt.hp=0;ftext(tgt,'처형',COL.crit,true);return true;}return false;}
+// 가한 피해 배수(발사 전, 아군 ML) — 최후의 광란 등
+function cardOutMul(src){var c=src.cfx;if(!c)return 1;var mul=1;if(c.lastStand&&src.hp<src.max*0.2)mul*=2;return mul;}
+// 받는 피해 측(아군 ML) — 조건부 경감·반사·고통적립·치명상 가드(불사/부활)
+function cardIncoming(tgt,amt,src,dtype){var c=tgt.cfx;if(!c)return amt;
+  if(c.giant&&tgt.hp<tgt.max*0.5)amt*=0.5;
+  if(c.lastStand&&tgt.hp<tgt.max*0.2)amt*=1.3;
+  if(c.fortress&&nearFriendlyBase(tgt.x,tgt.y))amt*=(1-c.fortress);
+  if(c.holyDevote)amt*=(1-c.holyDevote);
+  if(c.reflect&&tgt.shield>0&&src&&src.hp>0&&src.kind!=='boss'){var rf=Math.round(amt*c.reflect);if(rf>0){src.hp=Math.max(0,src.hp-rf);ftext(src,rf,COL.warn,false);}}
+  if(c.painStore)c.painAcc=(c.painAcc||0)+amt*c.painStore;
+  if(amt>=tgt.hp){
+    if(c.undying&&tgt.skills&&tgt.skills[3]&&tgt.skills[3].on&&!c._undy){c._undy=1;amt=tgt.hp-1;ftext(tgt,'불사',COL.crit,true);}
+    else if(c.revive&&!c._rev){c._rev=1;tgt.hp=Math.round(tgt.max*0.3);amt=0;ftext(tgt,'부활',COL.good,true);}
+  }
+  return amt;}
+// 가한 피해 측(아군 ML) — 흡혈 라이더 등
+function cardOnHit(src,tgt,amt,dtype){var c=src.cfx;if(!c)return;
+  if(c.bersLifesteal&&src.skills&&src.skills[3]&&src.skills[3].on){var h=Math.round(amt*c.bersLifesteal);if(h>0)heal(src,h);}}
+// 처치 트리거(아군 ML)
+function cardOnKill(src,tgt){var c=src.cfx;if(!c)return;
+  if(c.frenzy){var f=null;if(src.mods)for(var i=0;i<src.mods.length;i++)if(src.mods[i].key==='frenzy'){f=src.mods[i];break;}
+    if(f){f.stacks=Math.min(50,(f.stacks||1)+1);f.value=1+c.frenzy*f.stacks;f.dur=5;}
+    else addMod(src,{key:'frenzy',stacks:1,field:'dmgDealt',op:'mul',value:1+c.frenzy,dur:5,tags:['buff'],source:src,name:'광란',col:COL.warn});}
+  if(c.killSpd){addMod(src,{key:'killspd',field:'moveSpd',op:'mul',value:1.4,dur:5,tags:['buff'],source:src,name:'추격',col:COL.warn});if(src.skills[2])src.skills[2].cdLeft=Math.max(0,(src.skills[2].cdLeft||0)-2);}
+  if(c.killMana&&src.K&&src.K.res==='mana')src.mana=Math.min(src.maxMana,src.mana+c.killMana);
+  if(c.killCurseSpread){var best=null,bd=170;for(var q=0;q<enemies.length;q++){var e=enemies[q];if(e.hp>0&&e!==tgt){var dd=Math.hypot(e.x-tgt.x,e.y-tgt.y);if(dd<bd){bd=dd;best=e;}}}if(best)for(var s2=0;s2<5;s2++)curseHit(best,src);}}
+
 /* ============================================================
-   특수강화 카드 — 직업별 "진화 동사"(설계 축 문서)로 분기.
-   전사=스킬변형 / 마법사=반응 / 궁수=램프 / 성직자=역할전환 / 저주술사=레이어곱셈.
-   apply(m)이 m.skills(클론)·플래그·스탯을 직접 변형. 일반강화 재계산에도 살아남음.
+   특수강화(진화) 카드 — 5직업 × 3하위직업 × (정의1 + 레인6) = 105장.
+   apply(m)이 m.skills(클론)·cfx 플래그·cardBonus를 변형. 일반강화 재계산에도 살아남음.
+   [정의]=하위직업 정체성 / OP=정체성 극단(대가 동반). 설계: 진화카드_231_v2.0.
    ============================================================ */
+function _cb(m,k,v){m.cardBonus[k]=(m.cardBonus[k]||(/Mul$/.test(k)?1:0))+( /Mul$/.test(k)?0:v);} // 가산형
+function _cbm(m,k,v){m.cardBonus[k]=(m.cardBonus[k]||1)*v;} // 곱셈형
 var CARDS={
  warrior:[
-  {id:'w_bers',name:'광전사 각성',tag:'버서커',desc:'혈투(R) 시전 중 받는 피해 −50%. HP 자원화를 안전하게 굴린다.',apply:function(m){m._berserk=true;}},
-  {id:'w_exec',name:'처형 리듬',tag:'처형자',desc:'강타(Q) 연격 전 단계 피해 계수 +0.15, 쿨 −1.5s. 처형 환급 사슬 가속.',apply:function(m){var q=m.skills[0];q.cd=Math.max(2,q.cd-1.5);if(q.combo)q.combo.forEach(function(st){st.dmgRatio+=0.15;});}},
-  {id:'w_wall',name:'불굴의 방벽',tag:'수호자',desc:'전장 장악(W) 방어막 +140, 끌어당김 반경 +30, 도발 +1s.',apply:function(m){var w=m.skills[1];w.shield+=140;w.radius+=30;w.tauntDur+=1;}}
+  // ── 수호자(벽): 전장장악 방어막 분배 + 가드 ──
+  {id:'w_gd_d',sub:'수호자',name:'[정의] 수호자',tag:'수호자',desc:'전장 장악(W) 방어막을 반경 내 아군 마더로드에 분배 + 상시 받는피해 −10%.',apply:function(m){m.cfx.shieldShare=1;m.cfx.permRed=(m.cfx.permRed||0)+0.1;}},
+  {id:'w_gd_1',sub:'수호자',name:'강철 의지',tag:'수호자',desc:'전장 장악(W) 방어막 2배.',apply:function(m){var w=m.skills[1];w.shield=Math.round(w.shield*2);}},
+  {id:'w_gd_2',sub:'수호자',name:'반사 갑주',tag:'수호자',desc:'방어막 유지 중 받은 피해 30% 반사.',apply:function(m){m.cfx.reflect=0.3;}},
+  {id:'w_gd_3',sub:'수호자',name:'불괴의 도발',tag:'수호자',desc:'전장 장악(W) 쿨 −40%, 도발 2→3.5s.',apply:function(m){var w=m.skills[1];w.cd=Math.round(w.cd*0.6*10)/10;w.tauntDur=3.5;}},
+  {id:'w_gd_4',sub:'수호자',name:'가드 브레이크',tag:'수호자',desc:'강타(Q)가 도발된 적에게 방어 무시.',apply:function(m){m.skills[0].truestrikeTaunt=1;}},
+  {id:'w_gd_5',sub:'수호자',name:'[OP] 거인화',tag:'수호자',desc:'HP50%↓ 받는피해 −50% + 전장장악 반경 1.6배 (대가: 이속 −30%·딜 −15%).',apply:function(m){m.cfx.giant=1;m.skills[1].radius=Math.round(m.skills[1].radius*1.6);_cbm(m,'spdMul',0.7);m.cfx.permDmgMul=(m.cfx.permDmgMul||1)*0.85;}},
+  {id:'w_gd_6',sub:'수호자',name:'[OP] 최후의 보루',tag:'수호자',desc:'아군 영토 근처 받는피해 −30% + 치명상 시 1회 부활(HP30%).',apply:function(m){m.cfx.fortress=0.3;m.cfx.revive=1;}},
+  // ── 처형자(학살): 강타 처형 + 처치 환급 ──
+  {id:'w_ex_d',sub:'처형자',name:'[정의] 처형자',tag:'처형자',desc:'강타(Q)가 HP30%↓ 적 처형 + 처치 시 강타 쿨 완전 초기화.',apply:function(m){m.skills[0].execFrac=0.3;m.skills[0].execRefund=1;}},
+  {id:'w_ex_1',sub:'처형자',name:'연속 강타',tag:'처형자',desc:'강타가 한 번에 2타(추가타 60%).',apply:function(m){m.skills[0].extraHit=0.6;}},
+  {id:'w_ex_2',sub:'처형자',name:'파쇄격',tag:'처형자',desc:'강타(Q) 방어 무시.',apply:function(m){m.skills[0].pen=1;}},
+  {id:'w_ex_3',sub:'처형자',name:'피의 추격',tag:'처형자',desc:'처치 시 이속 +40%/5s + 돌진베기 쿨 −2s.',apply:function(m){m.cfx.killSpd=1;}},
+  {id:'w_ex_4',sub:'처형자',name:'휩쓰는 처형',tag:'처형자',desc:'돌진베기(E) 경로의 HP25%↓ 적 처형.',apply:function(m){m.skills[2].execFrac=0.25;}},
+  {id:'w_ex_5',sub:'처형자',name:'[OP] 사형 집행',tag:'처형자',desc:'강타 처형 라인 30→50%.',apply:function(m){m.skills[0].execFrac=0.5;}},
+  {id:'w_ex_6',sub:'처형자',name:'[OP] 광란의 칼날',tag:'처형자',desc:'처치마다 공격력 +3%(중첩, 비전투 5s 리셋).',apply:function(m){m.cfx.frenzy=0.03;}},
+  // ── 버서커(벼랑끝): 혈투 토글 상시화 ──
+  {id:'w_be_d',sub:'버서커',name:'[정의] 버서커',tag:'버서커',desc:'혈투(R) 시전 중 받는피해 −50% + HP 연소 절반(상시 유지).',apply:function(m){m._berserk=true;m.skills[3].hpCost=m.skills[3].hpCost*0.5;}},
+  {id:'w_be_1',sub:'버서커',name:'피의 갈증',tag:'버서커',desc:'혈투 중 가한 피해 12% 흡혈.',apply:function(m){m.cfx.bersLifesteal=0.12;}},
+  {id:'w_be_2',sub:'버서커',name:'고통 전환',tag:'버서커',desc:'받은 피해 20%를 다음 강타 피니셔에 적립 방출.',apply:function(m){m.cfx.painStore=0.2;}},
+  {id:'w_be_3',sub:'버서커',name:'폭주 가속',tag:'버서커',desc:'상시 공격속도 +30%(저체력 폭주 근사).',apply:function(m){m.cfx.permAtkSpd=(m.cfx.permAtkSpd||1)*1.3;}},
+  {id:'w_be_4',sub:'버서커',name:'분노의 돌진',tag:'버서커',desc:'돌진베기 쿨 −50% + 혈투 중 돌진 무적.',apply:function(m){m.skills[2].cd=Math.round(m.skills[2].cd*0.5*10)/10;m.skills[2].dashInvuln=1;}},
+  {id:'w_be_5',sub:'버서커',name:'[OP] 최후의 광란',tag:'버서커',desc:'HP20%↓ 가한 피해 2배 (대가: 받는피해 +30%).',apply:function(m){m.cfx.lastStand=1;}},
+  {id:'w_be_6',sub:'버서커',name:'[OP] 불사의 격노',tag:'버서커',desc:'혈투 중 치명상 시 1HP 생존(1회).',apply:function(m){m.cfx.undying=1;}}
  ],
  mage:[
-  {id:'m_evap',name:'증발 폭발',tag:'광역포화',desc:'메테오(R) 기본 +70, 계수 +0.6, 반경 +20. 반응 피니셔 극대화.',apply:function(m){var r=m.skills[3];r.base+=70;r.ratio+=0.6;r.radius+=20;}},
-  {id:'m_burn',name:'영구 연소',tag:'단일파괴',desc:'화염구(Q) 기본 +20, [점화] 도트 +8/틱·지속 +2s. 반응 연료를 진하게.',apply:function(m){var q=m.skills[0];q.base+=20;q.dotDmg+=8;q.dotDur+=2;}},
-  {id:'m_frost',name:'절대 영도',tag:'원소제어',desc:'서리쐐기(W) 반경 +30, 약속박 +0.4s, 둔화 강화. 빙결 진형 고정.',apply:function(m){var w=m.skills[1];w.radius+=30;w.rootDur+=0.4;w.slow=Math.max(0.4,w.slow-0.15);}}
+  // ── 광역포화: 태그 살포·동시 폭발 ──
+  {id:'m_sa_d',sub:'광역포화',name:'[정의] 광역포화',tag:'광역포화',desc:'점화가 인접 적에 전염 + 서리쐐기 반경 +20.',apply:function(m){m.cfx.igniteSpread=1;m.skills[1].radius+=20;}},
+  {id:'m_sa_1',sub:'광역포화',name:'연쇄 점화',tag:'광역포화',desc:'점화 전염 + [점화] 지속 +1.5s.',apply:function(m){m.cfx.igniteSpread=1;m.skills[0].dotDur+=1.5;}},
+  {id:'m_sa_2',sub:'광역포화',name:'광역 빙결',tag:'광역포화',desc:'서리쐐기(W) 반경 1.5배.',apply:function(m){m.skills[1].radius=Math.round(m.skills[1].radius*1.5);}},
+  {id:'m_sa_3',sub:'광역포화',name:'살포 시전',tag:'광역포화',desc:'화염구(Q) [점화] 도트 +6, 쿨 −0.4s(태그 살포 가속).',apply:function(m){m.skills[0].dotDmg+=6;m.skills[0].cd=Math.max(0.6,m.skills[0].cd-0.4);}},
+  {id:'m_sa_4',sub:'광역포화',name:'동시 반응',tag:'광역포화',desc:'메테오(R) 반경 +30 — 범위 내 모든 태그 동시 폭발.',apply:function(m){m.skills[3].radius+=30;}},
+  {id:'m_sa_5',sub:'광역포화',name:'[OP] 원소 폭풍',tag:'광역포화',desc:'메테오 기본 +90·반경 +40 + 점화 전염 (대가: 마나 +40).',apply:function(m){var r=m.skills[3];r.base+=90;r.radius+=40;r.mana+=40;m.cfx.igniteSpread=1;}},
+  {id:'m_sa_6',sub:'광역포화',name:'[OP] 무한 범람',tag:'광역포화',desc:'화염구 쿨 −40% + 점화 전염 (대가: 단일딜 −15%).',apply:function(m){m.skills[0].cd=Math.max(0.5,m.skills[0].cd*0.6);m.cfx.igniteSpread=1;m.cfx.permDmgMul=(m.cfx.permDmgMul||1)*0.85;}},
+  // ── 단일파괴: 단일 중첩 초증발 ──
+  {id:'m_si_d',sub:'단일파괴',name:'[정의] 단일파괴',tag:'단일파괴',desc:'화염구 [점화] 도트 +6 + 메테오 단일 반응 기본 +40.',apply:function(m){m.skills[0].dotDmg+=6;m.skills[3].base+=40;}},
+  {id:'m_si_1',sub:'단일파괴',name:'집중 점화',tag:'단일파괴',desc:'[점화] 도트 +8/틱·지속 +2s.',apply:function(m){m.skills[0].dotDmg+=8;m.skills[0].dotDur+=2;}},
+  {id:'m_si_2',sub:'단일파괴',name:'과부하',tag:'단일파괴',desc:'메테오(R) 계수 +0.4(중첩 표적 증폭 근사).',apply:function(m){m.skills[3].ratio+=0.4;}},
+  {id:'m_si_3',sub:'단일파괴',name:'절대 영도',tag:'단일파괴',desc:'서리쐐기 약속박 +0.6s(완전 동결 근사).',apply:function(m){m.skills[1].rootDur+=0.6;}},
+  {id:'m_si_4',sub:'단일파괴',name:'핵 융해',tag:'단일파괴',desc:'메테오 기본 +50·계수 +0.3(누적 태그 폭발).',apply:function(m){m.skills[3].base+=50;m.skills[3].ratio+=0.3;}},
+  {id:'m_si_5',sub:'단일파괴',name:'[OP] 일점 소멸',tag:'단일파괴',desc:'메테오가 2태그(점화+빙결) 적 HP40%↓ 처형.',apply:function(m){m.skills[3].execFrac=0.4;m.skills[3].execNeedReaction=1;}},
+  {id:'m_si_6',sub:'단일파괴',name:'[OP] 원소 천공',tag:'단일파괴',desc:'마법 비율 관통 +40% (대가: 메테오 쿨 +80%).',apply:function(m){_cb(m,'pctPen',0.4);m.skills[3].cd=Math.round(m.skills[3].cd*1.8);}},
+  // ── 원소제어: 반응이 지속 필드 ──
+  {id:'m_fi_d',sub:'원소제어',name:'[정의] 원소제어',tag:'원소제어',desc:'서리쐐기 지속 +2s + 서리 회랑(아바타E) 지속 +6s(필드 지배).',apply:function(m){m.skills[1].dur+=2;if(m.avatarSkills&&m.avatarSkills[2])m.avatarSkills[2].dur+=6;}},
+  {id:'m_fi_1',sub:'원소제어',name:'화염 지대',tag:'원소제어',desc:'[점화] 지속 +2.5s(화염 장판).',apply:function(m){m.skills[0].dotDur+=2.5;}},
+  {id:'m_fi_2',sub:'원소제어',name:'빙결 결계',tag:'원소제어',desc:'서리쐐기 지속 +2s·둔화 강화.',apply:function(m){m.skills[1].dur+=2;m.skills[1].slow=Math.max(0.3,m.skills[1].slow-0.12);}},
+  {id:'m_fi_3',sub:'원소제어',name:'감전 그물',tag:'원소제어',desc:'서리쐐기 약속박 +0.4s(속박 지대).',apply:function(m){m.skills[1].rootDur+=0.4;}},
+  {id:'m_fi_4',sub:'원소제어',name:'필드 확장',tag:'원소제어',desc:'서리쐐기 반경 +24 + 서리 회랑 반경 +40.',apply:function(m){m.skills[1].radius+=24;if(m.avatarSkills&&m.avatarSkills[2])m.avatarSkills[2].radius+=40;}},
+  {id:'m_fi_5',sub:'원소제어',name:'[OP] 원소 감옥',tag:'원소제어',desc:'서리쐐기 약속박 +1.0s(완전 봉쇄).',apply:function(m){m.skills[1].rootDur+=1.0;}},
+  {id:'m_fi_6',sub:'원소제어',name:'[OP] 영구 필드',tag:'원소제어',desc:'서리 회랑(아바타E) 지속 +20s(무한 지속 근사).',apply:function(m){if(m.avatarSkills&&m.avatarSkills[2])m.avatarSkills[2].dur+=20;else m.skills[1].dur+=8;}}
  ],
  archer:[
-  {id:'a_aim',name:'완벽한 조준',tag:'저격',desc:'정조준(Q) 계수 +0.6, 쿨 −0.5s. 표식 빌드업·치명 가속.',apply:function(m){var q=m.skills[0];q.ratio+=0.6;q.cd=Math.max(1,q.cd-0.5);}},
-  {id:'a_storm',name:'폭풍 속사',tag:'연사',desc:'속사(W) 공속 배수 +0.4, 지속 +3s. 표식 위 평타 쏟기.',apply:function(m){var w=m.skills[1];w.atkspd+=0.4;w.dur+=3;}},
-  {id:'a_pierce',name:'관통 사격술',tag:'관통',desc:'관통사격(R) 기본 +30 + 고정 관통 +14·비율 관통 +18%. 무엇이든 뚫는 라인.',apply:function(m){var r=m.skills[3];r.base+=30;m.cardBonus.flatPen=(m.cardBonus.flatPen||0)+14;m.cardBonus.pctPen=(m.cardBonus.pctPen||0)+0.18;}}
+  // ── 연사: 공속 누적 기관총 ──
+  {id:'a_ra_d',sub:'연사',name:'[정의] 연사',tag:'연사',desc:'속사(W) 공속 +0.3 + 상시 공속 +15%(누적 근사).',apply:function(m){m.skills[1].atkspd+=0.3;m.cfx.permAtkSpd=(m.cfx.permAtkSpd||1)*1.15;}},
+  {id:'a_ra_1',sub:'연사',name:'탄막',tag:'연사',desc:'상시 공속 +20%.',apply:function(m){m.cfx.permAtkSpd=(m.cfx.permAtkSpd||1)*1.2;}},
+  {id:'a_ra_2',sub:'연사',name:'연사 유지',tag:'연사',desc:'속사(W) 지속 +2s.',apply:function(m){m.skills[1].dur+=2;}},
+  {id:'a_ra_3',sub:'연사',name:'표식 연사',tag:'연사',desc:'정조준(Q)이 표식 2중첩 부여.',apply:function(m){m.cfx.markGain=1;}},
+  {id:'a_ra_4',sub:'연사',name:'난사',tag:'연사',desc:'속사(W) 지속 5→8s.',apply:function(m){m.skills[1].dur+=3;}},
+  {id:'a_ra_5',sub:'연사',name:'[OP] 무한 가속',tag:'연사',desc:'상시 공속 +40%.',apply:function(m){m.cfx.permAtkSpd=(m.cfx.permAtkSpd||1)*1.4;}},
+  {id:'a_ra_6',sub:'연사',name:'[OP] 탄막의 벽',tag:'연사',desc:'속사(W) 공속 배수 +0.6 (대가: 단일 효율 −10%).',apply:function(m){m.skills[1].atkspd+=0.6;m.cfx.permDmgMul=(m.cfx.permDmgMul||1)*0.9;}},
+  // ── 저격: 차징 단발 ──
+  {id:'a_sn_d',sub:'저격',name:'[정의] 저격',tag:'저격',desc:'정조준(Q) 계수 +0.4 + 표식당 받피 증폭 0.15→0.20.',apply:function(m){m.skills[0].ratio+=0.4;m.cfx.markPer=0.20;}},
+  {id:'a_sn_1',sub:'저격',name:'약점 사격',tag:'저격',desc:'정조준(Q) 계수 +0.3.',apply:function(m){m.skills[0].ratio+=0.3;}},
+  {id:'a_sn_2',sub:'저격',name:'헤드샷',tag:'저격',desc:'정조준이 표식 2중첩 부여(치명 빌드업).',apply:function(m){m.cfx.markGain=1;}},
+  {id:'a_sn_3',sub:'저격',name:'장거리',tag:'저격',desc:'비율 관통 +20% + 관통사격 반경 +20.',apply:function(m){_cb(m,'pctPen',0.2);m.skills[3].radius+=20;}},
+  {id:'a_sn_4',sub:'저격',name:'일격필살',tag:'저격',desc:'정조준(Q) 기본 +80.',apply:function(m){m.skills[0].base+=80;}},
+  {id:'a_sn_5',sub:'저격',name:'[OP] 처형 사격',tag:'저격',desc:'표식 3중첩 적을 정조준으로 HP25%↓ 처형.',apply:function(m){m.skills[0].execFrac=0.25;m.skills[0].execNeedMark=3;}},
+  {id:'a_sn_6',sub:'저격',name:'[OP] 관통 저격',tag:'저격',desc:'정조준(Q) 계수 +0.5 (대가: 공속 −15%).',apply:function(m){m.skills[0].ratio+=0.5;m.cfx.permAtkSpd=(m.cfx.permAtkSpd||1)*0.85;}},
+  // ── 관통: 일직선 라인 ──
+  {id:'a_pi_d',sub:'관통',name:'[정의] 관통',tag:'관통',desc:'관통사격(R)이 맞은 전부에 표식 부여 + 표식 상한 4.',apply:function(m){m.skills[3].markOnHit=1;m.cfx.markMax=4;}},
+  {id:'a_pi_1',sub:'관통',name:'관통 표식',tag:'관통',desc:'관통사격(R) 관통한 전부에 표식.',apply:function(m){m.skills[3].markOnHit=1;}},
+  {id:'a_pi_2',sub:'관통',name:'라인 출혈',tag:'관통',desc:'관통사격(R) 기본 +30(경로 출혈 근사).',apply:function(m){m.skills[3].base+=30;}},
+  {id:'a_pi_3',sub:'관통',name:'도탄',tag:'관통',desc:'관통사격(R) 반경 +24.',apply:function(m){m.skills[3].radius+=24;}},
+  {id:'a_pi_4',sub:'관통',name:'광폭 관통',tag:'관통',desc:'관통사격(R) 반경 +30.',apply:function(m){m.skills[3].radius+=30;}},
+  {id:'a_pi_5',sub:'관통',name:'[OP] 일렬 학살',tag:'관통',desc:'관통사격(R) 기본 +40·계수 +0.4.',apply:function(m){m.skills[3].base+=40;m.skills[3].ratio+=0.4;}},
+  {id:'a_pi_6',sub:'관통',name:'[OP] 무한 관통',tag:'관통',desc:'비율 관통 +50%(벽·구조물 관통 근사) (대가: 치명 −15%).',apply:function(m){_cb(m,'pctPen',0.5);_cb(m,'critAdd',-0.15);}}
  ],
  cleric:[
-  {id:'c_smite',name:'전투사제',tag:'전투사제',desc:'심판봉(Q) 계수 +0.4, 자힐 +15%. 때릴수록 더 산다.',apply:function(m){var q=m.skills[0];q.ratio+=0.4;q.lifesteal+=0.15;}},
-  {id:'c_purge',name:'수호사제',tag:'수호사제',desc:'신성역장(W) 반경 +30, 회복 +30. 디버프 답안·받쳐주기 강화.',apply:function(m){var w=m.skills[1];w.radius+=30;w.heal+=30;}},
-  {id:'c_judge',name:'각성',tag:'각성',desc:'천벌(R) 기본 +60, 계수 +0.4, 쿨 −2s. 힐→딜 후반 개방.',apply:function(m){var r=m.skills[3];r.base+=60;r.ratio+=0.4;r.cd=Math.max(3,r.cd-2);}}
+  // ── 수호사제: 순수 보모 ──
+  {id:'c_gp_d',sub:'수호사제',name:'[정의] 수호사제',tag:'수호사제',desc:'신성역장(W) 회복 +40·반경 +20 + 축복(아바타Q) 방어막 +60.',apply:function(m){m.skills[1].heal+=40;m.skills[1].radius+=20;if(m.avatarSkills&&m.avatarSkills[0])m.avatarSkills[0].shield+=60;}},
+  {id:'c_gp_1',sub:'수호사제',name:'광역 정화',tag:'수호사제',desc:'신성역장(W) 반경 +40(범위 전체 정화).',apply:function(m){m.skills[1].radius+=40;}},
+  {id:'c_gp_2',sub:'수호사제',name:'영속 가호',tag:'수호사제',desc:'축복(아바타Q) 방어막 2배.',apply:function(m){if(m.avatarSkills&&m.avatarSkills[0])m.avatarSkills[0].shield=Math.round(m.avatarSkills[0].shield*2);}},
+  {id:'c_gp_3',sub:'수호사제',name:'신성 결계',tag:'수호사제',desc:'신성역장(W) 회복 +30·반경 +20(지속 힐존).',apply:function(m){m.skills[1].heal+=30;m.skills[1].radius+=20;}},
+  {id:'c_gp_4',sub:'수호사제',name:'헌신',tag:'수호사제',desc:'상시 받는피해 −15%(아군 피해 분담 근사).',apply:function(m){m.cfx.holyDevote=0.15;}},
+  {id:'c_gp_5',sub:'수호사제',name:'[OP] 불멸의 군세',tag:'수호사제',desc:'신성 가호(아바타R) 쿨 −10s (대가: 자기 딜 −50%).',apply:function(m){if(m.avatarSkills&&m.avatarSkills[3])m.avatarSkills[3].cd=Math.max(10,m.avatarSkills[3].cd-10);m.cfx.permDmgMul=(m.cfx.permDmgMul||1)*0.5;}},
+  {id:'c_gp_6',sub:'수호사제',name:'[OP] 성역',tag:'수호사제',desc:'신성역장(W) 쿨 −50%·회복 +40(무한 유지 근사).',apply:function(m){m.skills[1].cd=Math.round(m.skills[1].cd*0.5*10)/10;m.skills[1].heal+=40;}},
+  // ── 전투사제: 반반 ──
+  {id:'c_bp_d',sub:'전투사제',name:'[정의] 전투사제',tag:'전투사제',desc:'심판봉(Q) 계수 +0.3·자힐 +15%.',apply:function(m){m.skills[0].ratio+=0.3;m.skills[0].lifesteal+=0.15;}},
+  {id:'c_bp_1',sub:'전투사제',name:'심판 강타',tag:'전투사제',desc:'심판봉(Q) 자힐 30→45%.',apply:function(m){m.skills[0].lifesteal+=0.15;}},
+  {id:'c_bp_2',sub:'전투사제',name:'신성 분노',tag:'전투사제',desc:'심판봉(Q) 계수 +0.3(자힐→딜 환산 근사).',apply:function(m){m.skills[0].ratio+=0.3;}},
+  {id:'c_bp_3',sub:'전투사제',name:'응징',tag:'전투사제',desc:'심판봉(Q) 기본 +20 + 천벌 반경 +20.',apply:function(m){m.skills[0].base+=20;m.skills[3].radius+=20;}},
+  {id:'c_bp_4',sub:'전투사제',name:'성전',tag:'전투사제',desc:'신성역장(W) 회복 +20 + 상시 공격력 +10%.',apply:function(m){m.skills[1].heal+=20;_cbm(m,'adMul',1.1);_cbm(m,'apMul',1.1);}},
+  {id:'c_bp_5',sub:'전투사제',name:'[OP] 심판자',tag:'전투사제',desc:'심판봉(Q)이 HP25%↓ 적 처형 (대가: 회복 효율 근사 −).',apply:function(m){m.skills[0].execFrac=0.25;m.skills[0].lifesteal=Math.max(0,m.skills[0].lifesteal-0.1);}},
+  {id:'c_bp_6',sub:'전투사제',name:'[OP] 양면',tag:'전투사제',desc:'심판봉 계수 +0.3·자힐 +0.2 + 천벌 기본 +40 (대가: 마나 소모↑).',apply:function(m){m.skills[0].ratio+=0.3;m.skills[0].lifesteal+=0.2;m.skills[3].base+=40;m.skills[0].mana=Math.round(m.skills[0].mana*2);}},
+  // ── 각성: 서폿 졸업 딜러 ──
+  {id:'c_as_d',sub:'각성',name:'[정의] 각성',tag:'각성',desc:'천벌(R) 누적 회복 환산 30→50% + 기본 +40.',apply:function(m){m.skills[3].healMul=0.5;m.skills[3].base+=40;}},
+  {id:'c_as_1',sub:'각성',name:'누적 신앙',tag:'각성',desc:'천벌(R) 누적 회복 환산 +0.15.',apply:function(m){m.skills[3].healMul=(m.skills[3].healMul||0.3)+0.15;}},
+  {id:'c_as_2',sub:'각성',name:'심판의 빛',tag:'각성',desc:'천벌(R) 반경 +40.',apply:function(m){m.skills[3].radius+=40;}},
+  {id:'c_as_3',sub:'각성',name:'신성 폭발',tag:'각성',desc:'천벌(R) 기본 +30·계수 +0.3.',apply:function(m){m.skills[3].base+=30;m.skills[3].ratio+=0.3;}},
+  {id:'c_as_4',sub:'각성',name:'재림',tag:'각성',desc:'천벌(R) 쿨 −30%.',apply:function(m){m.skills[3].cd=Math.round(m.skills[3].cd*0.7);}},
+  {id:'c_as_5',sub:'각성',name:'[OP] 최후의 심판',tag:'각성',desc:'천벌(R) 누적 회복 100% 환산.',apply:function(m){m.skills[3].healMul=1.0;}},
+  {id:'c_as_6',sub:'각성',name:'[OP] 신탁',tag:'각성',desc:'천벌(R) 쿨 −60% (대가: 축복 방어막 −40%).',apply:function(m){m.skills[3].cd=Math.round(m.skills[3].cd*0.4);if(m.avatarSkills&&m.avatarSkills[0])m.avatarSkills[0].shield=Math.round(m.avatarSkills[0].shield*0.6);}}
  ],
  curser:[
-  {id:'u_atrophy',name:'절대 쇠약',tag:'약화',desc:'쇠약(W) 방어 감소 +20, 지속 +2s. 적을 유리몸으로.',apply:function(m){var w=m.skills[1];w.defDown+=20;w.dur+=2;}},
-  {id:'u_pain',name:'고통 가속',tag:'저주',desc:'고통의 화살(Q) 쿨 −0.3s, 계수 +0.3. 저주 스택을 빨리 쌓는다.',apply:function(m){var q=m.skills[0];q.cd=Math.max(0.6,q.cd-0.3);q.ratio+=0.3;}},
-  {id:'u_doom',name:'파멸의 누킹',tag:'저주',desc:'파멸의 인장(R) 스택당 기본 +30, 계수 +0.3. 누킹 피니셔 극대화.',apply:function(m){var r=m.skills[3];r.base+=30;r.ratio+=0.3;}}
+  // ── 약화: 방깎 극한 ──
+  {id:'u_we_d',sub:'약화',name:'[정의] 약화',tag:'약화',desc:'쇠약(W) 방어 감소 +15 + 고통화살이 방어 4 영구 누적.',apply:function(m){m.skills[1].defDown+=15;m.cfx.curseWeaken=4;}},
+  {id:'u_we_1',sub:'약화',name:'깊은 쇠약',tag:'약화',desc:'쇠약(W) 방어 감소 +15.',apply:function(m){m.skills[1].defDown+=15;}},
+  {id:'u_we_2',sub:'약화',name:'누적 쇠약',tag:'약화',desc:'고통화살(Q)이 방어 4 누적 감소.',apply:function(m){m.cfx.curseWeaken=4;}},
+  {id:'u_we_3',sub:'약화',name:'광역 쇠약',tag:'약화',desc:'쇠약(W) 반경 +40.',apply:function(m){m.skills[1].radius+=40;}},
+  {id:'u_we_4',sub:'약화',name:'약점 노출',tag:'약화',desc:'쇠약(W) 방어 감소 +10·지속 +2s.',apply:function(m){m.skills[1].defDown+=10;m.skills[1].dur+=2;}},
+  {id:'u_we_5',sub:'약화',name:'[OP] 방어 붕괴',tag:'약화',desc:'쇠약(W) 방어 감소 +30 (대가: 자기 딜 −40%).',apply:function(m){m.skills[1].defDown+=30;m.cfx.permDmgMul=(m.cfx.permDmgMul||1)*0.6;}},
+  {id:'u_we_6',sub:'약화',name:'[OP] 전염되는 쇠약',tag:'약화',desc:'고통화살 누적 방깎 6 + 쇠약 반경 +30(전파 근사).',apply:function(m){m.cfx.curseWeaken=6;m.skills[1].radius+=30;}},
+  // ── 제어: CC 레이어 ──
+  {id:'u_co_d',sub:'제어',name:'[정의] 제어',tag:'제어',desc:'그림자 도약(E) 공포 +0.5s + 쇠약 둔화 강화.',apply:function(m){m.skills[2].rootDur=(m.skills[2].rootDur||0)+0.5;m.skills[1].slow=Math.max(0.4,m.skills[1].slow-0.1);}},
+  {id:'u_co_1',sub:'제어',name:'공포 확산',tag:'제어',desc:'그림자 도약(E) 착지 공포 +0.5s.',apply:function(m){m.skills[2].rootDur=(m.skills[2].rootDur||0)+0.5;}},
+  {id:'u_co_2',sub:'제어',name:'사슬 저주',tag:'제어',desc:'쇠약(W) 둔화 강화(이속 −).',apply:function(m){m.skills[1].slow=Math.max(0.3,m.skills[1].slow-0.15);}},
+  {id:'u_co_3',sub:'제어',name:'침묵의 인장',tag:'제어',desc:'쇠약(W) 지속 +1s·방어 감소 +8.',apply:function(m){m.skills[1].dur+=1;m.skills[1].defDown+=8;}},
+  {id:'u_co_4',sub:'제어',name:'군중 제어',tag:'제어',desc:'그림자 도약(E) 반경 +24·공포 +0.4s.',apply:function(m){m.skills[2].radius+=24;m.skills[2].rootDur=(m.skills[2].rootDur||0)+0.4;}},
+  {id:'u_co_5',sub:'제어',name:'[OP] 절대 속박',tag:'제어',desc:'그림자 도약(E) 공포 +1.2s.',apply:function(m){m.skills[2].rootDur=(m.skills[2].rootDur||0)+1.2;}},
+  {id:'u_co_6',sub:'제어',name:'[OP] 저주의 사슬',tag:'제어',desc:'저주 상한 5→7 + 쇠약 반경 +30(연쇄 근사).',apply:function(m){m.cfx.curseMax=7;m.skills[1].radius+=30;}},
+  // ── 저주: 도트 레이어 ──
+  {id:'u_cu_d',sub:'저주',name:'[정의] 저주',tag:'저주',desc:'저주 스택이 도트 동반 + 고통화살 계수 +0.2.',apply:function(m){m.cfx.curseDot=10;m.skills[0].ratio+=0.2;}},
+  {id:'u_cu_1',sub:'저주',name:'부패의 손길',tag:'저주',desc:'저주 도트 +10/틱.',apply:function(m){m.cfx.curseDot=(m.cfx.curseDot||0)+10;}},
+  {id:'u_cu_2',sub:'저주',name:'고통 가속',tag:'저주',desc:'고통화살(Q) 쿨 −0.3s·계수 +0.3.',apply:function(m){m.skills[0].cd=Math.max(0.6,m.skills[0].cd-0.3);m.skills[0].ratio+=0.3;}},
+  {id:'u_cu_3',sub:'저주',name:'고통 증폭',tag:'저주',desc:'저주 도트 +14/틱(스택 가속 근사).',apply:function(m){m.cfx.curseDot=(m.cfx.curseDot||0)+14;}},
+  {id:'u_cu_4',sub:'저주',name:'만성 저주',tag:'저주',desc:'저주 지속 무한(전투 중 안 빠짐).',apply:function(m){m.cfx.curseInf=1;}},
+  {id:'u_cu_5',sub:'저주',name:'[OP] 파멸의 누킹',tag:'저주',desc:'파멸의 인장(R) 스택당 기본 +30·계수 +0.3.',apply:function(m){m.skills[3].base+=30;m.skills[3].ratio+=0.3;}},
+  {id:'u_cu_6',sub:'저주',name:'[OP] 영혼 수확',tag:'저주',desc:'파멸의 인장 처형 라인 5→4스택·HP20→30% (대가: 쿨 +60%).',apply:function(m){m.skills[3].execStk=4;m.skills[3].execHp=0.3;m.skills[3].cd=Math.round(m.skills[3].cd*1.6);}}
  ]
 };
 function ownedCardIds(m){return m.cards.map(function(c){return c.id;});}
@@ -1817,6 +1983,7 @@ var JOBNOTE={warrior:'근접 물리 · 분노 자멸 딜',mage:'원거리 마법
 var RECRUIT_COST=[0,1,2,3]; // 2·3·4번째 충원 누적 코어
 function recruitCostNow(){var n=MLS.length;return n<4?RECRUIT_COST[n]:null;}
 var CARD_COST=2; // 특수강화 1장 = 코어 2
+var evoSel=0;    // 진화 화면에서 선택된 마더로드(미획득 카드 보유 목록 기준)
 function anyOverlayOpen(){return shopOverlay.style.display==='flex'||coreOverlay.style.display==='flex';}
 function hasAvailCards(){return MLS.some(function(m){var o=ownedCardIds(m);return (CARDS[m.kind]||[]).some(function(cd){return o.indexOf(cd.id)<0;});});}
 
@@ -1883,6 +2050,7 @@ function renderStep2(){
  document.getElementById('coreGold').textContent=ECON.gold;
  var row=document.getElementById('step2Row');row.innerHTML='';
  if(coreStep2Mode==='recruit'){
+  document.getElementById('evoTabs').style.display='none';
   document.getElementById('step2Title').textContent='마더로드 충원 — 폭(다전선)';
   var cost=recruitCostNow();
   if(cost===null){row.innerHTML='<div class="card disabled" style="cursor:default"><div class="cname">로스터 가득 참 (4/4)</div><div class="cdesc">최대 4기 편성 완료.</div></div>';}
@@ -1894,15 +2062,21 @@ function renderStep2(){
     row.appendChild(c);});}
  } else {
   document.getElementById('step2Title').textContent='진화 — 깊이(운영 변혁)';
-  var any=false;
-  MLS.forEach(function(m){var owned=ownedCardIds(m);
-   (CARDS[m.kind]||[]).forEach(function(cd){if(owned.indexOf(cd.id)>=0)return;any=true;
-    var afford=ECON.core>=CARD_COST;
-    var c=document.createElement('div');c.className='card'+(afford?'':' disabled');
-    c.innerHTML='<span class="ccost core">코어 '+CARD_COST+'</span><span class="ctag" style="color:'+m.K.col+'">'+(MLEMO[m.kind]||'')+' '+cd.tag+'</span><div class="cname">'+cd.name+'</div><div class="cdesc">'+cd.desc+'</div>';
-    if(afford)c.addEventListener('click',function(){buyCard(m,cd);});
-    row.appendChild(c);});});
-  if(!any)row.innerHTML='<div class="card disabled" style="cursor:default"><div class="cname">모든 특수강화 적용됨</div><div class="cdesc">현재 로스터의 카드를 전부 획득했습니다.</div></div>';
+  var tabs=document.getElementById('evoTabs');tabs.innerHTML='';
+  var avail=MLS.filter(function(m){var o=ownedCardIds(m);return (CARDS[m.kind]||[]).some(function(cd){return o.indexOf(cd.id)<0;});}); // 미획득 카드 보유 ML만
+  if(!avail.length){tabs.style.display='none';row.innerHTML='<div class="card disabled" style="cursor:default"><div class="cname">모든 특수강화 적용됨</div><div class="cdesc">현재 로스터의 카드를 전부 획득했습니다.</div></div>';return;}
+  tabs.style.display='flex';if(evoSel>=avail.length)evoSel=0;
+  avail.forEach(function(m,i){var t=document.createElement('div');t.className='shoptab'+(i===evoSel?' sel':'');
+   t.innerHTML='<span class="se">'+(MLEMO[m.kind]||'')+'</span>'+JOBLABEL[m.kind];
+   t.addEventListener('click',function(){evoSel=i;sfx('click');renderStep2();});tabs.appendChild(t);});
+  var em=avail[evoSel],owned=ownedCardIds(em),lastSub=null;
+  (CARDS[em.kind]||[]).forEach(function(cd){if(owned.indexOf(cd.id)>=0)return;
+   if(cd.sub&&cd.sub!==lastSub){lastSub=cd.sub;var h=document.createElement('div');h.style.cssText='flex-basis:100%;font-size:11px;color:'+em.K.col+';letter-spacing:.5px;margin:4px 0 2px;opacity:.85';h.textContent='— '+cd.sub+' —';row.appendChild(h);}
+   var afford=ECON.core>=CARD_COST;
+   var c=document.createElement('div');c.className='card'+(afford?'':' disabled');
+   c.innerHTML='<span class="ccost core">코어 '+CARD_COST+'</span><span class="ctag" style="color:'+em.K.col+'">'+(MLEMO[em.kind]||'')+' '+cd.tag+'</span><div class="cname">'+cd.name+'</div><div class="cdesc">'+cd.desc+'</div>';
+   if(afford)c.addEventListener('click',function(){buyCard(em,cd);});
+   row.appendChild(c);});
  }
 }
 function recruit(job,cost){if(ECON.core<cost||MLS.length>=4)return;ECON.core-=cost;
@@ -1910,7 +2084,7 @@ function recruit(job,cost){if(ECON.core<cost||MLS.length>=4)return;ECON.core-=co
  MLS.push(m);rosterDirty=true;sfx('recruit');
  fx.push({x:m.x,y:m.y,r:30,t:0.7,life:0.7,col:m.K.col,fade:true});burst(m.x,m.y,m.K.col,12,90);
  toast(JOBLABEL[job]+' 충원 완료 — 편성 '+MLS.length+'/4');renderStep2();}
-function buyCard(m,cd){if(ECON.core<CARD_COST)return;ECON.core-=CARD_COST;cd.apply(m);applyUpgrades(m);m.cards.push(cd);
+function buyCard(m,cd){if(ECON.core<CARD_COST)return;ECON.core-=CARD_COST;cd.apply(m);applyUpgrades(m);reapplyPerm(m);m.cards.push(cd);
  sfx('card');toast(JOBLABEL[m.kind]+' · '+cd.name+' 적용');renderStep2();}
 
 /* ============================================================
