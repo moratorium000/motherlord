@@ -971,7 +971,16 @@ function tryPossess(i){ // 스왑: 이중비용(거리 + 스왑쿨). 아바타�
   sel=i;swapCD=(relay&&!direct)?3.0:2.2;snapTo(camT,a.x,a.y);toast(relay&&!direct?('빙의 사슬 — 거점 경유 횡단 → '+a.name):('빙의 → '+a.name));sfx('cast',0.1);
   for(var q=0;q<enemies.length;q++){var o=enemies[q];if(o.hp>0&&((o.kind==='mb'&&o.awake)||o.kind==='elite')&&Math.hypot(o.x-p.x,o.y-p.y)<300){var na=Math.atan2(a.y-o.y,a.x-o.x);tels.push({kind:'lane',x:o.x,y:o.y,a:na,r:300,w:36,windup:0.45,wmax:0.45,dmg:34,dtype:'phys',source:o,applied:false,life:0});}}} // ⑥ 반응형 스왑 처벌: 교전 중 스왑=갭클로즈 예고(예측형 스왑 학습)
 function nearestFriendlyBasePt(x,y){var best={x:myHQ.x,y:myHQ.y},bd=Math.hypot(x-myHQ.x,y-myHQ.y);for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0){var d=Math.hypot(x-e.x,y-e.y);if(d<bd){bd=d;best={x:e.x,y:e.y};}}}return {pt:best,d:bd};}
-function nearestFriendlyBaseEntity(x,y){var best=myHQ,bd=Math.hypot(x-myHQ.x,y-myHQ.y);for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0){var d=Math.hypot(x-e.x,y-e.y);if(d<bd){bd=d;best=e;}}}return best;} // 아군 거점 엔티티(본부 또는 점령 교두보) — 웨이브 표적용
+function nearestFriendlyBaseEntity(x,y){var best=myHQ,bd=Math.hypot(x-myHQ.x,y-myHQ.y);for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0){var d=Math.hypot(x-e.x,y-e.y);if(d<bd){bd=d;best=e;}}}return best;} // 아군 거점 엔티티(본부 또는 점령 거점) — 웨이브 표적용
+function baseAlarm(e,isHQ,dt){ // 본부/아군 거점 지속 피격 경보(프레임당 hp 감소로 피격 판정)
+  if(e.hp<=0){e._uaT=0;e._lastHp=e.hp;return;}
+  var dropped=(e._lastHp!=null&&e.hp<e._lastHp-0.01);e._lastHp=e.hp;
+  if(dropped)e._uaGap=0;else e._uaGap=(e._uaGap==null?99:e._uaGap+dt);
+  if(e._uaGap<2.0)e._uaT=(e._uaT||0)+dt;else e._uaT=0;          // 마지막 피격 2초 이내 지속 = 교전 중
+  if(e._uaMsgCd>0)e._uaMsgCd-=dt;
+  if(e._uaT>=3&&(e._uaMsgCd||0)<=0){toast(isHQ?'본부가 공격받고 있습니다.':'아군 거점이 공격받고 있습니다.');e._uaMsgCd=10;} // 3초+ 지속 피격 → 경보(10초 쿨다운)
+}
+function updateBaseAlarms(dt){baseAlarm(myHQ,true,dt);for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0)baseAlarm(e,false,dt);}}
 var STANCE_KO={escort:'호위',push:'진격',hold:'수비'};
 function applyStance(m,c){m.cmd=c;if(c==='hold'){var nb=nearestFriendlyBasePt(m.x,m.y);m.holdPt=(nb.d<HEAL_R+70)?nb.pt:{x:m.x,y:m.y};}} // 수비: 가까운 거점/본부면 거기 주둔
 function setAvatarCmd(c){var n=0;for(var i=0;i<MLS.length;i++){if(i===sel||MLS[i].downed)continue;applyStance(MLS[i],c);n++;}rosterDirty=true;
@@ -1656,7 +1665,7 @@ function drawSpawnerBeacon(e){var seen=cellVis(e.x,e.y),cap=e.captured,pul=cap?0
   ctx.fillStyle=col;ctx.font='bold '+(e.r*1.3)+'px Chakra Petch,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(cap?'⛏':'砦',e.x,e.y+1);ctx.textAlign='left';ctx.textBaseline='alphabetic';
   if(e.pulseT>0){var ang=Math.atan2(myHQ.y-e.y,myHQ.x-e.x);ctx.globalAlpha=Math.min(1,e.pulseT*1.6);ctx.strokeStyle=COL.bad;ctx.lineWidth=3/cam.z;ctx.beginPath();ctx.moveTo(e.x+Math.cos(ang)*(e.r+9),e.y+Math.sin(ang)*(e.r+9));ctx.lineTo(e.x+Math.cos(ang)*(e.r+36),e.y+Math.sin(ang)*(e.r+36));ctx.stroke();ctx.globalAlpha=1;} // 본부 방향 송출 화살표
   flashRect(e,e.r);if(seen||cap)bars(e,42,-e.r-9);
-  label(e.x,e.y-e.r-17,cap?'아군 교두보':(e.awake?'적 거점':'적 거점(잠듦)'),col);ctx.restore();}
+  label(e.x,e.y-e.r-17,cap?'아군 거점':(e.awake?'적 거점':'적 거점(잠듦)'),col);ctx.restore();}
 // ── 보스: 빙의 봉인자(적_설계 §6.3, 패턴심화 §4) — 플레이어의 코어(빙의/스왑)를 카운터 ──
 function bossPhaseFx(b){b.hitT=0.5;addShake(12);for(var i=0;i<16;i++){var a=Math.random()*6.283;fx.push({type:'part',x:b.x,y:b.y,vx:Math.cos(a)*180,vy:Math.sin(a)*180,life:0.6,t:0.6,col:COL.magic});}toast('빙의 봉인자 — 페이즈 '+b.bphase);sfx('castDark',0.1);}
 function disableAvatar(){for(var i=0;i<MLS.length;i++){if(i!==sel&&!MLS[i].downed){addMod(MLS[i],{key:'sealdis',field:'moveSpd',op:'mul',value:0,dur:5,tags:['stun','cc','debuff'],source:BOSS,name:'무력화',col:COL.magic});toast('⚠ 아바타 무력화 — 도움이 사라진다');return;}}}
@@ -1702,7 +1711,7 @@ function spawnRushSquad(){
   if(Math.random()<0.5)goal=nearestFriendlyBaseEntity(origin.x,origin.y);
   for(var k=0;k<n&&emCount<EM_CAP;k++){var a=Math.random()*6.283,rr=Math.random()*42; // 한 점에 밀집 → 같은 속도로 뭉쳐 진격
     var et=(Math.random()<0.72?'rusher':'shield');var m=mkEm(origin.x+Math.cos(a)*rr,origin.y+Math.sin(a)*rr,emScaleNow(band),et);m.rushUnit=true;m.goal=goal;enemies.push(m);emCount++;}
-  origin.pulseT=0.9;toast('⚠ 웨이브 '+waveN+' — '+(goal===myHQ?'본부':'교두보')+'(으)로 진격!');sfx('hqhit',0.15);addShake(6);}
+  origin.pulseT=0.9;toast('⚠ 웨이브 '+waveN+' — '+(goal===myHQ?'본부':'거점')+'(으)로 진격!');sfx('hqhit',0.15);addShake(6);}
 function updateMb(e,dt){
   if(!e.awake)return;
   if(e.regen)e.hp=Math.min(e.max,e.hp+e.regen*dt);
@@ -1985,6 +1994,8 @@ function update(dt){
  if(shake>0)shake=Math.max(0,shake-dt*38);if(hqFlash>0)hqFlash=Math.max(0,hqFlash-dt*2.2);
  for(var t=ftxts.length-1;t>=0;t--){var ft=ftxts[t];ft.life-=dt;ft.y-=ft.vy*dt;if(ft.life<=0)ftxts.splice(t,1);}
 
+ updateBaseAlarms(dt); // 본부/아군 거점 지속 피격 경보
+
  // 사망 처리 — 보상 / 분열 / 정산 트리거 / 승리
  var settle=false;
  for(var di=0;di<enemies.length;di++){var en2=enemies[di];if(en2.hp>0||en2.counted)continue;
@@ -1993,8 +2004,8 @@ function update(dt){
      else if(en2.etype==='spore')hazards.push({x:en2.x,y:en2.y,r:60,life:4,t:4,dmg:14,dtick:0.5,source:en2});}
    else if(en2.kind==='elite'){en2.counted=true;grantGold(en2.reward.gold);deathPuff(en2.x,en2.y);sfx('impact',0.1);toast('엘리트 처치: '+en2.name+'  (+재화 '+en2.reward.gold+')');}
    else if(en2.kind==='spawner'){
-     if(en2.captured){en2.captured=false;en2.awake=true;en2.hp=en2.max=300+en2.band*170;en2.counted=false;en2.spawnCD=2;deathPuff(en2.x,en2.y);sfx('hqhit',0.2);addShake(8);toast('⚠ 교두보 함락 — 폐허, 적 거점 복귀');} // 점령 거점이 털림(§5.2)
-     else{en2.captured=true;en2.awake=false;en2.hp=en2.max=380+en2.band*150;en2.counted=false;en2.pulseT=0;grantCore(en2.reward.core);grantGold(en2.reward.gold);coreBurst(en2.x,en2.y);sfx('core',0.05);addShake(8);toast('적 거점 점령 — 교두보 확보·자원토템 가동  (+코어 '+en2.reward.core+' · +재화 '+en2.reward.gold+')');} // 적 거점 파괴=아군 교두보 전환
+     if(en2.captured){en2.captured=false;en2.awake=true;en2.hp=en2.max=300+en2.band*170;en2.counted=false;en2.spawnCD=2;deathPuff(en2.x,en2.y);sfx('hqhit',0.2);addShake(8);toast('⚠ 아군 거점 함락 — 폐허, 적 거점 복귀');} // 점령 거점이 털림(§5.2)
+     else{en2.captured=true;en2.awake=false;en2.hp=en2.max=380+en2.band*150;en2.counted=false;en2.pulseT=0;grantCore(en2.reward.core);grantGold(en2.reward.gold);coreBurst(en2.x,en2.y);sfx('core',0.05);addShake(8);toast('적 거점 점령 — 거점 확보·자원토템 가동  (+코어 '+en2.reward.core+' · +재화 '+en2.reward.gold+')');} // 적 거점 파괴=아군 교두보 전환
    }
    else if(en2.kind==='mb'){en2.counted=true;grantCore(en2.reward.core);grantGold(en2.reward.gold);
      coreBurst(en2.x,en2.y);sfx('fall');sfx('core',0.05);
