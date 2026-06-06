@@ -599,6 +599,7 @@ var myHQ={x:HQX,y:HQY,hp:1600,max:1600,r:24,def:20,mr:20,shield:0,mods:[],hitT:0
    arch: brood | crystal | veil | binder | plague | charger
    ============================================================ */
 var enemies=[];
+var rushPow=1,emCount=0,EM_CAP=140; // 거점 송출: 부활 반비례 강도(§4.4) / 전체 개떼 상한
 // 링별 스케일(설계 §3.3)
 var RINGSCALE=[{hp:1.0,da:0,rew:{core:1,gold:30}},{hp:1.4,da:10,rew:{core:1,gold:55}},
   {hp:2.0,da:25,rew:{core:1,gold:90}},{hp:2.8,da:45,rew:{core:1,gold:140}},{hp:3.5,da:60,rew:{core:1,gold:220}}];
@@ -685,6 +686,11 @@ var BOSS;
   for(var t=0;t<trios.length;t++){var c=pickCell(fr[t],used);used.push(c);var sc=1+fr[t]*0.6;
     for(var k=0;k<3;k++){var an=k/3*6.283;enemies.push(mkElite(trios[t][k],c.x+Math.cos(an)*70,c.y+Math.sin(an)*70,sc));}}
 })();
+// 적 거점(공습원) 배치 — 협로 뒤(pickCell 협로 우선) · 거리 버킷별
+(function(){var used=[];for(var i=0;i<enemies.length;i++)used.push({x:enemies[i].x,y:enemies[i].y});
+  var spec=[[0.20,2],[0.40,2],[0.58,2],[0.76,1]]; // [거리frac, 거점수] per 밴드
+  for(var b=0;b<spec.length;b++){for(var k=0;k<spec[b][1];k++){var c=pickCell(spec[b][0],used);if(c){used.push(c);enemies.push(mkSpawner(c.x,c.y,b));}}}
+})();
 
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
 var coreExposed=false;
@@ -710,6 +716,7 @@ function ringTotal(r){var n=0;for(var i=0;i<enemies.length;i++){var e=enemies[i]
 var ringInit=[0,0,0,0];
 function awakenRing(r){if(r>3||ringAwake[r])return;ringAwake[r]=true;for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='mb'&&e.ring===r)e.awake=true;}toast('⚠ '+ringName(r)+' 거점 각성 — 파상 공세 시작');}
 function updateAwaken(dt){
+  spawnerAwakenCheck(); // 적 거점 각성(시간·접근)
   // 시간 트리거(데모용 단축) + 이전 링 절반 파괴 트리거
   if(!ringAwake[1]&&(gameTime>70||ringAlive(0)<=ringInit[0]-1))awakenRing(1);
   if(!ringAwake[2]&&(gameTime>200||(ringInit[1]&&ringAlive(1)<=Math.ceil(ringInit[1]/2))))awakenRing(2);
@@ -943,6 +950,31 @@ function updateElite(e,dt){if(modHas(e,'stun'))return;
   e.cd-=dt;if(e.cd<=0){e.cd=e.cdMax*(0.8+Math.random()*0.4);eliteSig(e,fr);}
   if(reach<=80&&fd<reach+e.r+8){e.atkLeft-=dt;if(e.atkLeft<=0){lunge(e,fr.x,fr.y,7);resolveDamage(e,fr,e.dmg,'phys',{});e.atkLeft=e.atkInt;}}
 }
+// ── 적 거점(공습원, 적_설계 §2·§4) — 별도 엔티티. 개떼 송출원. 비콘으로 위치/각성 표시(안개 무관) ──
+function mkSpawner(x,y,band){var hp=300+band*170;return{kind:'spawner',x:x,y:y,r:28,band:band,hp:hp,max:hp,def:8,mr:8,shield:0,mods:[],
+  awake:band===0,spawnCD:1.5+Math.random()*3,pulseT:0,counted:false,hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:'적 거점',reward:{core:1,gold:40+band*15}};}
+function spawnerAwakenCheck(){for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind!=='spawner'||e.awake||e.hp<=0)continue;
+  if(gameTime>e.band*70){e.awake=true;toast('⚠ 적 거점 각성 — 개떼 송출 개시');continue;}                          // 시간 전파(전진 압력)
+  for(var j=0;j<MLS.length;j++){if(!MLS[j].downed&&Math.hypot(MLS[j].x-e.x,MLS[j].y-e.y)<300){e.awake=true;toast('적 거점 각성');break;}}}} // 접근 각성
+function rushComp(){var t=gameTime,r=Math.random(); // §4.6 러쉬 진화형: 시간 경과 조성 고약(수↑ 아니라 질↑)
+  if(t<140)return r<0.7?'infiltrator':'rusher';
+  if(t<340)return r<0.4?'infiltrator':r<0.68?'rusher':r<0.85?'bomber':'shooter';
+  return r<0.34?'infiltrator':r<0.56?'bomber':r<0.72?'rusher':r<0.86?'shooter':'spore';}
+function updateSpawner(e,dt){if(e.pulseT>0)e.pulseT-=dt;if(!e.awake)return;
+  e.spawnCD-=dt;if(e.spawnCD>0)return;
+  var rush=rushT>0;
+  if(emCount<EM_CAP){var n=rush?Math.max(1,Math.round((2+e.band*0.6)*rushPow)):(1+(e.band>=2?1:0)); // 러쉬=대거(부활반비례), 평시=소수 분산
+    for(var i=0;i<n;i++){var et=rush?rushComp():pickEmType(gameTime);enemies.push(mkEm(e.x+(Math.random()*44-22),e.y+(Math.random()*44-22),emScaleNow(e.band),et));emCount++;}
+    e.pulseT=0.55;}                                                                                  // 비콘 송출 펄스(본부 방향)
+  var base=Math.max(3.0,9-e.band*1.4-gameTime/130);if(rush)base*=Math.max(0.22,0.5/rushPow);          // 깊은 거점·후반일수록 빠름, 러쉬 시 폭증
+  e.spawnCD=base*(0.8+Math.random()*0.4);}
+function drawSpawnerBeacon(e){var seen=cellVis(e.x,e.y),pul=e.awake?(0.5+0.5*Math.abs(Math.sin(gameTime*4))):0.4,col=e.awake?COL.bad:COL.dim;ctx.save();
+  ctx.globalAlpha=pul;ctx.strokeStyle=col;ctx.lineWidth=3/cam.z;ctx.beginPath();ctx.moveTo(e.x,e.y-e.r-7);ctx.lineTo(e.x+e.r+7,e.y);ctx.lineTo(e.x,e.y+e.r+7);ctx.lineTo(e.x-e.r-7,e.y);ctx.closePath();ctx.stroke();ctx.globalAlpha=1; // 비콘 마름모(점멸)
+  ctx.fillStyle=seen?'#3a1a16':'rgba(40,20,18,0.5)';ctx.fillRect(e.x-e.r,e.y-e.r,e.r*2,e.r*2);ctx.lineWidth=2/cam.z;ctx.strokeStyle=col;ctx.strokeRect(e.x-e.r,e.y-e.r,e.r*2,e.r*2);
+  ctx.fillStyle=col;ctx.font='bold '+(e.r*1.3)+'px Chakra Petch,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('砦',e.x,e.y+1);ctx.textAlign='left';ctx.textBaseline='alphabetic';
+  if(e.pulseT>0){var ang=Math.atan2(myHQ.y-e.y,myHQ.x-e.x);ctx.globalAlpha=Math.min(1,e.pulseT*1.6);ctx.strokeStyle=COL.bad;ctx.lineWidth=3/cam.z;ctx.beginPath();ctx.moveTo(e.x+Math.cos(ang)*(e.r+9),e.y+Math.sin(ang)*(e.r+9));ctx.lineTo(e.x+Math.cos(ang)*(e.r+36),e.y+Math.sin(ang)*(e.r+36));ctx.stroke();ctx.globalAlpha=1;} // 본부 방향 송출 화살표
+  flashRect(e,e.r);if(seen)bars(e,42,-e.r-9);
+  label(e.x,e.y-e.r-17,e.awake?'적 거점':'적 거점(잠듦)',col);ctx.restore();}
 // ── 보스: 빙의 봉인자(적_설계 §6.3, 패턴심화 §4) — 플레이어의 코어(빙의/스왑)를 카운터 ──
 function bossPhaseFx(b){b.hitT=0.5;addShake(12);for(var i=0;i<16;i++){var a=Math.random()*6.283;fx.push({type:'part',x:b.x,y:b.y,vx:Math.cos(a)*180,vy:Math.sin(a)*180,life:0.6,t:0.6,col:COL.magic});}toast('빙의 봉인자 — 페이즈 '+b.bphase);sfx('castDark',0.1);}
 function disableAvatar(){for(var i=0;i<MLS.length;i++){if(i!==sel&&!MLS[i].downed){addMod(MLS[i],{key:'sealdis',field:'moveSpd',op:'mul',value:0,dur:5,tags:['stun','cc','debuff'],source:BOSS,name:'무력화',col:COL.magic});toast('⚠ 아바타 무력화 — 도움이 사라진다');return;}}}
@@ -1084,6 +1116,7 @@ function update(dt){
  rebuildFriends();
  fogAcc+=dt;if(fogAcc>=0.07){fogAcc=0;computeFog();}
  updateAwaken(dt);
+ emCount=0;for(var _ec=0;_ec<enemies.length;_ec++)if(enemies[_ec].kind==='em'&&enemies[_ec].hp>0)emCount++;
  // ── 카메라(조작지침 §3·§4·§5): 줌보정 엣지팬 + 키램프 + 홀드Space 추적 + 보간 ──
  if(!dragPan.active){
   if(held[' ']){var fm=MLS[sel];camT.x=fm.x-(VW/2)/cam.z;camT.y=fm.y-(VH/2)/cam.z;}
@@ -1106,8 +1139,8 @@ function update(dt){
  clampCam(cam);
 
  // 웨이브: 각성한 미니보스 중 하나가 부대를 본부로 보냄
- if(rushT>0){rushT-=dt;rushAcc+=dt;if(rushAcc>=0.7){rushAcc=0;var aw=awakenedMbs();for(var ri=0;ri<aw.length;ri++){var ss=aw[ri];enemies.push(mkEm(ss.x+(Math.random()*30-15),ss.y+(Math.random()*30-15),emScaleNow(ss.ring)*0.9,Math.random()<0.5?'infiltrator':'rusher'));}}} // 사망 러쉬(§4.3): 빠른 종 위주
- waveT-=dt;if(waveT<=0){var src=awakenedMbs();if(src.length){var s=src[(Math.random()*src.length)|0];var cnt=4+Math.min(4,s.ring+1);for(var i=0;i<cnt;i++)enemies.push(mkEm(s.x+(Math.random()*36-18),s.y+(Math.random()*36-18),emScaleNow(s.ring),pickEmType(gameTime)));sfx('wave',0.5);}waveN++;waveT=waveInterval()*(rushT>0?0.45:1);}
+ if(rushT>0)rushT-=dt; // 송출(평시·러쉬)은 거점(updateSpawner)이 전담
+ waveT-=dt;if(waveT<=0){waveN++;waveT=waveInterval();} // 압력 타이머(UI)
 
  // 투사체
  for(var pi=projs.length-1;pi>=0;pi--){var p=projs[pi];if(!p.tgt||p.tgt.hp<=0){projs.splice(pi,1);continue;}p.px=p.x;p.py=p.y;var d=Math.hypot(p.tgt.x-p.x,p.tgt.y-p.y);
@@ -1169,6 +1202,7 @@ function update(dt){
 
  // 적(미니보스 + 잡몹)
  for(var e=0;e<enemies.length;e++){var en=enemies[e];if(en.hp<=0)continue;if(en===BOSS)continue;decay(en,dt);tickMods(en,dt);
+  if(en.kind==='spawner'){updateSpawner(en,dt);continue;}
   if(en.kind==='elite'){updateElite(en,dt);continue;}
   if(en.kind==='mb'){updateMb(en,dt);continue;}
   var stunE=modHas(en,'stun'),rootE=modHas(en,'root');if(stunE)continue;
@@ -1208,6 +1242,7 @@ function update(dt){
      if(en2.etype==='bomber')tels.push({kind:'ringE',x:en2.x,y:en2.y,r:en2.boomR||74,windup:0.22,wmax:0.22,dmg:en2.boom||26,dtype:'phys',source:en2,applied:false,life:0}); // 사망 시 폭발
      else if(en2.etype==='spore')hazards.push({x:en2.x,y:en2.y,r:60,life:4,t:4,dmg:14,dtick:0.5,source:en2});}
    else if(en2.kind==='elite'){en2.counted=true;grantGold(en2.reward.gold);deathPuff(en2.x,en2.y);sfx('impact',0.1);toast('엘리트 처치: '+en2.name+'  (+재화 '+en2.reward.gold+')');}
+   else if(en2.kind==='spawner'){en2.counted=true;grantCore(en2.reward.core);grantGold(en2.reward.gold);coreBurst(en2.x,en2.y);sfx('core',0.05);addShake(8);toast('적 거점 파괴 — 송출 차단  (+코어 '+en2.reward.core+' · +재화 '+en2.reward.gold+')');}
    else if(en2.kind==='mb'){en2.counted=true;grantCore(en2.reward.core);grantGold(en2.reward.gold);
      coreBurst(en2.x,en2.y);sfx('fall');sfx('core',0.05);
      toast('거점 함락: '+en2.name+'  (+코어 '+en2.reward.core+' · +재화 '+en2.reward.gold+')');
@@ -1219,7 +1254,7 @@ function update(dt){
  // 리스폰(임시): 마더로드 사망 → 본부 근처 50% 부활
  for(var k2=0;k2<MLS.length;k2++){var mm=MLS[k2];
   if(!mm.downed&&mm.hp<=0){mm.downed=true;mm.hp=0;mm.dest=mm.tgt=mm.amove=null;mm.dash=null;mm.mods=[];mm.shield=0;mm.recall=null;
-   if(k2===sel){overlordDead=true;var fr=Math.min(1,gameTime/1800);mm.downT=5+35*fr;rushT=30;rushAcc=0;toast('⚠ 오버로드 사망 — 빙의 봉인, 적 거점 개떼 러쉬!');sfx('fall',0.2);addShake(12);} // §4.2 부활 5~40s
+   if(k2===sel){overlordDead=true;var fr=Math.min(1,gameTime/1800);mm.downT=5+35*fr;rushT=30;rushAcc=0;rushPow=Math.max(0.15,Math.min(1.4,5/mm.downT));/* §4.4 부활반비례: 초반 강·후반 약 */toast('⚠ 오버로드 사망 — 빙의 봉인, 적 거점 개떼 러쉬!');sfx('fall',0.2);addShake(12);} // §4.2 부활 5~40s
    else{mm.downT=10;toast(mm.name+' 쓰러짐 — 재소환 대기');}}
   mm.minions.forEach(function(x){if(x.hp<=0){x.hp=x.max;x.x=mm.x;x.y=mm.y;x.mods=[];}});}
 
@@ -1301,7 +1336,9 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  disc(myHQ.x,myHQ.y,myHQ.r,COL.teal);flashRect(myHQ,myHQ.r);emoji(myHQ.x,myHQ.y,'🏰',myHQ.r*1.5);label(myHQ.x,myHQ.y-myHQ.r-10,'본부',COL.sub);bars(myHQ,54,-myHQ.r-6);
 
  // 적
- enemies.forEach(function(e){if(e.hp<=0)return;if(!cellVis(e.x,e.y))return;var ex=e.x+offX(e),ey=e.y+offY(e); // 안개: 시야 밖 적 비표시
+ enemies.forEach(function(e){if(e.hp<=0)return;
+   if(e.kind==='spawner'){drawSpawnerBeacon(e);return;} // 적 거점 = 비콘(안개 무관, 위치/각성/송출방향)
+   if(!cellVis(e.x,e.y))return;var ex=e.x+offX(e),ey=e.y+offY(e); // 안개: 시야 밖 적 비표시
    if(e.kind==='em'){var ec=e.etype==='shield'?'#9a5a3a':e.etype==='bomber'?'#e0a02c':e.etype==='spore'?'#7a9a3a':e.etype==='shooter'?'#c25a8a':e.etype==='infiltrator'?'#c2c24a':COL.bad;disc(ex,ey,e.r,ec);flashDisc(e,e.r);ccRing(e,e.r);ctx.save();ctx.fillStyle='#0d0f0d';ctx.font='bold '+(e.r*1.7)+'px Chakra Petch,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText((EMDEF[e.etype]||EMDEF.rusher).gly,ex,ey+1);ctx.restore();bars(e,15,-e.r-5);}
    else if(e.kind==='elite'){var ecol=(e.sig==='ward'||e.sig==='hex'||e.sig==='summon')?'#b07ad6':'#d2643c'; // 지원형(끊을 1순위)=보라
      ctx.save();ctx.fillStyle='#241e2a';ctx.fillRect(dX(ex)-e.r,dY(ey)-e.r,e.r*2,e.r*2);ctx.lineWidth=2;ctx.strokeStyle=ecol;ctx.shadowColor=ecol;ctx.shadowBlur=8;ctx.strokeRect(dX(ex)-e.r,dY(ey)-e.r,e.r*2,e.r*2);ctx.restore();
@@ -1373,7 +1410,7 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  var mw=210,mh=150,sxr=mw/WW,syr=mh/WH;mctx.clearRect(0,0,mw,mh);
  (function(){var cs=sxr*CW,c2=syr*CH;for(var gy=0;gy<ROWS;gy++)for(var gx=0;gx<COLS;gx++){var gi=gy*COLS+gx;if(!explGrid[gi]){mctx.fillStyle='#0b0d0b';mctx.fillRect(gx*cs,gy*c2,cs+0.7,c2+0.7);continue;}var c=GEN.cell[gi];if(c===WALLC)mctx.fillStyle='#222a1b';else if(c===HIGHC)mctx.fillStyle='#3a4a30';else if(c===HAZC)mctx.fillStyle='#2a4a44';else{var d=GEN.dist[gi],f=d<0?0:d/GEN.maxd;mctx.fillStyle='rgb('+(30+((f*40)|0))+','+(40+((f*6)|0))+',30)';}mctx.fillRect(gx*cs,gy*c2,cs+0.7,c2+0.7);if(!visGrid[gi]){mctx.fillStyle='rgba(8,10,8,0.5)';mctx.fillRect(gx*cs,gy*c2,cs+0.7,c2+0.7);}}
   mctx.fillStyle=COL.teal;mctx.fillRect(GEN.hq.x*sxr-2,GEN.hq.y*syr-2,5,5);mctx.fillStyle=COL.bad;mctx.fillRect(GEN.boss.x*sxr-2,GEN.boss.y*syr-2,5,5);})();
- enemies.forEach(function(e){if(e.hp<=0)return;if(!cellVis(e.x,e.y))return;var ex=e.x*sxr,ey=e.y*syr;if(e.kind==='em'){mctx.fillStyle=COL.bad;mctx.beginPath();mctx.arc(ex,ey,1.4,0,7);mctx.fill();}else if(e.kind==='mb'){mctx.fillStyle=e.awake?(e.guardian?COL.shield:COL.warn):COL.dim;mctx.fillRect(ex-3,ey-3,6,6);}else{mctx.fillStyle=COL.bad;mctx.fillRect(ex-4,ey-4,8,8);}});
+ enemies.forEach(function(e){if(e.hp<=0)return;if(e.kind==='spawner'){mctx.fillStyle=e.awake?COL.bad:COL.dim;mctx.fillRect(e.x*sxr-3,e.y*syr-3,6,6);return;}if(!cellVis(e.x,e.y))return;var ex=e.x*sxr,ey=e.y*syr;if(e.kind==='em'){mctx.fillStyle=COL.bad;mctx.beginPath();mctx.arc(ex,ey,1.4,0,7);mctx.fill();}else if(e.kind==='mb'){mctx.fillStyle=e.awake?(e.guardian?COL.shield:COL.warn):COL.dim;mctx.fillRect(ex-3,ey-3,6,6);}else{mctx.fillStyle=COL.bad;mctx.fillRect(ex-4,ey-4,8,8);}});
  MLS.forEach(function(m,idx){mctx.fillStyle=idx===sel?COL.text:COL.info;mctx.beginPath();mctx.arc(m.x*sxr,m.y*syr,idx===sel?3.5:2.5,0,7);mctx.fill();});
  mctx.strokeStyle=COL.info;mctx.lineWidth=1;mctx.strokeRect(cam.x*sxr,cam.y*syr,(VW/cam.z)*sxr,(VH/cam.z)*syr);
 }
