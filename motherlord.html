@@ -153,7 +153,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
     <button class="audiobtn" id="btnSfx" title="효과음">🔊</button>
     <button id="fsbtn">전체화면</button>
   </div>
-  <span class="chip" id="wave">다음 웨이브 0:20</span>
+  <span class="chip" id="wave">다음 러쉬 1:30</span>
   <span class="chip" id="modetag">명령 대기</span>
 </div>
 
@@ -481,7 +481,7 @@ var KITS={
   avatarSkills:[
    S('Q','도발진','point',{cd:9,radius:150,col:COL.warn,fx:'taunt',tauntDur:2.5,desc:'반경 150 적 도발 — 빙의체가 받을 공격을 흡수. (보스 제압불가)'}),
    S('W','돌격 명령','self',{cd:12,dur:8,col:COL.warn,fx:'warcry',spdMul:1.30,nextMul:1.25,desc:'호위 빙의체·미니언 이속+30%, 피해+25%. 빙의체를 더 세게 박게.'}),
-   S('E','전선 구축','zone',{cd:14,dur:8,radius:110,col:COL.info,fx:'frontline',slow:0.7,zdmg:6,desc:'폭 진입 방해 지대 — 통과 적 둔화30%+소량 피해. 개떼·엘리트 길목 차단.'}),
+   S('E','전선 구축','zone',{cd:14,dur:8,radius:110,col:COL.info,fx:'frontline',slow:0.7,zdmg:6,desc:'폭 진입 방해 지대 — 통과 적 둔화30%+소량 피해. 미니언 러쉬·엘리트 길목 차단.'}),
    S('R','불굴','passive',{fx:'inimitable',reduce:0.4,desc:'패시브: 보스급 단발 패턴 피해 −40%(다수 피해엔 미적용).'})
   ]},
  mage:{label:'마법사 · 마나형',gly:'마',res:'mana',col:COL.magic,range:165,atkInt:1.0,ranged:true,
@@ -655,12 +655,12 @@ var myHQ={x:HQX,y:HQY,hp:1600,max:1600,r:24,def:20,mr:20,shield:0,mods:[],hitT:0
    ============================================================ */
 var enemies=[];
 var chests=[]; // 봉인된 유물함(유물 채널 = 맵 드랍). 배치 = 미끼 C 회로(맵·탐험 §3.5)
-var rushPow=1,emCount=0,EM_CAP=140; // 거점 송출: 부활 반비례 강도(§4.4) / 전체 개떼 상한
+var rushPow=1,emCount=0,EM_CAP=140; // 거점 송출: 부활 반비례 강도(§4.4) / 전체 미니언 러쉬 상한
 // 링별 스케일(설계 §3.3)
 var RINGSCALE=[{hp:1.0,da:0,rew:{core:1,gold:30}},{hp:1.4,da:10,rew:{core:1,gold:55}},
   {hp:2.0,da:25,rew:{core:1,gold:90}},{hp:2.8,da:45,rew:{core:1,gold:140}},{hp:3.5,da:60,rew:{core:1,gold:220}}];
 
-// ── 개떼 6종(적_설계 §3.2): 1몹=1동사, 위협은 조성에서 ──
+// ── 미니언 러쉬 6종(적_설계 §3.2): 1몹=1동사, 위협은 조성에서 ──
 var EMDEF={
  rusher:     {hp:54, dmg:6, spd:40,r:6,def:3, gly:'▸',name:'돌격병'},
  shooter:    {hp:42, dmg:0, spd:30,r:6,def:2, standoff:210,fireCd:2.3,shot:16, gly:'»',name:'사수'},
@@ -821,7 +821,7 @@ function drawChest(c){if(c.opened)return;var pul=0.5+0.5*Math.abs(Math.sin(c.pul
 
 var ringAwake=[true,false,false,false]; // 링0 즉시 각성
 var coreExposed=false;
-var waveT=20,waveN=1;
+var waveT=90,waveN=1;
 var order=null,mouse={x:0,y:0,on:false},fx=[],projs=[],held={},tels=[],hazards=[],zones=[],ftxts=[];
 var shiftHeld=false,hoverSkill=-1,overPanel=false;
 // 화면 흔들림 / 본부 피격 비네트 / 유닛 이모지
@@ -1223,11 +1223,11 @@ function updateElite(e,dt){if(modHas(e,'stun'))return;
   e.cd-=dt;if(e.cd<=0){e.cd=e.cdMax*(0.8+Math.random()*0.4);eliteSig(e,fr);}
   if(reach<=80&&fd<reach+e.r+8){e.atkLeft-=dt;if(e.atkLeft<=0){lunge(e,fr.x,fr.y,7);resolveDamage(e,fr,e.dmg,'phys',{});e.atkLeft=e.atkInt;}}
 }
-// ── 적 거점(공습원, 적_설계 §2·§4) — 별도 엔티티. 개떼 송출원. 비콘으로 위치/각성 표시(안개 무관) ──
+// ── 적 거점(공습원, 적_설계 §2·§4) — 별도 엔티티. 미니언 러쉬 송출원. 비콘으로 위치/각성 표시(안개 무관) ──
 function mkSpawner(x,y,band){var hp=300+band*170;return{kind:'spawner',x:x,y:y,r:28,band:band,hp:hp,max:hp,def:8,mr:8,shield:0,mods:[],
   awake:band===0,spawnCD:1.5+Math.random()*3,pulseT:0,counted:false,hitT:0,lungeT:0,ldx:0,ldy:0,lmax:0,name:'적 거점',reward:{core:1,gold:40+band*15}};}
 function spawnerAwakenCheck(){for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind!=='spawner'||e.awake||e.hp<=0)continue;
-  if(gameTime>e.band*70){e.awake=true;toast('⚠ 적 거점 각성 — 개떼 송출 개시');continue;}                          // 시간 전파(전진 압력)
+  if(gameTime>e.band*70){e.awake=true;toast('⚠ 적 거점 각성 — 미니언 러쉬 송출 개시');continue;}                          // 시간 전파(전진 압력)
   for(var j=0;j<MLS.length;j++){if(!MLS[j].downed&&Math.hypot(MLS[j].x-e.x,MLS[j].y-e.y)<300){e.awake=true;toast('적 거점 각성');break;}}}} // 접근 각성
 function rushComp(){var t=gameTime,r=Math.random(); // §4.6 러쉬 진화형: 시간 경과 조성 고약(수↑ 아니라 질↑)
   if(t<140)return r<0.7?'infiltrator':'rusher';
@@ -1235,7 +1235,7 @@ function rushComp(){var t=gameTime,r=Math.random(); // §4.6 러쉬 진화형: �
   return r<0.34?'infiltrator':r<0.56?'bomber':r<0.72?'rusher':r<0.86?'shooter':'spore';}
 function updateBeachhead(e,dt){ // 아군 교두보(점령 거점): 송출X, 적 근처면 함락 위협, 회복·토템 앵커
   var foes=0;for(var i=0;i<enemies.length;i++){var o=enemies[i];if(o.kind==='em'&&o.hp>0&&Math.hypot(o.x-e.x,o.y-e.y)<92)foes++;}
-  if(foes>0){e.hp-=foes*5*dt;e.hitT=0.12;if(e.hp<0)e.hp=0;}      // 적 개떼가 점령 거점을 깎음(전진경제↔수비 저울질)
+  if(foes>0){e.hp-=foes*5*dt;e.hitT=0.12;if(e.hp<0)e.hp=0;}      // 적 미니언 러쉬가 점령 거점을 깎음(전진경제↔수비 저울질)
   else if(e.hp<e.max)e.hp=Math.min(e.max,e.hp+e.max*0.04*dt);}    // 무인 시 재건
 function updateSpawner(e,dt){if(e.pulseT>0)e.pulseT-=dt;
   if(e.captured){updateBeachhead(e,dt);return;}
@@ -1275,7 +1275,7 @@ function updateBoss(b,dt){var nm=nearML(b),M=nm.m;var frac=b.hp/b.max;
   else if(r<0.76){tels.push({kind:'circle',x:M.x,y:M.y,r:92,windup:1.1,wmax:1.1,dmg:80,dtype:'magic',source:b,follow:(Math.random()<0.5?M:null),applied:false,life:0});b.actCD=1.8;b.castName='추적 인장';} // 견제(점멸→지연 원)
   else{var a=Math.atan2(M.y-b.y,M.x-b.x);tels.push({kind:'lane',x:b.x,y:b.y,a:a,r:620,w:34,windup:0.6,wmax:0.6,dmg:60,dtype:'phys',source:b,applied:false,life:0});b.actCD=1.3;b.castName='마력탄';} // 주력(직선)
 }
-// ── 적 스쿼드(적_설계 §4.1): 엘리트 리더 + 개떼 호위. 수문장(고정)/배회. 다대다 합성 무대. ──
+// ── 적 스쿼드(적_설계 §4.1): 엘리트 리더 + 미니언 러쉬 호위. 수문장(고정)/배회. 다대다 합성 무대. ──
 var squadSeq=0;
 function pickSquadComp(band){var pools=[
   [['gladiator','sniper'],['lancer','stalker'],['gladiator','hexer']],
@@ -1288,6 +1288,17 @@ function makeSquad(cell,band,mode){var sid=++squadSeq,anchor={x:cell.x,y:cell.y}
   for(var k=0;k<comp.length;k++){var ang=k/comp.length*6.283,e=mkElite(comp[k],cell.x+Math.cos(ang)*64,cell.y+Math.sin(ang)*64,1+band*0.45);e.squad=sid;e.anchor=anchor;e.mode=mode;if(!leader)leader=e;enemies.push(e);}
   var n=3+band+(mode==='garrison'?1:0);
   for(var i=0;i<n;i++){var aa=Math.random()*6.283,rr=48+Math.random()*72,m=mkEm(cell.x+Math.cos(aa)*rr,cell.y+Math.sin(aa)*rr,emScaleNow(band),pickSquadEm(band));m.squad=sid;m.leader=leader;m.anchor=anchor;m.mode=mode;enemies.push(m);}}
+// 미니언 러쉬 — 주기적으로 한 거점에서 미니언이 '모여' 본부로 진격(스쿼드 러쉬). 흩뿌리기 X.
+function spawnRushSquad(){
+  if(emCount>=EM_CAP)return;
+  var origin=null,od=1e9; // 활성 적 거점 중 본부에 가장 가까운(전선) 곳
+  for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&!e.captured&&e.hp>0&&e.awake){var d=Math.hypot(e.x-myHQ.x,e.y-myHQ.y);if(d<od){od=d;origin=e;}}}
+  if(!origin)for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&!e.captured&&e.hp>0){var d=Math.hypot(e.x-myHQ.x,e.y-myHQ.y);if(d<od){od=d;origin=e;}}}
+  if(!origin)return;origin.awake=true;
+  var band=origin.band||0,n=6+band*2;
+  for(var k=0;k<n&&emCount<EM_CAP;k++){var a=Math.random()*6.283,rr=Math.random()*42; // 한 점에 밀집 → 같은 속도로 뭉쳐 진격
+    var et=(Math.random()<0.72?'rusher':'shield');var m=mkEm(origin.x+Math.cos(a)*rr,origin.y+Math.sin(a)*rr,emScaleNow(band),et);m.rushUnit=true;enemies.push(m);emCount++;}
+  origin.pulseT=0.9;toast('⚠ 미니언 러쉬 — 스쿼드 집결, 본부 진격!');sfx('hqhit',0.15);addShake(6);}
 function updateMb(e,dt){
   if(!e.awake)return;
   if(e.regen)e.hp=Math.min(e.max,e.hp+e.regen*dt);
@@ -1399,9 +1410,9 @@ function updateTels(dt){
    메인 업데이트
    ============================================================ */
 function awakenedMbs(){var a=[];for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='mb'&&e.awake&&e.hp>0&&e.arch!=='veil')a.push(e);}return a;}
-function waveInterval(){ // 더 많은 링이 깨어날수록 간격↓(설계 §4.2 전진 강제)
+function waveInterval(){ // 미니언 러쉬 주기 ~1분 30초(링이 깨어날수록 약간 단축)
   var awakeRings=0;for(var r=0;r<4;r++)if(ringAwake[r])awakeRings++;
-  return Math.max(8,24-awakeRings*4)+Math.random()*5;}
+  return Math.max(72,96-awakeRings*6)+Math.random()*8;}
 
 function update(dt){
  if(paused||gameOver)return;
@@ -1435,7 +1446,7 @@ function update(dt){
 
  // 웨이브: 각성한 미니보스 중 하나가 부대를 본부로 보냄
  if(rushT>0)rushT-=dt; // 송출(평시·러쉬)은 거점(updateSpawner)이 전담
- waveT-=dt;if(waveT<=0){waveN++;waveT=waveInterval();} // 압력 타이머(UI)
+ waveT-=dt;if(waveT<=0){waveN++;spawnRushSquad();waveT=waveInterval();} // 미니언 러쉬 주기 발동
 
  // 투사체
  for(var pi=projs.length-1;pi>=0;pi--){var p=projs[pi];if(!p.tgt||p.tgt.hp<=0){projs.splice(pi,1);continue;}p.px=p.x;p.py=p.y;var d=Math.hypot(p.tgt.x-p.x,p.tgt.y-p.y);
@@ -1514,7 +1525,7 @@ function update(dt){
   var stunE=modHas(en,'stun'),rootE=modHas(en,'root');if(stunE)continue;
   var fr=null,fd=1e9;for(var a=0;a<MLS.length;a++){var M=MLS[a];if(M.downed)continue;var d1=Math.hypot(M.x-en.x,M.y-en.y);if(d1<fd){fd=d1;fr=M;}for(var b=0;b<M.minions.length;b++){var d2=Math.hypot(M.minions[b].x-en.x,M.minions[b].y-en.y);if(d2<fd){fd=d2;fr=M.minions[b];}}}
   var goHQ=Math.hypot(myHQ.x-en.x,myHQ.y-en.y),et=en.etype;
-  if(en.squad){ // 필드 스쿼드 개떼: 리더 추종/방어, 근처 친군 교전. 리더 죽으면 해제→본부 러쉬.
+  if(en.squad){ // 필드 스쿼드 미니언 러쉬: 리더 추종/방어, 근처 친군 교전. 리더 죽으면 해제→본부 러쉬.
     if(en.leader&&en.leader.hp<=0){en.squad=null;en.leader=null;en.anchor=null;}
     else{var ax=en.anchor.x,ay=en.anchor.y;
       if(fr&&fd<300){en.facing=Math.atan2(fr.y-en.y,fr.x-en.x);
@@ -1577,7 +1588,7 @@ function update(dt){
  // 리스폰(임시): 마더로드 사망 → 본부 근처 50% 부활
  for(var k2=0;k2<MLS.length;k2++){var mm=MLS[k2];
   if(!mm.downed&&mm.hp<=0){mm.downed=true;mm.hp=0;mm.dest=mm.tgt=mm.amove=null;mm.dash=null;mm.mods=[];mm.shield=0;mm.recall=null;
-   if(k2===sel){overlordDead=true;var fr=Math.min(1,gameTime/1800);mm.downT=5+35*fr;rushT=30;rushAcc=0;rushPow=Math.max(0.15,Math.min(1.4,5/mm.downT));/* §4.4 부활반비례: 초반 강·후반 약 */toast('⚠ 오버로드 사망 — 빙의 봉인, 적 거점 개떼 러쉬!');sfx('fall',0.2);addShake(12);} // §4.2 부활 5~40s
+   if(k2===sel){overlordDead=true;var fr=Math.min(1,gameTime/1800);mm.downT=5+35*fr;toast('⚠ 오버로드 사망 — 빙의 봉인, 부활 대기');sfx('fall',0.2);addShake(12);} // §4.2 부활 5~40s (사망→러쉬 기믹 제거)
    else{mm.downT=10;toast(mm.name+' 쓰러짐 — 재소환 대기');}}
   }
 
@@ -2045,7 +2056,7 @@ function syncUI(){var m=MLS[sel];
  for(var i=0;i<skBtns.length;i++){var s=m.skills[i];skCdov[i].style.height=Math.round((s.cd>0?s.cdLeft/s.cd:0)*100)+'%';skCdtx[i].textContent=s.cdLeft>0.05?Math.ceil(s.cdLeft):'';var poor=m.K.res==='mana'&&m.mana<s.mana;skBtns[i].style.opacity=(s.cdLeft>0||poor)?'0.5':'1';skBtns[i].style.borderColor=(order&&(order.type==='skill'||order.type==='skillAlly')&&order.mi===sel&&order.si===i)?COL.info:'';}
  if(rosterDirty)buildRoster();
  for(var r2=0;r2<MLS.length;r2++){rosterCard[r2].style.borderColor=r2===sel?'var(--info)':'';rosterHp[r2].style.width=Math.round(MLS[r2].hp/MLS[r2].max*100)+'%';rosterTx[r2].textContent=Math.round(MLS[r2].hp);}
- EL.wave.textContent='다음 웨이브 0:'+(waveT<10?'0':'')+Math.ceil(waveT);
+ var _ws=Math.max(0,Math.ceil(waveT));EL.wave.textContent='다음 러쉬 '+Math.floor(_ws/60)+':'+((_ws%60)<10?'0':'')+(_ws%60);
  var pmode=overlordDead?('⚠ 오버로드 사망 — 부활 '+Math.ceil(MLS[sel].downT)+'s · 빙의 봉인'):(sealT>0?('⚠ 봉인 — 빙의/스왑 불가 '+sealT.toFixed(1)+'s'):(swapCD>0?('빙의 쿨 '+swapCD.toFixed(1)+'s — 이 몸에 묶임'):null));
  var chain=(!overlordDead&&m&&!m.downed&&nearFriendlyBase(m.x,m.y))?' · 빙의 사슬 활성(거점 경유 횡단)':'';
  EL.modetag.textContent=pmode||(order?(order.type==='amove'?'공격 이동 — 좌클릭 지정':(order.type==='skillAlly'?'아군 지정 — 좌클릭':'조준: '+MLS[order.mi].skills[order.si].name)):(paused?'정비 중 (P)':'◆ 빙의: '+m.K.label+chain));
