@@ -173,7 +173,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:
   <span class="chip" id="modetag">명령 대기</span>
 </div>
 
-<div class="hud" id="help">빙의체: 우클릭=이동/공격 · QWER=스킬 · A=공격이동 · S=정지 · B=귀환 │ <b>1~4=혼에 빙의</b> · 로스터 카드 클릭=빙의 · 칩=개별 명령 │ <b>Z/X/C=전체 호위/진격/수비</b> · Tab=시점 · 휠=줌 · P=상점</div>
+<div class="hud" id="help">오버로드: 우클릭=이동/공격 · QWER=스킬 · A=공격이동 · S=정지 · B=귀환 │ <b>1~4=혼에 빙의</b> · 로스터 카드 클릭=빙의 · 칩=개별 명령 │ <b>Z/X/C=전체 호위/진격/수비</b> · Tab=시점 · 휠=줌 · P=상점</div>
 
 <div class="hud" id="minimap">
   <div class="lab">미니맵 · 좌클릭 시점 / 우클릭 이동</div>
@@ -498,7 +498,7 @@ function skillHealAmt(m,s){return Math.round(s.heal+s.ratio*m.ap);}
 var KITS={
  warrior:{label:'전사 · 쿨다운형',gly:'전',res:'cd',col:COL.info,range:38,atkInt:0.9,ranged:false,
   ad:30,ap:0,def:24,mr:8,crit:0.12,critMult:1.7,hp:640,
-  tag:'근접 물리 · 피를 태우는 돌진 광전사. 빙의=연격·혈투, 아바타=빙의체 개조+라인홀드.',
+  tag:'근접 물리 · 피를 태우는 돌진 광전사. 빙의=연격·혈투, 아바타=오버로드 개조+라인홀드.',
   // 변신벌(빙의 — 공격적+컨트롤성, 쿨 자원): 연격 Q / 풀+도발 W / 돌진 E / 토글 R
   skills:[
    S('Q','강타','combo',{cd:6,dtype:'phys',window:0.6,desc:'3타 연격. 단계마다 판정·계수↑. 피니셔(3타) 처치 시 쿨 60% 환급. 끊으면 안전, 끝까지 가면 무방비.',combo:[
@@ -510,16 +510,16 @@ var KITS={
    S('E','돌진베기','dash',{base:70,ratio:0.6,cd:7,radius:52,dashRange:240,knock:50,dtype:'phys',desc:'지점 돌진 — 경로 적 베기+넉백. 갭클로즈·추격·보스 패턴 회피.'}),
    S('R','혈투','toggle',{cd:18,hpCost:0.03,dmgMul:1.45,atkSpdMul:1.40,takenMul:1.25,offHp:0.2,col:COL.bad,desc:'토글: HP 3%/s 연소, 피해+45%·공속+40%·받는피해+25%. HP 20%서 자동 해제. (성직자 힐과 짝=영구 엔진)'})
   ],
-  // 아바타벌(자율 — 빙의체 개조+라인홀드, 자원무시 쿨): 도발진 / 돌격명령 / 전선구축 / 불굴
+  // 아바타벌(자율 — 오버로드 개조+라인홀드, 자원무시 쿨): 도발진 / 돌격명령 / 전선구축 / 불굴
   avatarSkills:[
-   S('Q','도발진','point',{cd:9,radius:150,col:COL.warn,fx:'taunt',tauntDur:2.5,desc:'반경 150 적 도발 — 빙의체가 받을 공격을 흡수. (보스 제압불가)'}),
-   S('W','돌격 명령','self',{cd:12,dur:8,col:COL.warn,fx:'warcry',spdMul:1.30,nextMul:1.25,desc:'호위 빙의체·미니언 이속+30%, 피해+25%. 빙의체를 더 세게 박게.'}),
+   S('Q','도발진','point',{cd:9,radius:150,col:COL.warn,fx:'taunt',tauntDur:2.5,desc:'반경 150 적 도발 — 오버로드가 받을 공격을 흡수. (보스 제압불가)'}),
+   S('W','돌격 명령','self',{cd:12,dur:8,col:COL.warn,fx:'warcry',spdMul:1.30,nextMul:1.25,desc:'호위 오버로드·미니언 이속+30%, 피해+25%. 오버로드를 더 세게 박게.'}),
    S('E','전선 구축','zone',{cd:14,dur:8,radius:110,col:COL.info,fx:'frontline',slow:0.7,zdmg:6,desc:'폭 진입 방해 지대 — 통과 적 둔화30%+소량 피해. 미니언 러쉬·엘리트 길목 차단.'}),
    S('R','불굴','passive',{fx:'inimitable',reduce:0.4,desc:'패시브: 보스급 단발 패턴 피해 −40%(다수 피해엔 미적용).'})
   ]},
  mage:{label:'마법사 · 마나형',gly:'마',res:'mana',col:COL.magic,range:165,atkInt:1.0,ranged:true,
   ad:16,ap:42,def:6,mr:14,crit:0.08,critMult:1.7,hp:520,
-  tag:'원거리 마법 · 원소 반응. 빙의=점화/빙결 깔고 메테오로 터뜨림, 아바타=빙의체 마법 증폭.',
+  tag:'원거리 마법 · 원소 반응. 빙의=점화/빙결 깔고 메테오로 터뜨림, 아바타=오버로드 마법 증폭.',
   // 변신벌(빙의 — 원소 반응 콤보, 마나)
   skills:[
    S('Q','화염구','enemy',{base:70,ratio:0.9,cd:1.5,mana:15,dtype:'magic',col:COL.magic,fx:'ignite',dotDmg:8,dotDur:3,dotTick:1,desc:'단일 마법 + [점화] 도트. 메테오 반응 연료. 스킬샷 조준.'}),
@@ -527,16 +527,16 @@ var KITS={
    S('E','점멸','dash',{base:0,ratio:0,cd:9,mana:20,dashRange:220,radius:0,col:COL.magic,desc:'즉시 순간이동 — 재배치·보스 패턴 회피. 원거리 컨트롤 핵심.'}),
    S('R','메테오','point',{base:180,ratio:1.2,cd:14,mana:70,radius:104,dtype:'magic',col:COL.bad,fx:'reaction',desc:'대형 광역. 반응: [점화]→증발 / [빙결]→빙폭 기절. 무엇을 먼저 깔지의 콤보.'})
   ],
-  // 아바타벌(자율 — 빙의체 개조: 마법 증폭·원소 가공, 쿨)
+  // 아바타벌(자율 — 오버로드 개조: 마법 증폭·원소 가공, 쿨)
   avatarSkills:[
-   S('Q','원소 낙인','point',{cd:10,radius:120,col:COL.magic,fx:'vuln',ampMul:1.2,dur:4,desc:'주변 적 [취약](받는 피해+20%). 빙의체 마법이 더 아프게.'}),
-   S('W','비전 주입','self',{cd:12,dur:6,col:COL.magic,fx:'empower',dmgMul:1.25,desc:'호위 빙의체 피해 +25%(원소 반응 부여 대용).'}),
+   S('Q','원소 낙인','point',{cd:10,radius:120,col:COL.magic,fx:'vuln',ampMul:1.2,dur:4,desc:'주변 적 [취약](받는 피해+20%). 오버로드 마법이 더 아프게.'}),
+   S('W','비전 주입','self',{cd:12,dur:6,col:COL.magic,fx:'empower',dmgMul:1.25,desc:'호위 오버로드 피해 +25%(원소 반응 부여 대용).'}),
    S('E','서리 회랑','zone',{cd:14,dur:6,radius:100,col:COL.info,fx:'frontline',slow:0.65,zdmg:0,desc:'둔화 지대 — 길목 채널. 원거리 거점 방어.'}),
    S('R','비전 잔향','passive',{fx:'ward',reduce:0.35,desc:'패시브: 보스급 단발 −35%.'})
   ]},
  archer:{label:'궁수 · 쿨다운형',gly:'궁',res:'cd',col:COL.good,range:185,atkInt:0.8,ranged:true,
   ad:26,ap:0,def:10,mr:8,crit:0.30,critMult:2.0,hp:500,
-  tag:'원거리 물리 · 표식 누적→관통 폭딜. 빙의=표식 쌓아 관통, 아바타=빙의체 물리 가속.',
+  tag:'원거리 물리 · 표식 누적→관통 폭딜. 빙의=표식 쌓아 관통, 아바타=오버로드 물리 가속.',
   // 변신벌(빙의 — 표식 빌드업, 쿨)
   skills:[
    S('Q','정조준','enemy',{base:60,ratio:0.8,cd:2.5,dtype:'phys',col:COL.good,fx:'mark',desc:'단일 치명 사격 + [표식](받는 피해↑, 중첩3). 같은 표적에 쌓는다.'}),
@@ -544,10 +544,10 @@ var KITS={
    S('E','구르기','dash',{base:0,ratio:0,cd:7,dashRange:160,radius:0,atkspd:1.3,col:COL.good,desc:'짧은 회피 이동 + 다음 타격 +30%. 보스 패턴 회피.'}),
    S('R','관통사격','point',{base:120,ratio:1.0,cd:13,radius:64,dtype:'phys',col:COL.good,fx:'pierce',desc:'직선 관통 — [표식] 중첩당 +12%. 표식 빌드업 폭딜.'})
   ],
-  // 아바타벌(자율 — 빙의체 개조: 표식·물리 가속, 쿨)
+  // 아바타벌(자율 — 오버로드 개조: 표식·물리 가속, 쿨)
   avatarSkills:[
-   S('Q','표적 지정','self',{cd:9,dur:6,col:COL.good,fx:'empower',dmgMul:1.18,desc:'호위 빙의체 물리딜 강화(표식 부여 대용).'}),
-   S('W','엄호 사격','self',{cd:11,dur:5,col:COL.warn,fx:'empower',atkSpdMul:1.2,desc:'빙의체 공속 +20% — 딜러 개조 가속.'}),
+   S('Q','표적 지정','self',{cd:9,dur:6,col:COL.good,fx:'empower',dmgMul:1.18,desc:'호위 오버로드 물리딜 강화(표식 부여 대용).'}),
+   S('W','엄호 사격','self',{cd:11,dur:5,col:COL.warn,fx:'empower',atkSpdMul:1.2,desc:'오버로드 공속 +20% — 딜러 개조 가속.'}),
    S('E','견제 진지','zone',{cd:14,dur:6,radius:100,col:COL.good,fx:'frontline',slow:0.75,zdmg:5,desc:'원거리 견제 지대 — 통과 적 둔화+피해.'}),
    S('R','회피 본능','passive',{fx:'evade',reduce:0.4,desc:'패시브: 보스급 단발 −40%(회피형).'})
   ]},
@@ -561,11 +561,11 @@ var KITS={
    S('E','성스러운 약진','dash',{base:60,ratio:0.5,cd:8,mana:20,dashRange:200,radius:70,dtype:'magic',col:COL.teal,shield:100,desc:'지점 약진 + 착지 광역 + 자기 방어막. 진입과 방어를 겸함.'}),
    S('R','천벌','point',{base:160,ratio:1.1,cd:15,mana:60,radius:90,dtype:'magic',col:COL.crit,fx:'smite',desc:'대형 신성 광역 — 누적 회복량의 30%를 추가 피해로. 후반 딜 개방.'})
   ],
-  // 아바타벌(자율 — 순수 힐러: 빙의체 지원 전담, 쿨)
+  // 아바타벌(자율 — 순수 힐러: 오버로드 지원 전담, 쿨)
   avatarSkills:[
    S('Q','축복','auto',{cd:8,heal:0,ratio:0,shield:120,hot:15,col:COL.teal,desc:'최저 HP 아군에 방어막 + 지속힐 15/s. 버서커 자멸 상쇄.'}),
-   S('W','정화 파동','point',{cd:12,radius:120,col:COL.teal,fx:'sanctuary',heal:0,ratio:0,desc:'빙의체·주변 아군 디버프 자동 제거.'}),
-   S('E','수호의 빛','self',{cd:10,dur:6,reduce:0.25,col:COL.shield,fx:'empower',desc:'호위 빙의체 받는 피해 −25%. 더 깊이 비집고 들어가게.'}),
+   S('W','정화 파동','point',{cd:12,radius:120,col:COL.teal,fx:'sanctuary',heal:0,ratio:0,desc:'오버로드·주변 아군 디버프 자동 제거.'}),
+   S('E','수호의 빛','self',{cd:10,dur:6,reduce:0.25,col:COL.shield,fx:'empower',desc:'호위 오버로드 받는 피해 −25%. 더 깊이 비집고 들어가게.'}),
    S('R','신성 가호','self',{cd:30,col:COL.crit,fx:'aegis',desc:'위기 아군 1체 클러치 보호(강한 단기 경감). 보스전 즉사 방지.'})
   ]},
  curser:{label:'저주술사 · 마나형',gly:'저',res:'mana',col:COL.magic,range:178,atkInt:1.1,ranged:true,
@@ -596,9 +596,9 @@ var KITS={
    S('R','암습난무','enemy',{base:210,ratio:1.0,cd:14,melee:true,dtype:'phys',col:COL.bad,desc:'다중 치명 연타 + [독] 폭발. 궁극 누킹 피니셔.'})
   ],
   avatarSkills:[
-   S('Q','약점 노출','enemy',{cd:9,dtype:'magic',col:COL.magic,fx:'vuln',ampMul:1.18,dur:4,desc:'적 [표식](받는 피해 +18%) — 빙의체 누킹 증폭.'}),
-   S('W','그림자 침투','self',{cd:12,dur:6,col:COL.warn,fx:'warcry',spdMul:1.2,nextMul:1.2,desc:'호위 빙의체·미니언 후방 기습 강화(이속·피해).'}),
-   S('E','연막 지원','self',{cd:13,dur:2,col:COL.magic,fx:'stealth',desc:'빙의체 위치 연막 — 클러치 은신·회피.'}),
+   S('Q','약점 노출','enemy',{cd:9,dtype:'magic',col:COL.magic,fx:'vuln',ampMul:1.18,dur:4,desc:'적 [표식](받는 피해 +18%) — 오버로드 누킹 증폭.'}),
+   S('W','그림자 침투','self',{cd:12,dur:6,col:COL.warn,fx:'warcry',spdMul:1.2,nextMul:1.2,desc:'호위 오버로드·미니언 후방 기습 강화(이속·피해).'}),
+   S('E','연막 지원','self',{cd:13,dur:2,col:COL.magic,fx:'stealth',desc:'오버로드 위치 연막 — 클러치 은신·회피.'}),
    S('R','회피 본능','passive',{fx:'evade',reduce:0.4,desc:'패시브: 보스급 단발 −40%.'})
   ]},
  necro:{label:'네크로맨서 · 마나형',gly:'사',res:'mana',col:COL.poison,range:170,atkInt:1.1,ranged:true,
@@ -642,7 +642,7 @@ var KITS={
   ],
   avatarSkills:[
    S('Q','매혹의 시선','enemy',{cd:14,dtype:'magic',col:COL.magic,fx:'charm',dur:2,desc:'적 1체 일시 아군화 — 다대다 머릿수 역전.'}),
-   S('W','혈사슬','enemy',{base:20,ratio:0.3,cd:12,dtype:'magic',col:COL.bad,fx:'whip',rootDur:0.4,desc:'적 강제이동(끌어오기) — 빙의체 앞으로. 판 깔기.'}),
+   S('W','혈사슬','enemy',{base:20,ratio:0.3,cd:12,dtype:'magic',col:COL.bad,fx:'whip',rootDur:0.4,desc:'적 강제이동(끌어오기) — 오버로드 앞으로. 판 깔기.'}),
    S('E','피의 안개','zone',{cd:13,dur:8,radius:110,col:COL.bad,fx:'frontline',slow:0.7,zdmg:6,desc:'범위 둔화 + 적 자생 차단(회복 방해 근사).'}),
    S('R','불사의 잔향','passive',{fx:'evade',reduce:0.3,desc:'패시브: 보스급 단발 −30%.'})
   ]},
@@ -672,7 +672,7 @@ var KITS={
   ],
   avatarSkills:[
    S('Q','포격 지원','zone',{cd:11,dur:7,radius:110,col:COL.teal,zdmg:12,slow:0,desc:'지정 구역 지속 포격(기동 면 화력).'}),
-   S('W','조준 보정','self',{cd:12,dur:8,col:COL.good,fx:'empower',atkSpdMul:1.2,desc:'호위 빙의체 원거리 공격 가속(사거리·관통 근사).'}),
+   S('W','조준 보정','self',{cd:12,dur:8,col:COL.good,fx:'empower',atkSpdMul:1.2,desc:'호위 오버로드 원거리 공격 가속(사거리·관통 근사).'}),
    S('E','연막탄','zone',{cd:13,dur:7,radius:110,col:COL.teal,fx:'frontline',slow:0.5,zdmg:0,desc:'적 명중·시야 저하 지대.'}),
    S('R','자가수리','self',{cd:12,col:COL.good,fx:'repair',shield:120,desc:'자동 수리(방어막+회복).'})
   ]}
@@ -838,7 +838,7 @@ function mkML(kind,x,y){var K=KITS[kind];var m={kind:kind,K:K,x:x,y:y,hp:K.hp||6
 
 // 시작: 전사 1기(설계 §7 개막 1기). 코어로 최대 4기까지 충원.
 var MLS=[mkML('warrior',HQX,HQY)];
-var sel=0;        // 빙의체(possessed) 인덱스 — 직접 조작하는 한 몸
+var sel=0;        // 오버로드(possessed) 인덱스 — 직접 조작하는 한 몸
 var viewIdx=0;    // Tab 카메라 순환용(조작권 이전 아님)
 // ── 빙의 프레임(기획서 §3): 한 번에 한 몸 + 나머지 AI 아바타 ──
 var swapCD=0,SWAP_RANGE=240,ESCORT_R=110,overlordDead=false,rushT=0,rushAcc=0,sealT=0; // sealT: 빙의 봉인(보스 봉인장)
@@ -1150,7 +1150,7 @@ function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdL
   else if(s.type==='point'&&s.radius>=80)sfx('aoe');
   else sfx('cast');
   if(s.type==='self'){
-    if(s.fx==='empower'){ // 아바타 빙의체 개조 — 빙의체(MLS[sel])에 피해/공속/받피감소 버프
+    if(s.fx==='empower'){ // 아바타 오버로드 개조 — 오버로드(MLS[sel])에 피해/공속/받피감소 버프
       var pu=(!overlordDead&&MLS[sel])?MLS[sel]:m;
       if(s.dmgMul>1)addMod(pu,{key:'empower_dmg',field:'dmgDealt',op:'mul',value:s.dmgMul,dur:s.dur,tags:['buff'],source:m,name:s.name,col:s.col});
       if(s.atkSpdMul>1)addMod(pu,{key:'empower_as',field:'atkSpd',op:'mul',value:s.atkSpdMul,dur:s.dur,tags:['buff'],source:m,name:s.name,col:s.col});
@@ -1161,7 +1161,7 @@ function executeCast(m,si,tx,ty,te,setArr){var s=(setArr||m.skills)[si];if(s.cdL
       var au=lowestHpAlly()||m;addMod(au,{key:'aegis',field:'dmgReduction',op:'add',value:0.8,dur:1.6,tags:['buff'],source:m,name:'신성 가호',col:s.col});au.shield=Math.max(au.shield,120);
       fx.push({x:au.x,y:au.y,r:36,t:0.6,life:0.6,col:s.col,fade:true,follow:au});
     }
-    else if(s.fx==='warcry'){ // 아바타 돌격명령 — 빙의체(MLS[sel])+자기 미니언 이속·피해 버프
+    else if(s.fx==='warcry'){ // 아바타 돌격명령 — 오버로드(MLS[sel])+자기 미니언 이속·피해 버프
       var targets=[m];if(!overlordDead&&MLS[sel])targets.push(MLS[sel]);for(var wi=0;wi<m.minions.length;wi++)targets.push(m.minions[wi]);
       for(var wt=0;wt<targets.length;wt++){var u=targets[wt];if(!u||u.hp<=0)continue;
         addMod(u,{key:'warcry_spd',field:'moveSpd',op:'mul',value:s.spdMul,dur:s.dur,tags:['buff'],source:m,name:'돌격',col:s.col});
@@ -1336,7 +1336,7 @@ function autoCastTick(m){if(!AUTO_SKILLS)return;if(modHas(m,'stun')||modHas(m,'s
     if(s.cdLeft>0)continue;if(m.K.res==='mana'&&m.mana<s.mana)continue;
     // ── 아바타 전용 fx ──
     if(s.fx==='taunt'){if(enemiesNear(m.x,m.y,s.radius)>0)executeCast(m,i,m.x,m.y,null,set);continue;}
-    if(s.fx==='warcry'||s.fx==='empower'){if(engaged||(MLS[sel]&&!overlordDead&&nearestEnemy(MLS[sel].x,MLS[sel].y,300,true)))executeCast(m,i,m.x,m.y,null,set);continue;} // 빙의체 개조: 빙의체 교전 중에
+    if(s.fx==='warcry'||s.fx==='empower'){if(engaged||(MLS[sel]&&!overlordDead&&nearestEnemy(MLS[sel].x,MLS[sel].y,300,true)))executeCast(m,i,m.x,m.y,null,set);continue;} // 오버로드 개조: 오버로드 교전 중에
     if(s.fx==='aegis'){var lo=lowestHpAlly();if(lo&&lo.hp<lo.max*0.4)executeCast(m,i,m.x,m.y,null,set);continue;} // 위기 시에만
     if(s.fx==='sanctuary'){ // 정화/회복: 자기중심, 디버프·부상 아군 있을 때
       var need=false;for(var fi=0;fi<MLS.length;fi++){var fm=MLS[fi];if(fm.downed)continue;if(Math.hypot(fm.x-m.x,fm.y-m.y)>s.radius)continue;
@@ -1401,7 +1401,7 @@ window.addEventListener('keydown',function(e){var k=e.key.toLowerCase();
  if(k==='x'){setAvatarCmd('push');return;}    // 전체 진격(공성)
  if(k==='c'){setAvatarCmd('hold');return;}    // 전체 수비(주둔)
  if(k>='1'&&k<='4'){var pi=parseInt(k)-1;if(pi<MLS.length){snapTo(camT,MLS[pi].x,MLS[pi].y);if(pi!==sel)tryPossess(pi);}return;}  // 숫자키=해당 혼에 빙의
- if(overlordDead)return; // 사망 중 빙의체 명령 불가
+ if(overlordDead)return; // 사망 중 오버로드 명령 불가
  if(k==='q'){pressSkill(0);}else if(k==='w'){pressSkill(1);}else if(k==='e'){pressSkill(2);}else if(k==='r'){pressSkill(3);}
  else if(k==='a'){order={type:'amove'};}
  else if(k==='s'){var mm=MLS[sel];mm.dest=null;mm.tgt=null;mm.amove=null;mm.recall=null;order=null;}
@@ -1461,7 +1461,7 @@ function mbWander(e,dt){if(modHas(e,'root'))return;
    ============================================================ */
 var FRIENDS=[];
 function rebuildFriends(){FRIENDS.length=0;for(var i=0;i<MLS.length;i++){if(MLS[i].downed)continue;FRIENDS.push(MLS[i]);
-  for(var j=0;j<MLS[i].minions.length;j++){var mn=MLS[i].minions[j];if(i===sel&&!overlordDead&&!mn.skel)continue;FRIENDS.push(mn);}}FRIENDS.push(myHQ);} // 빙의체 호위 미니언은 휴면(제외), 해골(skel)은 항상 아군 판정
+  for(var j=0;j<MLS[i].minions.length;j++){var mn=MLS[i].minions[j];if(i===sel&&!overlordDead&&!mn.skel)continue;FRIENDS.push(mn);}}FRIENDS.push(myHQ);} // 오버로드 호위 미니언은 휴면(제외), 해골(skel)은 항상 아군 판정
 function nearML(e){if(e.tauntT>0&&e.tauntSrc&&e.tauntSrc.hp>0&&!e.tauntSrc.downed)return{m:e.tauntSrc,d:Math.hypot(e.tauntSrc.x-e.x,e.tauntSrc.y-e.y)}; // 도발: 도발원 강제 타겟
   var b=null,bd=1e9;for(var i=0;i<MLS.length;i++){var d=Math.hypot(MLS[i].x-e.x,MLS[i].y-e.y);if(d<bd){bd=d;b=MLS[i];}}return{m:b,d:bd};}
 function aoeFriends(x,y,r,fn){for(var i=0;i<FRIENDS.length;i++){var u=FRIENDS[i];if(u.hp<=0)continue;if(Math.hypot(u.x-x,u.y-y)<=r)fn(u);}}
@@ -1751,14 +1751,14 @@ function update(dt){
  if(sealT>0)sealT=Math.max(0,sealT-dt);
  for(var i=0;i<MLS.length;i++){var m=MLS[i];
   if(m.downed){m.downT-=dt;if(m.downT<=0)reviveSoul(m);continue;}
-  var isP=(i===sel&&!overlordDead);  // 빙의체 = 사람 손, 그 외 = AI 아바타
+  var isP=(i===sel&&!overlordDead);  // 오버로드 = 사람 손, 그 외 = AI 아바타
   decay(m,dt);tickMods(m,dt);
   m.bigHitReduce=0; // 아바타 생존 패시브(불굴/회피본능/잔향): 보스급 단발 경감
   if(!isP&&m.avatarSkills)for(var pz=0;pz<m.avatarSkills.length;pz++){var pzk=m.avatarSkills[pz];if(pzk.type==='passive'&&pzk.reduce>0){m.bigHitReduce=pzk.reduce;break;}}
   if(m.shield>0&&!modHas(m,'guard'))m.shield=Math.max(0,m.shield-26*dt);
   for(var s=0;s<m.skills.length;s++){var sk=m.skills[s];if(sk.cdLeft>0)sk.cdLeft=Math.max(0,sk.cdLeft-dt);
     if(sk.type==='combo'&&sk.winLeft>0){sk.winLeft-=dt;if(sk.winLeft<=0)sk.step=0;}                 // 연격 윈도우 만료 → 1타 리셋
-    if(sk.on){if(!isP){toggleOff(m,sk);} else {m.hp-=m.max*sk.hpCost*((m.itw&&m.itw.bersHpCostMul)||1)*dt;if(m.hp<=m.max*(sk.offHp||0.2)||m.hp<=1){m.hp=Math.max(1,m.hp);toggleOff(m,sk);sk.cdLeft=sk.cd*(1-(m.cdr||0));}}}} // 토글: 빙의체 전용. 자해(아이템 심장 −50%) + HP20% 자동 해제
+    if(sk.on){if(!isP){toggleOff(m,sk);} else {m.hp-=m.max*sk.hpCost*((m.itw&&m.itw.bersHpCostMul)||1)*dt;if(m.hp<=m.max*(sk.offHp||0.2)||m.hp<=1){m.hp=Math.max(1,m.hp);toggleOff(m,sk);sk.cdLeft=sk.cd*(1-(m.cdr||0));}}}} // 토글: 오버로드 전용. 자해(아이템 심장 −50%) + HP20% 자동 해제
   if(m.avatarSkills)for(var sa=0;sa<m.avatarSkills.length;sa++)if(m.avatarSkills[sa].cdLeft>0)m.avatarSkills[sa].cdLeft=Math.max(0,m.avatarSkills[sa].cdLeft-dt);
   if(m.lockT>0)m.lockT=Math.max(0,m.lockT-dt); // 피니셔 후딜 무방비
   if(m.stealthT>0)m.stealthT=Math.max(0,m.stealthT-dt); // 도적 은신 타이머
@@ -1767,16 +1767,16 @@ function update(dt){
   if(nearFriendlyBase(m.x,m.y))m.hp=Math.min(m.max,m.hp+m.max*HEAL_RATE*dt); // 본부·교두보 근처 자동회복
   if(m.recall!=null){m.recall-=dt;if(m.recall<=0)doRecall(m);}
   var chan=(m.recall!=null);
-  if(!chan&&!isP)autoCastTick(m);   // 빙의체=수동(QWER만), 아바타=자동시전
+  if(!chan&&!isP)autoCastTick(m);   // 오버로드=수동(QWER만), 아바타=자동시전
   var stun=modHas(m,'stun'),root=modHas(m,'root');
   if(m.dash){advDash(m,dt);}
   if(!isP&&!m.dash&&!stun&&!chan){  // 아바타 커맨드(호위/진격/수비) → 목표 주입
    var gp,anchorX,anchorY,threatR,leashR;
    if(m.cmd==='hold'&&m.holdPt){gp=m.holdPt;anchorX=gp.x;anchorY=gp.y;threatR=230;leashR=300;}            // 수비: 거점 사수
    else if(m.cmd==='push'){var bt=siegeTarget(m.x,m.y);gp={x:bt.x,y:bt.y};anchorX=m.x;anchorY=m.y;threatR=340;leashR=1e9;} // 진격(공성): 가장 가까운 적 거점/목표로 자율 진군·공략(시야 무관)
-   else{var P=MLS[sel],ea=i*2.39996;gp={x:P.x+Math.cos(ea)*ESCORT_R,y:P.y+Math.sin(ea)*ESCORT_R};anchorX=P.x;anchorY=P.y;threatR=175;leashR=ESCORT_R+150;} // 호위: 빙의체 주변 분산 + 빙의체 근처 위협만
+   else{var P=MLS[sel],ea=i*2.39996;gp={x:P.x+Math.cos(ea)*ESCORT_R,y:P.y+Math.sin(ea)*ESCORT_R};anchorX=P.x;anchorY=P.y;threatR=175;leashR=ESCORT_R+150;} // 호위: 오버로드 주변 분산 + 오버로드 근처 위협만
    var foe=null;
-   if(Math.hypot(m.x-anchorX,m.y-anchorY)<leashR)foe=nearestEnemy(anchorX,anchorY,threatR,true); // 위협 판정=앵커(빙의체/거점) 기준 → 자기 어그로로 이탈 안 함
+   if(Math.hypot(m.x-anchorX,m.y-anchorY)<leashR)foe=nearestEnemy(anchorX,anchorY,threatR,true); // 위협 판정=앵커(오버로드/거점) 기준 → 자기 어그로로 이탈 안 함
    if(foe){m.tgt=foe;m.amove=null;m.dest=null;}else{m.tgt=null;m.dest=null;m.amove={x:gp.x,y:gp.y};}
   }
   var locked=(m.lockT>0);
@@ -1962,7 +1962,7 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
    else if(t.kind==='mark'){ctx.globalAlpha=0.3+0.55*Math.abs(Math.sin(gameTime*14));disc(t.x,t.y,(t.r||16)*0.4,col);ring(t.x,t.y,t.r||16,col,1.5);}
    else{ctx.globalAlpha=(0.16+0.18*fill)*pul;disc(t.x,t.y,t.r,col);ctx.globalAlpha=0.7*pul;ring(t.x,t.y,t.r,col,1.6);ctx.globalAlpha=0.5;disc(t.x,t.y,t.r*fill,col);} // circle
    ctx.restore();});
- // 봉인장 예고(빙의체에 수축 링이 닫힘 — 닫히기 전 선스왑이 회피)
+ // 봉인장 예고(오버로드에 수축 링이 닫힘 — 닫히기 전 선스왑이 회피)
  if(BOSS&&BOSS.act&&BOSS.act.type==='seal'){var ts=BOSS.act.targetSoul,sp=Math.min(1,BOSS.act.t/BOSS.act.wind);ctx.save();ctx.globalAlpha=0.45+0.45*Math.abs(Math.sin(gameTime*12));disc(ts.x,ts.y,9,COL.magic);ctx.globalAlpha=0.7;ring(ts.x,ts.y,18+110*(1-sp),COL.magic,3);ctx.restore();}
  if(sealT>0){var pm=MLS[sel];ctx.save();ctx.globalAlpha=0.6;ring(pm.x,pm.y,22,COL.magic,2.5);label(pm.x,pm.y-30,'봉인 '+sealT.toFixed(1)+'s',COL.magic);ctx.restore();}
  // 라인 예고(돌격/결정 빔/속박)
@@ -2001,7 +2001,7 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  // 봉인된 유물함(미끼 C 회로) — 전설=비콘(안개 무관, 유인), 일반/희귀=시야 내에서만
  chests.forEach(function(c){if(c.opened)return;if(!c.def.beacon&&!cellVis(c.x,c.y))return;drawChest(c);});
 
- // 빙의 사슬(스왑 노드 그물) — 본부+교두보 연결, 빙의체가 노드 근처면 릴레이 대상 아바타 강조
+ // 빙의 사슬(스왑 노드 그물) — 본부+교두보 연결, 오버로드가 노드 근처면 릴레이 대상 아바타 강조
  (function(){var nodes=[{x:myHQ.x,y:myHQ.y}];for(var i=0;i<enemies.length;i++){var e=enemies[i];if(e.kind==='spawner'&&e.captured&&e.hp>0)nodes.push({x:e.x,y:e.y});}
    if(nodes.length>1){ctx.save();ctx.globalAlpha=0.22;ctx.setLineDash([6/cam.z,8/cam.z]);ctx.strokeStyle=COL.teal;ctx.lineWidth=1.2/cam.z;
      for(var a=0;a<nodes.length;a++)for(var b=a+1;b<nodes.length;b++){ctx.beginPath();ctx.moveTo(nodes[a].x,nodes[a].y);ctx.lineTo(nodes[b].x,nodes[b].y);ctx.stroke();}ctx.setLineDash([]);ctx.restore();}
@@ -2011,7 +2011,7 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
  // 미니언 + 마더로드
  for(var i=0;i<MLS.length;i++){var m=MLS[i];
   if(m.downed){ctx.save();ctx.globalAlpha=0.5;ctx.setLineDash([3,4]);ring(m.x,m.y,12,COL.dim,1.5);ctx.setLineDash([]);label(m.x,m.y-20,(i===sel?'부활 ':'재소환 ')+Math.ceil(m.downT)+'s',COL.dim);ctx.restore();continue;}
-  if(!(i===sel&&!overlordDead))m.minions.forEach(function(mn){var mx=mn.x+offX(mn),my=mn.y+offY(mn);disc(mx,my,4.5,m.K.col);flashDisc(mn,4.5);ccRing(mn,5);bars(mn,13,-9);}); // 빙의체 미니언 휴면(비표시)
+  if(!(i===sel&&!overlordDead))m.minions.forEach(function(mn){var mx=mn.x+offX(mn),my=mn.y+offY(mn);disc(mx,my,4.5,m.K.col);flashDisc(mn,4.5);ccRing(mn,5);bars(mn,13,-9);}); // 오버로드 미니언 휴면(비표시)
   var poss=(i===sel&&!overlordDead);
   if(poss){ctx.save();ctx.globalAlpha=0.4;ring(m.x,m.y,m.range,COL.info,1);ctx.restore();ring(m.x,m.y,15,m.K.col,2);ring(m.x,m.y,19,COL.info,2);
    var marker=m.dest||m.amove;if(marker){ctx.save();ctx.globalAlpha=0.65;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(dX(m.x),dY(m.y));ctx.lineTo(dX(marker.x),dY(marker.y));ctx.strokeStyle=m.amove?COL.bad:COL.info;ctx.lineWidth=1.2;ctx.stroke();ctx.setLineDash([]);ring(marker.x,marker.y,5,m.amove?COL.bad:COL.info,1.4);ctx.restore();}}
@@ -2020,7 +2020,7 @@ function render(){ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,VW,VH);
   var bc=null;if(m.mods)for(var z=0;z<m.mods.length;z++){if(m.mods[z].tags&&m.mods[z].tags.indexOf('buff')>=0){bc=m.mods[z].col;break;}}
   if(bc){ctx.save();ctx.globalAlpha=0.85;ring(m.x,m.y,14,bc,1.6);ctx.restore();}
   bars(m,30,-20);
-  if(poss)label(m.x,m.y-32,'◆ 빙의체',COL.info);
+  if(poss)label(m.x,m.y-32,'◆ 오버로드',COL.info);
   else{var _cl=m.cmd==='escort'?'호위':m.cmd==='push'?'진격':'수비';label(m.x,m.y-32,'아바타·'+_cl,COL.sub);}
   if(m.recall!=null){var rp=(RECALL_TIME-m.recall)/RECALL_TIME;ctx.save();ctx.globalAlpha=0.9;ring(m.x,m.y,16+4*Math.sin(gameTime*6),COL.teal,2);
     var bw=34,bx=dX(m.x)-bw/2,by=dY(m.y)-30;ctx.fillStyle=COL.track;ctx.fillRect(bx,by,bw,4);ctx.fillStyle=COL.teal;ctx.fillRect(bx,by,bw*rp,4);label(m.x,m.y-33,'귀환 '+Math.ceil(m.recall)+'s',COL.teal);ctx.restore();}
@@ -2640,7 +2640,7 @@ function buildSkillTip(m,si){var s=m.skills[si];
  if(s.fx==='detonate')h+='<div class="t-row"><span>저주 폭발</span><span style="color:'+COL.bad+'">스택당 '+(s.base+Math.round(s.ratio*m.ap))+' · 5스택 처형</span></div>';
  if(s.fx==='silence')h+='<div class="t-row"><span>침묵</span><span style="color:'+COL.magic+'">행동 봉인 '+s.dur+'s (보스 제압불가)</span></div>';
  if(s.lifesteal)h+='<div class="t-row"><span>자힐</span><span style="color:'+COL.teal+'">피해의 '+Math.round(s.lifesteal*100)+'%</span></div>';
- if(s.fx==='empower')h+='<div class="t-row"><span>빙의체 개조</span><span style="color:'+s.col+'">'+(s.dmgMul>1?'피해×'+s.dmgMul+' ':'')+(s.atkSpdMul>1?'공속×'+s.atkSpdMul+' ':'')+(s.reduce>0?'받피 −'+Math.round(s.reduce*100)+'%':'')+' / '+s.dur+'s</span></div>';
+ if(s.fx==='empower')h+='<div class="t-row"><span>오버로드 개조</span><span style="color:'+s.col+'">'+(s.dmgMul>1?'피해×'+s.dmgMul+' ':'')+(s.atkSpdMul>1?'공속×'+s.atkSpdMul+' ':'')+(s.reduce>0?'받피 −'+Math.round(s.reduce*100)+'%':'')+' / '+s.dur+'s</span></div>';
  if(s.knock)h+='<div class="t-row"><span>넉백</span><span>'+s.knock+'</span></div>';
  if(m.cards&&m.cards.length){var on=m.cards.filter(function(c){var t=CARDS[m.kind];return t&&t.some(function(x){return x.id===c.id;});});}
  return h;}
