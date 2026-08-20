@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 60" width="110" height="60" role="img" aria-label="커패시터 (Capacitor)">
+  <title>커패시터 (Capacitor)</title>
+  <rect x="0" y="0" width="110" height="60" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="30.0" x2="48" y2="30.0"/>
+    <line x1="62" y1="30.0" x2="106" y2="30.0"/>
+    <line x1="48" y1="14.0" x2="48" y2="46.0"/>
+    <line x1="62" y1="14.0" x2="62" y2="46.0"/>
+  </g>
+</svg>

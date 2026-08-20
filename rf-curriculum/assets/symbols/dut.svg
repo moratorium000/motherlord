@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 76" width="140" height="76" role="img" aria-label="피시험 소자 (Device Under Test, DUT)">
+  <title>피시험 소자 (Device Under Test, DUT)</title>
+  <rect x="0" y="0" width="140" height="76" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="38.0" x2="28" y2="38.0"/>
+    <line x1="112" y1="38.0" x2="136" y2="38.0"/>
+    <rect x="28" y="14.0" width="84" height="48" rx="4" stroke-dasharray="6 4"/>
+    <text x="70.0" y="43.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="13" text-anchor="middle" fill="#1a1a1a" font-weight="bold" stroke="none">DUT</text>
+  </g>
+</svg>

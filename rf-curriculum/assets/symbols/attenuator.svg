@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 66" width="120" height="66" role="img" aria-label="감쇠기 (Attenuator)">
+  <title>감쇠기 (Attenuator)</title>
+  <rect x="0" y="0" width="120" height="66" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="33.0" x2="30" y2="33.0"/>
+    <line x1="90" y1="33.0" x2="116" y2="33.0"/>
+    <rect x="30" y="15.0" width="60" height="36" rx="3"/>
+    <text x="60.0" y="38.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="11" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">ATT</text>
+  </g>
+</svg>

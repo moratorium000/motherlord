@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 124 70" width="124" height="70" role="img" aria-label="아이솔레이터 (Isolator)">
+  <title>아이솔레이터 (Isolator)</title>
+  <rect x="0" y="0" width="124" height="70" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="35.0" x2="30" y2="35.0"/>
+    <line x1="94" y1="35.0" x2="120" y2="35.0"/>
+    <rect x="30" y="15.0" width="64" height="40" rx="3"/>
+    <path d="M 48.0 35.0 L 72.0 35.0" stroke-width="1.8"/>
+    <path d="M 64.0 29.0 L 72.0 35.0 L 64.0 41.0" stroke-width="1.8"/>
+  </g>
+</svg>

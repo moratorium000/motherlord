@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 80" width="140" height="80" role="img" aria-label="아날로그-디지털 변환기 (ADC)">
+  <title>아날로그-디지털 변환기 (ADC)</title>
+  <rect x="0" y="0" width="140" height="80" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 24 14 L 116 14 L 100 66 L 24 66 Z"/>
+    <line x1="4" y1="40" x2="24" y2="40"/>
+    <line x1="104" y1="40" x2="136" y2="40"/>
+    <text x="66" y="45" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="middle" fill="#1a1a1a" font-weight="bold" stroke="none">ADC</text>
+  </g>
+</svg>

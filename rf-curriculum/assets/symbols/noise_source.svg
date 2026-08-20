@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 136 70" width="136" height="70" role="img" aria-label="잡음원 (Noise Source)">
+  <title>잡음원 (Noise Source)</title>
+  <rect x="0" y="0" width="136" height="70" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="14" y="13.0" width="84" height="44" rx="4"/>
+    <path d="M 24 42 L 30 28 L 36 46 L 42 26 L 48 44 L 54 30 L 60 42" stroke-width="1.4" stroke="#c0392b"/>
+    <text x="80" y="39.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">ENR</text>
+    <line x1="98" y1="35.0" x2="132" y2="35.0"/>
+  </g>
+</svg>

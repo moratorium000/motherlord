@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 64" width="110" height="64" role="img" aria-label="SMA 커넥터 (SMA Connector)">
+  <title>SMA 커넥터 (SMA Connector)</title>
+  <rect x="0" y="0" width="110" height="64" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="32.0" x2="34" y2="32.0"/>
+    <rect x="34" y="16.0" width="30" height="32"/>
+    <path d="M 64 22.0 L 88 22.0 M 64 42.0 L 88 42.0"/>
+    <line x1="64" y1="32.0" x2="106" y2="32.0"/>
+    <line x1="68" y1="22.0" x2="68" y2="42.0" stroke-width="1"/>
+    <line x1="74" y1="22.0" x2="74" y2="42.0" stroke-width="1"/>
+    <line x1="80" y1="22.0" x2="80" y2="42.0" stroke-width="1"/>
+    <line x1="86" y1="22.0" x2="86" y2="42.0" stroke-width="1"/>
+  </g>
+</svg>

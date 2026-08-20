@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 64" width="130" height="64" role="img" aria-label="전송선로 (Transmission Line)">
+  <title>전송선로 (Transmission Line)</title>
+  <rect x="0" y="0" width="130" height="64" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="32.0" x2="26" y2="32.0"/>
+    <line x1="104" y1="32.0" x2="126" y2="32.0"/>
+    <line x1="26" y1="22.0" x2="104" y2="22.0"/>
+    <line x1="26" y1="42.0" x2="104" y2="42.0"/>
+    <line x1="26" y1="22.0" x2="26" y2="42.0"/>
+    <line x1="104" y1="22.0" x2="104" y2="42.0"/>
+    <line x1="26" y1="32.0" x2="104" y2="32.0" stroke-width="1.2"/>
+    <text x="65.0" y="16.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">Z₀, ℓ</text>
+  </g>
+</svg>

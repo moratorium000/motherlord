@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70" width="120" height="70" role="img" aria-label="대역 통과 필터 (Band Pass Filter, BPF)">
+  <title>대역 통과 필터 (Band Pass Filter, BPF)</title>
+  <rect x="0" y="0" width="120" height="70" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="35.0" x2="26" y2="35.0"/>
+    <line x1="94" y1="35.0" x2="116" y2="35.0"/>
+    <rect x="26" y="13.0" width="68" height="44" rx="3"/>
+    <path d="M 38 44 L 46 44 Q 52 44 56 26 L 64 26 Q 70 26 74 44 L 82 44" stroke-width="1.8"/>
+  </g>
+</svg>

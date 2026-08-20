@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 110" width="130" height="110" role="img" aria-label="믹서 (Mixer)">
+  <title>믹서 (Mixer)</title>
+  <rect x="0" y="0" width="130" height="110" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="62" cy="50" r="24"/>
+    <line x1="45.032" y1="33.032" x2="78.968" y2="66.968"/>
+    <line x1="45.032" y1="66.968" x2="78.968" y2="33.032"/>
+    <line x1="4" y1="50" x2="38" y2="50"/>
+    <line x1="86" y1="50" x2="126" y2="50"/>
+    <line x1="62" y1="74" x2="62" y2="92"/>
+    <text x="20" y="42" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">RF</text>
+    <text x="112" y="42" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">IF</text>
+    <text x="78" y="104" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">LO</text>
+  </g>
+</svg>

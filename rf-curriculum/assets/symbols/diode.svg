@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 60" width="110" height="60" role="img" aria-label="다이오드 (Diode)">
+  <title>다이오드 (Diode)</title>
+  <rect x="0" y="0" width="110" height="60" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="30.0" x2="42" y2="30.0"/>
+    <line x1="68" y1="30.0" x2="106" y2="30.0"/>
+    <path d="M 42 16.0 L 68 30.0 L 42 44.0 Z" fill="#1a1a1a"/>
+    <line x1="68" y1="16.0" x2="68" y2="44.0"/>
+  </g>
+</svg>

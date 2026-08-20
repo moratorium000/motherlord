@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 60" width="110" height="60" role="img" aria-label="인덕터 (Inductor)">
+  <title>인덕터 (Inductor)</title>
+  <rect x="0" y="0" width="110" height="60" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="30.0" x2="30" y2="30.0"/>
+    <line x1="80" y1="30.0" x2="106" y2="30.0"/>
+    <path d="M 30 30.0 A 5 5 0 0 1 40 30.0 A 5 5 0 0 1 50 30.0 A 5 5 0 0 1 60 30.0 A 5 5 0 0 1 70 30.0 A 5 5 0 0 1 80 30.0"/>
+  </g>
+</svg>

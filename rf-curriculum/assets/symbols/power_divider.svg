@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 110" width="140" height="110" role="img" aria-label="전력 분배기 (Power Divider)">
+  <title>전력 분배기 (Power Divider)</title>
+  <rect x="0" y="0" width="140" height="110" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="55" x2="34" y2="55"/>
+    <rect x="34" y="24" width="46" height="62" rx="4"/>
+    <line x1="80" y1="40" x2="136" y2="40"/>
+    <line x1="80" y1="70" x2="136" y2="70"/>
+    <text x="57" y="59" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="16" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">÷</text>
+  </g>
+</svg>

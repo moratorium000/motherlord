@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 110 60" width="110" height="60" role="img" aria-label="저항 (Resistor)">
+  <title>저항 (Resistor)</title>
+  <rect x="0" y="0" width="110" height="60" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="30.0" x2="30" y2="30.0"/>
+    <line x1="80" y1="30.0" x2="106" y2="30.0"/>
+    <rect x="30" y="19.0" width="50" height="22"/>
+  </g>
+</svg>

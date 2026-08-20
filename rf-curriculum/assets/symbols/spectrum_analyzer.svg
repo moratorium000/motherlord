@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" width="160" height="100" role="img" aria-label="스펙트럼 분석기 (Spectrum Analyzer, SA)">
+  <title>스펙트럼 분석기 (Spectrum Analyzer, SA)</title>
+  <rect x="0" y="0" width="160" height="100" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="8" width="148" height="84" rx="5"/>
+    <rect x="16" y="18" width="98" height="56" rx="2"/>
+    <line x1="24" y1="56" x2="100" y2="56" stroke-width="1.2"/>
+    <line x1="40" y1="56" x2="40" y2="26" stroke-width="1.5" stroke="#c0392b"/>
+    <line x1="58" y1="56" x2="58" y2="40" stroke-width="1.5" stroke="#c0392b"/>
+    <line x1="76" y1="56" x2="76" y2="48" stroke-width="1.5" stroke="#c0392b"/>
+    <circle cx="132" cy="26" r="7"/>
+    <circle cx="132" cy="70" r="7"/>
+    <text x="73.0" y="86" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">SPECTRUM ANALYZER</text>
+    <circle cx="40" cy="94" r="5" fill="#ffffff"/>
+  </g>
+</svg>

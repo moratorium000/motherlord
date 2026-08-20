@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 100" width="150" height="100" role="img" aria-label="방향성 결합기 (Directional Coupler)">
+  <title>방향성 결합기 (Directional Coupler)</title>
+  <rect x="0" y="0" width="150" height="100" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="10" y1="30" x2="140" y2="30"/>
+    <line x1="10" y1="66" x2="140" y2="66"/>
+    <line x1="46" y1="30" x2="46" y2="66" stroke-dasharray="4 3" stroke-width="1.4"/>
+    <line x1="104" y1="30" x2="104" y2="66" stroke-dasharray="4 3" stroke-width="1.4"/>
+    <text x="16" y="22" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="start" fill="#1a1a1a" font-weight="normal" stroke="none">IN</text>
+    <text x="134" y="22" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="end" fill="#1a1a1a" font-weight="normal" stroke="none">OUT</text>
+    <text x="16" y="84" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="start" fill="#1a1a1a" font-weight="normal" stroke="none">ISO</text>
+    <text x="134" y="84" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="end" fill="#1a1a1a" font-weight="normal" stroke="none">CPL</text>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 150 80" width="150" height="80" role="img" aria-label="위상동기루프 (Phase-Locked Loop, PLL)">
+  <title>위상동기루프 (Phase-Locked Loop, PLL)</title>
+  <rect x="0" y="0" width="150" height="80" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="20" y="14" width="110" height="52" rx="4"/>
+    <line x1="4" y1="40" x2="20" y2="40"/>
+    <line x1="130" y1="40" x2="146" y2="40"/>
+    <text x="75.0" y="45" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="13" text-anchor="middle" fill="#1a1a1a" font-weight="bold" stroke="none">PLL</text>
+  </g>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 64" width="120" height="64" role="img" aria-label="증폭기 (Amplifier)">
+  <title>증폭기 (Amplifier)</title>
+  <rect x="0" y="0" width="120" height="64" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="4" y1="32.0" x2="28" y2="32.0"/>
+    <line x1="116" y1="32.0" x2="96" y2="32.0"/>
+    <path d="M 28 10.0 L 96 32.0 L 28 54.0 Z"/>
+    <text x="50.66666666666667" y="36.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="middle" fill="#1a1a1a" font-weight="bold" stroke="none"></text>
+  </g>
+</svg>

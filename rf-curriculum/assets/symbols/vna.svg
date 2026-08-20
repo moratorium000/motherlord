@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 100" width="160" height="100" role="img" aria-label="벡터 회로망 분석기 (VNA)">
+  <title>벡터 회로망 분석기 (VNA)</title>
+  <rect x="0" y="0" width="160" height="100" fill="#ffffff"/>
+  <g fill="none" stroke="#1a1a1a" stroke-width="2.0" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="6" y="8" width="148" height="84" rx="5"/>
+    <rect x="16" y="18" width="98" height="56" rx="2"/>
+    <path d="M 24 52 Q 44 52 54 30 Q 64 52 84 52" stroke-width="1.5" stroke="#c0392b"/>
+    <circle cx="132" cy="26" r="7"/>
+    <circle cx="132" cy="70" r="7"/>
+    <text x="73.0" y="86" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">VNA</text>
+    <circle cx="28" cy="94" r="5" fill="#ffffff"/>
+    <circle cx="64" cy="94" r="5" fill="#ffffff"/>
+    <text x="28" y="98" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">1</text>
+    <text x="64" y="98" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8" text-anchor="middle" fill="#1a1a1a" font-weight="normal" stroke="none">2</text>
+  </g>
+</svg>
