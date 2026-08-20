@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+
+# 교재 DOCX 빌드 산출물 (파생물이라 담지 않는다 — scripts/docx/README.md 참조)
+rf-curriculum/_build/
+rf-curriculum/scripts/docx/node_modules/
