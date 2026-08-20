@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="980" height="500" viewBox="0 0 980 500" font-family="Helvetica,Arial,sans-serif"><title>2포트 12항 오차 모델</title><rect width="980" height="500" fill="white"/>
+<defs><marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1A1A1A"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0072B2"/></marker><marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D55E00"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#009E73"/></marker><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C0392B"/></marker></defs>
+<text x="490.0" y="32" font-size="16" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">The twelve error terms, drawn where they happen</text>
+<rect x="30" y="58" width="920" height="190" rx="8" fill="white" stroke="#0072B2" stroke-width="1.6"/>
+<text x="52" y="82" font-size="13" fill="#0072B2" text-anchor="start" font-weight="bold" font-style="normal">FORWARD   source drives port 1</text>
+<rect x="430" y="128" width="130" height="52" rx="4" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.8"/>
+<text x="495" y="159" font-size="15" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">DUT</text>
+<line x1="150" y1="154" x2="426" y2="154" stroke="#1A1A1A" stroke-width="1.8" fill="none" marker-end="url(#ak)"/>
+<line x1="564" y1="154" x2="830" y2="154" stroke="#1A1A1A" stroke-width="1.8" fill="none" marker-end="url(#ak)"/>
+<text x="150" y="112" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">PORT 1</text>
+<text x="830" y="112" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">PORT 2</text>
+<text x="150" y="198" font-size="10" fill="#0072B2" text-anchor="middle" font-weight="normal" font-style="normal">directivity</text>
+<text x="150" y="214" font-size="10" fill="#0072B2" text-anchor="middle" font-weight="normal" font-style="normal">source match</text>
+<text x="150" y="230" font-size="10" fill="#0072B2" text-anchor="middle" font-weight="normal" font-style="normal">reflection tracking</text>
+<text x="830" y="198" font-size="10" fill="#0072B2" text-anchor="middle" font-weight="normal" font-style="normal">load match</text>
+<text x="830" y="214" font-size="10" fill="#0072B2" text-anchor="middle" font-weight="normal" font-style="normal">transmission tracking</text>
+<path d="M 150,124 Q 495,92 830,124" stroke="#C0392B" stroke-width="1.6" fill="none" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+<text x="495" y="104" font-size="10" fill="#C0392B" text-anchor="middle" font-weight="normal" font-style="normal">isolation  (crosstalk that skips the DUT)</text>
+<rect x="30" y="268" width="920" height="190" rx="8" fill="white" stroke="#D55E00" stroke-width="1.6"/>
+<text x="52" y="292" font-size="13" fill="#D55E00" text-anchor="start" font-weight="bold" font-style="normal">REVERSE   source drives port 2</text>
+<rect x="430" y="338" width="130" height="52" rx="4" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.8"/>
+<text x="495" y="369" font-size="15" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">DUT</text>
+<line x1="830" y1="364" x2="564" y2="364" stroke="#1A1A1A" stroke-width="1.8" fill="none" marker-end="url(#ak)"/>
+<line x1="426" y1="364" x2="150" y2="364" stroke="#1A1A1A" stroke-width="1.8" fill="none" marker-end="url(#ak)"/>
+<text x="830" y="322" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">PORT 2</text>
+<text x="150" y="322" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">PORT 1</text>
+<text x="830" y="408" font-size="10" fill="#D55E00" text-anchor="middle" font-weight="normal" font-style="normal">directivity</text>
+<text x="830" y="424" font-size="10" fill="#D55E00" text-anchor="middle" font-weight="normal" font-style="normal">source match</text>
+<text x="830" y="440" font-size="10" fill="#D55E00" text-anchor="middle" font-weight="normal" font-style="normal">reflection tracking</text>
+<text x="150" y="408" font-size="10" fill="#D55E00" text-anchor="middle" font-weight="normal" font-style="normal">load match</text>
+<text x="150" y="424" font-size="10" fill="#D55E00" text-anchor="middle" font-weight="normal" font-style="normal">transmission tracking</text>
+<path d="M 830,334 Q 495,302 150,334" stroke="#C0392B" stroke-width="1.6" fill="none" stroke-dasharray="5 3" marker-end="url(#ar)"/>
+<text x="495" y="314" font-size="10" fill="#C0392B" text-anchor="middle" font-weight="normal" font-style="normal">isolation  (crosstalk that skips the DUT)</text>
+<text x="490.0" y="482" font-size="11.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal" font-style="normal">six terms per direction = twelve.  Isolation is often left out when the crosstalk sits far below the DUT signal.</text>
+</svg>

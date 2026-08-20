@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="940" height="430" viewBox="0 0 940 430" font-family="Helvetica,Arial,sans-serif"><title>SOLT 와 TRL 의 교정 표준</title><rect width="940" height="430" fill="white"/>
+<defs><marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1A1A1A"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0072B2"/></marker><marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D55E00"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#009E73"/></marker><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C0392B"/></marker></defs>
+<text x="470.0" y="32" font-size="16" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">What the standards physically are</text>
+<rect x="30" y="60" width="430" height="340" rx="8" fill="white" stroke="#0072B2" stroke-width="1.6"/>
+<text x="50" y="86" font-size="13" fill="#0072B2" text-anchor="start" font-weight="bold" font-style="normal">SOLT   coaxial, standards fully known</text>
+<text x="70" y="134" font-size="12" fill="#1A1A1A" text-anchor="start" font-weight="bold" font-style="normal">SHORT</text>
+<rect x="150" y="114" width="26" height="32" rx="3" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.5"/><line x1="176" y1="130" x2="196" y2="130" stroke="#1A1A1A" stroke-width="2.2" fill="none"/>
+<line x1="196" y1="112" x2="196" y2="148" stroke="#1A1A1A" stroke-width="4" fill="none"/>
+<text x="330" y="134" font-size="11" fill="#7F7F7F" text-anchor="start" font-weight="normal" font-style="normal">GAMMA = -1</text>
+<text x="70" y="204" font-size="12" fill="#1A1A1A" text-anchor="start" font-weight="bold" font-style="normal">OPEN</text>
+<rect x="150" y="184" width="26" height="32" rx="3" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.5"/><line x1="176" y1="200" x2="196" y2="200" stroke="#1A1A1A" stroke-width="2.2" fill="none"/>
+<line x1="196" y1="190" x2="196" y2="210" stroke="#7F7F7F" stroke-width="1.4" fill="none" stroke-dasharray="3 3"/>
+<text x="214" y="204" font-size="9.5" fill="#7F7F7F" text-anchor="start" font-weight="normal" font-style="normal">gap</text>
+<text x="330" y="204" font-size="11" fill="#7F7F7F" text-anchor="start" font-weight="normal" font-style="normal">GAMMA = +1</text>
+<text x="70" y="274" font-size="12" fill="#1A1A1A" text-anchor="start" font-weight="bold" font-style="normal">LOAD</text>
+<rect x="150" y="254" width="26" height="32" rx="3" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.5"/><line x1="176" y1="270" x2="196" y2="270" stroke="#1A1A1A" stroke-width="2.2" fill="none"/>
+<rect x="190" y="254" width="30" height="32" rx="2" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.5"/>
+<text x="205" y="275" font-size="10" fill="#1A1A1A" text-anchor="middle" font-weight="normal" font-style="normal">50</text>
+<text x="330" y="274" font-size="11" fill="#7F7F7F" text-anchor="start" font-weight="normal" font-style="normal">GAMMA = 0</text>
+<text x="70" y="344" font-size="12" fill="#1A1A1A" text-anchor="start" font-weight="bold" font-style="normal">THRU</text>
+<rect x="150" y="324" width="26" height="32" rx="3" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.5"/><line x1="176" y1="340" x2="196" y2="340" stroke="#1A1A1A" stroke-width="2.2" fill="none"/>
+<line x1="196" y1="340" x2="240" y2="340" stroke="#1A1A1A" stroke-width="2.2" fill="none"/>
+<rect x="266" y="324" width="26" height="32" rx="3" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.5"/><line x1="292" y1="340" x2="312" y2="340" stroke="#1A1A1A" stroke-width="2.2" fill="none"/>
+<text x="330" y="344" font-size="11" fill="#7F7F7F" text-anchor="start" font-weight="normal" font-style="normal">S21 = 1</text>
+<text x="50" y="386" font-size="10.5" fill="#7F7F7F" text-anchor="start" font-weight="normal" font-style="normal">each one is defined in the cal-kit file</text>
+<rect x="480" y="60" width="430" height="340" rx="8" fill="white" stroke="#009E73" stroke-width="1.6"/>
+<text x="500" y="86" font-size="13" fill="#009E73" text-anchor="start" font-weight="bold" font-style="normal">TRL   on a board, standards only partly known</text>
+<text x="520" y="134" font-size="12" fill="#1A1A1A" text-anchor="start" font-weight="bold" font-style="normal">THRU</text>
+<rect x="610" y="116" width="120" height="28" rx="2" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.4"/>
+<line x1="600" y1="130" x2="610" y2="130" stroke="#1A1A1A" stroke-width="2" fill="none"/>
+<line x1="730" y1="130" x2="740" y2="130" stroke="#1A1A1A" stroke-width="2" fill="none"/>
+<text x="520" y="214" font-size="12" fill="#1A1A1A" text-anchor="start" font-weight="bold" font-style="normal">REFLECT</text>
+<rect x="610" y="196" width="40" height="28" rx="2" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.4"/>
+<line x1="600" y1="210" x2="610" y2="210" stroke="#1A1A1A" stroke-width="2" fill="none"/>
+<line x1="650" y1="194" x2="650" y2="226" stroke="#C0392B" stroke-width="3.5" fill="none"/>
+<text x="672" y="214" font-size="9.5" fill="#C0392B" text-anchor="start" font-weight="normal" font-style="normal">open or short - value need not be known</text>
+<text x="520" y="304" font-size="12" fill="#1A1A1A" text-anchor="start" font-weight="bold" font-style="normal">LINE</text>
+<rect x="610" y="286" width="220" height="28" rx="2" fill="#EDEDED" stroke="#1A1A1A" stroke-width="1.4"/>
+<line x1="600" y1="300" x2="610" y2="300" stroke="#1A1A1A" stroke-width="2" fill="none"/>
+<line x1="830" y1="300" x2="840" y2="300" stroke="#1A1A1A" stroke-width="2" fill="none"/>
+<text x="520" y="344" font-size="10.5" fill="#009E73" text-anchor="start" font-weight="normal" font-style="normal">LINE must differ from THRU by 20 to 160 degrees</text>
+<text x="520" y="364" font-size="10.5" fill="#009E73" text-anchor="start" font-weight="normal" font-style="normal">-> one line covers only an 8:1 band</text>
+<text x="520" y="386" font-size="10.5" fill="#7F7F7F" text-anchor="start" font-weight="normal" font-style="normal">impedance of the line becomes the reference</text>
+</svg>

@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="430" viewBox="0 0 1000 430" font-family="Helvetica,Arial,sans-serif"><title>1포트 오차 모델의 신호 흐름 그래프</title><rect width="1000" height="430" fill="white"/>
+<defs><marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1A1A1A"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0072B2"/></marker><marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#D55E00"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#009E73"/></marker><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C0392B"/></marker></defs>
+<text x="500.0" y="34" font-size="16" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">One-port error model as a signal flow graph</text>
+<circle cx="210" cy="130" r="7" fill="white" stroke="#1A1A1A" stroke-width="2"/>
+<text x="210" y="134" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">a0</text>
+<circle cx="210" cy="290" r="7" fill="white" stroke="#1A1A1A" stroke-width="2"/>
+<text x="210" y="294" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">b0</text>
+<circle cx="620" cy="130" r="7" fill="white" stroke="#1A1A1A" stroke-width="2"/>
+<text x="620" y="134" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">a1</text>
+<circle cx="620" cy="290" r="7" fill="white" stroke="#1A1A1A" stroke-width="2"/>
+<text x="620" y="294" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">b1</text>
+<line x1="220" y1="130" x2="610" y2="130" stroke="#0072B2" stroke-width="2.0" fill="none" marker-end="url(#ab)"/>
+<text x="415" y="118" font-size="12" fill="#0072B2" text-anchor="middle" font-weight="normal" font-style="normal">e10   incident reaches the DUT</text>
+<line x1="610" y1="290" x2="220" y2="290" stroke="#0072B2" stroke-width="2.0" fill="none" marker-end="url(#ab)"/>
+<text x="415" y="312" font-size="12" fill="#0072B2" text-anchor="middle" font-weight="normal" font-style="normal">e01   the return reaches the receiver</text>
+<path d="M 205,140 Q 150,210 205,280" stroke="#C0392B" stroke-width="2.4" fill="none" marker-end="url(#ar)"/>
+<text x="105" y="196" font-size="15" fill="#C0392B" text-anchor="middle" font-weight="bold" font-style="normal">e00</text>
+<text x="105" y="216" font-size="10" fill="#C0392B" text-anchor="middle" font-weight="normal" font-style="normal">DIRECTIVITY</text>
+<text x="105" y="234" font-size="9.5" fill="#C0392B" text-anchor="middle" font-weight="normal" font-style="normal">leaks straight across</text>
+<text x="105" y="248" font-size="9.5" fill="#C0392B" text-anchor="middle" font-weight="normal" font-style="normal">and never sees</text>
+<text x="105" y="262" font-size="9.5" fill="#C0392B" text-anchor="middle" font-weight="normal" font-style="normal">the DUT at all</text>
+<path d="M 630,280 Q 690,210 630,140" stroke="#D55E00" stroke-width="2.4" fill="none" marker-end="url(#ao)"/>
+<text x="706" y="206" font-size="15" fill="#D55E00" text-anchor="start" font-weight="bold" font-style="normal">e11</text>
+<line x1="630" y1="130" x2="800" y2="130" stroke="#7F7F7F" stroke-width="1.4" fill="none" stroke-dasharray="3 3"/>
+<line x1="630" y1="290" x2="800" y2="290" stroke="#7F7F7F" stroke-width="1.4" fill="none" stroke-dasharray="3 3"/>
+<path d="M 800,130 Q 890,210 800,290" stroke="#009E73" stroke-width="3" fill="none" marker-end="url(#ag)"/>
+<text x="905" y="200" font-size="14" fill="#009E73" text-anchor="start" font-weight="bold" font-style="normal">GAMMA</text>
+<text x="905" y="220" font-size="10" fill="#009E73" text-anchor="start" font-weight="normal" font-style="normal">the DUT</text>
+<text x="905" y="236" font-size="10" fill="#009E73" text-anchor="start" font-weight="normal" font-style="normal">what we want</text>
+<text x="500.0" y="358" font-size="11.5" fill="#D55E00" text-anchor="middle" font-weight="normal" font-style="normal">e11  SOURCE MATCH : the analyser is not a perfect 50 ohm, so whatever comes back is sent in again</text>
+<text x="500.0" y="396" font-size="13.5" fill="#1A1A1A" text-anchor="middle" font-weight="bold" font-style="normal">measured = e00 + (e10 e01) x GAMMA / (1 - e11 x GAMMA)</text>
+</svg>
