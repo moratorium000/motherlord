@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 790" width="1100" height="790" role="img" aria-label="믹서 구조 4종 — 단일소자, 단일평형, 이중평형, 이미지 제거 믹서">
+  <title>믹서 구조 4종 — 단일소자, 단일평형, 이중평형, 이미지 제거 믹서</title>
+  <rect width="1100" height="790" fill="#ffffff"/>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c0392b"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0072B2"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#009E73"/></marker>
+    <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1a1a"/></marker>
+  </defs>
+  <text x="550.0" y="30" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="14" text-anchor="middle" fill="#1a1a1a" font-weight="bold">Mixer topologies - what each one buys you</text>
+  <text x="56" y="84" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="start" fill="#1a1a1a" font-weight="bold">(a) Single-ended</text>
+  <line x1="56" y1="150" x2="110" y2="150" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="58" y="126" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#0072B2" font-weight="normal">RF and LO</text>
+  <text x="58" y="139" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#0072B2" font-weight="normal">share ONE port</text>
+  <path d="M 110 142 L 124 150 L 110 158 Z" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="124" y1="142" x2="124" y2="158" stroke="#1a1a1a" stroke-width="2.4" stroke-linecap="round"/>
+  <line x1="124" y1="150" x2="188" y2="150" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="156" y1="150" x2="156" y2="174" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="144" y1="174" x2="168" y2="174" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="144" y1="181" x2="168" y2="181" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="156" y1="181" x2="156" y2="189" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="147.0" y1="189" x2="165.0" y2="189" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="152.0" y1="194" x2="160.0" y2="194" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="156.0" y1="199" x2="156.0" y2="199" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="194" y="154" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="start" fill="#1a1a1a" font-weight="bold">IF</text>
+  <text x="56" y="242" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#555" font-weight="normal">one diode - cheapest</text>
+  <text x="56" y="258" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">no port isolation at all;</text>
+  <text x="56" y="274" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">LO leaks straight to RF and IF</text>
+  <text x="56" y="290" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">all spur orders present</text>
+  <text x="300" y="84" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="start" fill="#1a1a1a" font-weight="bold">(b) Single-balanced</text>
+  <path d="M 344 124 a 8 8 0 0 1 0 18.0 a 8 8 0 0 1 0 18.0 a 8 8 0 0 1 0 18.0" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 366 124 a 8 8 0 0 0 0 18.0 a 8 8 0 0 0 0 18.0 a 8 8 0 0 0 0 18.0" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="353" y1="120" x2="353" y2="182" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="357" y1="120" x2="357" y2="182" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="300" y1="151" x2="344" y2="151" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="302" y="143" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#E69F00" font-weight="bold">LO</text>
+  <line x1="379" y1="124" x2="404" y2="124" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 404 116 L 418 124 L 404 132 Z" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="418" y1="116" x2="418" y2="132" stroke="#1a1a1a" stroke-width="2.4" stroke-linecap="round"/>
+  <line x1="418" y1="124" x2="452" y2="124" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="379" y1="178" x2="404" y2="178" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 404 170 L 418 178 L 404 186 Z" fill="#1a1a1a" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="418" y1="170" x2="418" y2="186" stroke="#1a1a1a" stroke-width="2.4" stroke-linecap="round"/>
+  <line x1="418" y1="178" x2="452" y2="178" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="452" y1="124" x2="452" y2="178" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="452" y1="151" x2="492" y2="151" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="498" y="155" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="start" fill="#1a1a1a" font-weight="bold">IF</text>
+  <line x1="366" y1="151" x2="366" y2="224" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="366" y="240" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="middle" fill="#0072B2" font-weight="bold">RF</text>
+  <text x="374" y="212" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="start" fill="#777" font-weight="normal">(centre tap)</text>
+  <text x="300" y="270" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#555" font-weight="normal">a balun drives two diodes</text>
+  <text x="300" y="286" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#555" font-weight="normal">in opposite phase, so the LO</text>
+  <text x="300" y="302" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">cancels at the IF port.</text>
+  <text x="300" y="318" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">LO-to-IF isolation: good</text>
+  <text x="300" y="334" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">RF-to-IF isolation: still poor</text>
+  <text x="596" y="84" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="start" fill="#1a1a1a" font-weight="bold">(c) Double-balanced (diode ring)</text>
+  <line x1="796" y1="162" x2="842" y2="208" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="842" y1="208" x2="796" y2="254" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="796" y1="254" x2="750" y2="208" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="750" y1="208" x2="796" y2="162" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <g transform="translate(819.0,185.0) rotate(45)"><path d="M -10 -7 L 4 0 L -10 7 Z" fill="#1a1a1a"/><line x1="4" y1="-7" x2="4" y2="7" stroke="#1a1a1a" stroke-width="2.4"/></g>
+  <g transform="translate(819.0,231.0) rotate(135)"><path d="M -10 -7 L 4 0 L -10 7 Z" fill="#1a1a1a"/><line x1="4" y1="-7" x2="4" y2="7" stroke="#1a1a1a" stroke-width="2.4"/></g>
+  <g transform="translate(773.0,231.0) rotate(225)"><path d="M -10 -7 L 4 0 L -10 7 Z" fill="#1a1a1a"/><line x1="4" y1="-7" x2="4" y2="7" stroke="#1a1a1a" stroke-width="2.4"/></g>
+  <g transform="translate(773.0,185.0) rotate(315)"><path d="M -10 -7 L 4 0 L -10 7 Z" fill="#1a1a1a"/><line x1="4" y1="-7" x2="4" y2="7" stroke="#1a1a1a" stroke-width="2.4"/></g>
+  <path d="M 636 181 a 8 8 0 0 1 0 18.0 a 8 8 0 0 1 0 18.0 a 8 8 0 0 1 0 18.0" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 658 181 a 8 8 0 0 0 0 18.0 a 8 8 0 0 0 0 18.0 a 8 8 0 0 0 0 18.0" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="645" y1="177" x2="645" y2="239" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="649" y1="177" x2="649" y2="239" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="596" y1="208" x2="636" y2="208" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="598" y="199" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#E69F00" font-weight="bold">LO</text>
+  <line x1="658" y1="235" x2="658" y2="256" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="658" y1="256" x2="658" y2="264" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="649.0" y1="264" x2="667.0" y2="264" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="654.0" y1="269" x2="662.0" y2="269" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="658.0" y1="274" x2="658.0" y2="274" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="671" y1="181" x2="726" y2="181" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="726" y1="181" x2="726" y2="208" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="726" y1="208" x2="750" y2="208" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="671" y1="235" x2="671" y2="300" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="671" y1="300" x2="868" y2="300" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="868" y1="300" x2="868" y2="283" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="868" y1="269" x2="868" y2="208" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="868" y1="208" x2="842" y2="208" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 868 269 a 7 7 0 0 1 0 14" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 898 181 a 8 8 0 0 1 0 18.0 a 8 8 0 0 1 0 18.0 a 8 8 0 0 1 0 18.0" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M 920 181 a 8 8 0 0 0 0 18.0 a 8 8 0 0 0 0 18.0 a 8 8 0 0 0 0 18.0" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="907" y1="177" x2="907" y2="239" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="911" y1="177" x2="911" y2="239" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="898" y1="181" x2="888" y2="181" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="888" y1="181" x2="888" y2="136" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="888" y1="136" x2="796" y2="136" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="796" y1="136" x2="796" y2="162" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="898" y1="235" x2="888" y2="235" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="888" y1="235" x2="888" y2="276" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="888" y1="276" x2="796" y2="276" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="796" y1="276" x2="796" y2="254" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="933" y1="208" x2="966" y2="208" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="972" y="212" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="start" fill="#0072B2" font-weight="bold">RF</text>
+  <line x1="898" y1="208" x2="898" y2="316" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="898" y1="316" x2="966" y2="316" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="972" y="320" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="start" fill="#1a1a1a" font-weight="bold">IF</text>
+  <text x="928" y="332" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.6" text-anchor="start" fill="#777" font-weight="normal">(centre tap)</text>
+  <text x="596" y="376" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#555" font-weight="normal">two baluns + four diodes</text>
+  <text x="596" y="392" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">all three ports isolated</text>
+  <text x="596" y="408" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">even-order spurs suppressed</text>
+  <text x="596" y="424" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">needs the most LO drive power</text>
+  <text x="596" y="450" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.8" text-anchor="start" fill="#777" font-weight="normal">the small arc is a wire hop: those two wires</text>
+  <text x="596" y="464" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.8" text-anchor="start" fill="#777" font-weight="normal">cross without touching</text>
+  <text x="56" y="466" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="start" fill="#1a1a1a" font-weight="bold">(d) Image-reject (I/Q) mixer</text>
+  <line x1="56" y1="562" x2="90" y2="562" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="58" y="552" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#0072B2" font-weight="bold">RF</text>
+  <rect x="90" y="522" width="58" height="80" rx="6" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="119" y="557" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#1a1a1a" font-weight="normal">in-phase</text>
+  <text x="119" y="571" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#1a1a1a" font-weight="normal">split</text>
+  <line x1="148" y1="522" x2="194" y2="522" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="211" cy="522" r="17" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="200.46" y1="511.46" x2="221.54" y2="532.54" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="200.46" y1="532.54" x2="221.54" y2="511.46" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="228" y1="522" x2="274" y2="522" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="211" y1="505" x2="211" y2="501" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <text x="211" y="496" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#E69F00" font-weight="bold">LO 0 deg</text>
+  <text x="171" y="515" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="middle" fill="#009E73" font-weight="bold">I</text>
+  <line x1="148" y1="602" x2="194" y2="602" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="211" cy="602" r="17" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="200.46" y1="591.46" x2="221.54" y2="612.54" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="200.46" y1="612.54" x2="221.54" y2="591.46" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="228" y1="602" x2="274" y2="602" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="211" y1="619" x2="211" y2="623" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <text x="211" y="650" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#E69F00" font-weight="bold">LO 90 deg</text>
+  <text x="171" y="618" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="middle" fill="#009E73" font-weight="bold">Q</text>
+  <rect x="274" y="522" width="58" height="80" rx="6" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="303" y="557" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#1a1a1a" font-weight="normal">90 deg</text>
+  <text x="303" y="571" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#1a1a1a" font-weight="normal">combine</text>
+  <line x1="332" y1="562" x2="376" y2="562" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="382" y="566" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="start" fill="#1a1a1a" font-weight="bold">IF</text>
+  <text x="211" y="670" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.2" text-anchor="middle" fill="#777" font-weight="normal">the LO is split 0 / 90 deg and fed to the two mixers</text>
+  <text x="456" y="528" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.2" text-anchor="start" fill="#009E73" font-weight="bold">the wanted signal adds in phase; the image cancels.</text>
+  <text x="456" y="548" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.2" text-anchor="start" fill="#555" font-weight="normal">typical rejection 20-35 dB, set by amplitude and phase balance.</text>
+  <text x="456" y="568" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.8" text-anchor="start" fill="#555" font-weight="normal">1 deg of phase error, or 0.2 dB of amplitude error,</text>
+  <text x="456" y="588" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.8" text-anchor="start" fill="#555" font-weight="normal">already caps rejection at roughly 40 dB.</text>
+  <text x="456" y="608" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.2" text-anchor="start" fill="#c0392b" font-weight="bold">so it does NOT replace the RF filter - it relaxes it.</text>
+</svg>
