@@ -30,6 +30,7 @@ RF 커리큘럼 공용 플롯 스타일
    유니코드 마이너스가 폰트에 없으면 깨지므로 ASCII 하이픈으로 통일한다.
 """
 
+import math
 from pathlib import Path
 import matplotlib
 
@@ -66,7 +67,8 @@ def setup():
               "pip install koreanize-matplotlib")
 
     plt.rcParams.update({
-        "font.family": family,
+        # 폴백 목록: NanumGothic 에 없는 글자(₀, − 등)는 DejaVu Sans 가 받는다
+        "font.family": [family, "DejaVu Sans"],
         "axes.unicode_minus": False,       # 유니코드 마이너스 대신 ASCII 하이픈
         "svg.fonttype": "path",            # 글자를 경로로 → 환경 무관 재현
         "figure.dpi": 110,
@@ -121,6 +123,59 @@ def reference_line(ax, *args, **kw):
     kw.setdefault("ls", ":")
     kw.setdefault("zorder", 1)
     return ax.plot(*args, **kw)
+
+
+# NanumGothic 에는 유니코드 마이너스(U+2212) 글리프가 없다. 그림 안의 문자열에
+# 그 문자를 쓰면 저장할 때 경고와 함께 빈 네모로 대체된다. 그림 텍스트에는
+# 항상 ASCII 하이픈을 쓰고, 확인이 필요하면 이 함수를 거쳐 간다.
+def txt(s):
+    """그림에 넣을 문자열에서 폰트에 없는 글자를 안전한 문자로 바꾼다."""
+    return (str(s).replace("\u2212", "-")     # 유니코드 마이너스
+                  .replace("\u2080", "0").replace("\u2081", "1")
+                  .replace("\u2082", "2").replace("\u2083", "3"))
+
+
+def plain_log(ax, axis="both"):
+    """로그 눈금의 지수 표기(10⁻²)를 평문(0.01)으로 바꾼다.
+
+    두 가지를 동시에 해결한다.
+
+    1. **깨짐 회피** — Matplotlib의 로그 눈금 기본 서식은 mathtext로 그려지는데,
+       mathtext는 `font.family` 의 폴백 목록을 따르지 않는다. 그래서 한글 폰트를
+       쓰는 순간 지수의 마이너스(U+2212)가 빈 네모가 된다. rcParams 로는 고칠 수
+       없어(fontset·default·use_mathtext 모두 무효였음) 서식 자체를 바꾼다.
+    2. **가독성** — 초심자에게는 10⁻² 보다 0.01 이 즉시 읽힌다.
+    """
+    from matplotlib.ticker import FuncFormatter
+
+    def fmt(v, _):
+        if v <= 0:
+            return ""
+        e = math.log10(v)
+        if abs(e - round(e)) > 1e-9:      # 보조 눈금은 비워 둔다
+            return ""
+        e = int(round(e))
+        if -3 <= e <= 4:
+            return f"{v:,.0f}" if e >= 0 else f"{v:.{-e}f}"
+        return f"10^{e}"                   # 아주 큰/작은 값만 지수로
+
+    for a in (([ax.xaxis] if axis in ("x", "both") else [])
+              + ([ax.yaxis] if axis in ("y", "both") else [])):
+        a.set_major_formatter(FuncFormatter(fmt))
+        a.set_minor_formatter(FuncFormatter(lambda *_: ""))
+
+
+def hz_ticks(ax, values):
+    """주파수 축 눈금을 1 MHz / 1 GHz 처럼 사람이 읽는 형태로 붙인다."""
+    def name(v):
+        for scale, unit in ((1e9, "GHz"), (1e6, "MHz"), (1e3, "kHz")):
+            if v >= scale:
+                q = v / scale
+                return f"{q:.0f} {unit}" if q == int(q) else f"{q:g} {unit}"
+        return f"{v:g} Hz"
+    ax.set_xticks(list(values))
+    ax.set_xticklabels([name(v) for v in values])
+    ax.xaxis.set_minor_formatter(lambda *_: "")
 
 
 def save(fig, module, name, formats=("svg",)):
