@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 356" width="1080" height="356" role="img" aria-label="Zero-IF 수신기에만 있는 두 가지 문제 — LO 자체 혼합에 의한 DC 오프셋과 IP2">
+  <title>Zero-IF 수신기에만 있는 두 가지 문제 — LO 자체 혼합에 의한 DC 오프셋과 IP2</title>
+  <rect width="1080" height="356" fill="#ffffff"/>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c0392b"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0072B2"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#009E73"/></marker>
+    <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1a1a"/></marker>
+    <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#CC79A7"/></marker>
+  </defs>
+  <text x="540.0" y="30" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="14" text-anchor="middle" fill="#1a1a1a" font-weight="bold">Two problems that only Zero-IF has</text>
+  <text x="56" y="92" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="11.5" text-anchor="start" fill="#1a1a1a" font-weight="bold">(1) LO self-mixing becomes a DC offset</text>
+  <line x1="80" y1="168" x2="80" y2="146" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="80" y1="146" x2="67" y2="132" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="80" y1="146" x2="93" y2="132" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="80" y1="168" x2="116" y2="168" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="116" y="148" width="48" height="40" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="140.0" y="172.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">LNA</text>
+  <line x1="164" y1="168" x2="194" y2="168" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="211" cy="168" r="15" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="201.7" y1="158.7" x2="220.3" y2="177.3" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="201.7" y1="177.3" x2="220.3" y2="158.7" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="211" cy="234" r="14" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M 204 234 q 3.5 -6 7 0 q 3.5 6 7 0" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="211" y="264" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#E69F00" font-weight="bold">LO</text>
+  <line x1="211" y1="183" x2="211" y2="220" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="226" y1="168" x2="256" y2="168" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="256" y="148" width="54" height="40" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="283.0" y="172.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">LPF</text>
+  <line x1="310" y1="168" x2="336" y2="168" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 336 148 L 370 148 L 384 168.0 L 370 188 L 336 188 Z" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="356.0" y="172.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">ADC</text>
+  <path d="M 199 152 C 174 122 114 120 82 138" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <circle cx="144" cy="121" r="9" fill="white" stroke="#c0392b" stroke-width="1.4"/>
+  <text x="144" y="125" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="middle" fill="#c0392b" font-weight="bold">1</text>
+  <path d="M 78 128 C 118 92 206 98 222 148" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="5 4" marker-end="url(#ar)"/>
+  <circle cx="152" cy="100" r="9" fill="white" stroke="#c0392b" stroke-width="1.4"/>
+  <text x="152" y="104" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9" text-anchor="middle" fill="#c0392b" font-weight="bold">2</text>
+  <text x="402" y="134" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">1  the LO leaks out to the antenna</text>
+  <text x="402" y="152" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">2  it reflects off nearby objects</text>
+  <text x="402" y="170" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">    and comes back into the mixer</text>
+  <text x="216" y="274" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#c0392b" font-weight="bold">LO x LO = a constant -> a DC step at the ADC input</text>
+  <text x="216" y="292" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#555" font-weight="normal">and it MOVES when the surroundings move</text>
+  <text x="604" y="92" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="11.5" text-anchor="start" fill="#1a1a1a" font-weight="bold">(2) Second-order distortion lands at DC</text>
+  <line x1="624" y1="208" x2="804" y2="208" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="624" y1="208" x2="624" y2="124" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="700" y1="208" x2="700" y2="138" stroke="#1a1a1a" stroke-width="3.4" stroke-linecap="round"/>
+  <text x="700" y="130" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.2" text-anchor="middle" fill="#1a1a1a" font-weight="normal">strong interferer</text>
+  <text x="714" y="224" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.2" text-anchor="middle" fill="#666" font-weight="normal">RF spectrum</text>
+  <path d="M 814 168 L 854 168" fill="none" stroke="#c0392b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ar)"/>
+  <text x="834" y="158" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#c0392b" font-weight="bold">IP2</text>
+  <line x1="868" y1="208" x2="1034" y2="208" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="868" y1="208" x2="868" y2="124" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>
+  <line x1="870" y1="208" x2="870" y2="144" stroke="#c0392b" stroke-width="4.0" stroke-linecap="round"/>
+  <text x="904" y="136" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.2" text-anchor="start" fill="#c0392b" font-weight="normal">its envelope appears at 0 Hz</text>
+  <text x="952" y="224" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.2" text-anchor="middle" fill="#666" font-weight="normal">baseband spectrum</text>
+  <text x="804" y="276" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#555" font-weight="normal">in a superheterodyne this lands at 0 Hz too - but 0 Hz is not the signal there.</text>
+  <text x="804" y="294" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#c0392b" font-weight="bold">In Zero-IF, 0 Hz IS the signal. Hence the high IP2 requirement.</text>
+  <text x="540.0" y="342" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="middle" fill="#0072B2" font-weight="bold">Both are fixed in practice by DC servo loops, AC coupling, and IP2 calibration - never by filtering alone.</text>
+</svg>

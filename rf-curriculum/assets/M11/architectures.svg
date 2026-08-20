@@ -1,0 +1,196 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 830" width="1160" height="830" role="img" aria-label="수신 아키텍처 4종 비교 — 슈퍼헤테로다인, Zero-IF, Low-IF, 직접 RF 샘플링">
+  <title>수신 아키텍처 4종 비교 — 슈퍼헤테로다인, Zero-IF, Low-IF, 직접 RF 샘플링</title>
+  <rect width="1160" height="830" fill="#ffffff"/>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c0392b"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0072B2"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#009E73"/></marker>
+    <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1a1a"/></marker>
+    <marker id="ap" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#CC79A7"/></marker>
+  </defs>
+  <text x="580.0" y="30" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="14" text-anchor="middle" fill="#1a1a1a" font-weight="bold">Four receiver architectures, same drawing style</text>
+  <text x="46" y="74" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="start" fill="#1a1a1a" font-weight="bold">(a) Dual-conversion superheterodyne</text>
+  <text x="46" y="288" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="start" fill="#1a1a1a" font-weight="bold">(b) Zero-IF (direct conversion)</text>
+  <text x="46" y="486" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="start" fill="#1a1a1a" font-weight="bold">(c) Low-IF</text>
+  <text x="46" y="660" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="12" text-anchor="start" fill="#1a1a1a" font-weight="bold">(d) Direct RF sampling</text>
+  <line x1="60" y1="140" x2="60" y2="118" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="118" x2="47" y2="104" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="118" x2="73" y2="104" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="140" x2="82" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="82" y="119" width="60" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="112.0" y="138.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">RF</text>
+  <text x="112.0" y="152.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">BPF</text>
+  <line x1="142" y1="140" x2="164" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="164" y="119" width="52" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="190.0" y="144.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">LNA</text>
+  <line x1="216" y1="140" x2="238" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="238" y="119" width="66" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="271.0" y="138.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">image</text>
+  <text x="271.0" y="152.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">filter</text>
+  <line x1="304" y1="140" x2="328" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="345" cy="140" r="15" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="335.7" y1="130.7" x2="354.3" y2="149.3" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="335.7" y1="149.3" x2="354.3" y2="130.7" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="345" cy="202" r="14" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M 338 202 q 3.5 -6 7 0 q 3.5 6 7 0" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="345" y="232" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#E69F00" font-weight="bold">LO1  (tunes)</text>
+  <line x1="345" y1="155" x2="345" y2="188" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="360" y1="140" x2="384" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="384" y="119" width="66" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="417.0" y="138.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">IF1</text>
+  <text x="417.0" y="152.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">SAW</text>
+  <line x1="450" y1="140" x2="472" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="472" y="119" width="52" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="498.0" y="144.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">IF amp</text>
+  <line x1="524" y1="140" x2="548" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="565" cy="140" r="15" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="555.7" y1="130.7" x2="574.3" y2="149.3" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="555.7" y1="149.3" x2="574.3" y2="130.7" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="565" cy="202" r="14" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M 558 202 q 3.5 -6 7 0 q 3.5 6 7 0" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="565" y="232" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#E69F00" font-weight="bold">LO2  (fixed)</text>
+  <line x1="565" y1="155" x2="565" y2="188" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="580" y1="140" x2="604" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="604" y="119" width="66" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="637.0" y="138.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">IF2</text>
+  <text x="637.0" y="152.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">channel</text>
+  <line x1="670" y1="140" x2="694" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 694 119 L 734 119 L 748 140.0 L 734 161 L 694 161 Z" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="717.0" y="144.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">ADC</text>
+  <line x1="752" y1="140" x2="776" y2="140" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="782" y="144" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#1a1a1a" font-weight="bold">DSP</text>
+  <text x="838" y="96" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">+ best selectivity and dynamic range</text>
+  <text x="838" y="112" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">+ no DC-offset problem</text>
+  <text x="838" y="132" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- image filters at every stage</text>
+  <text x="838" y="148" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- most parts, biggest, most expensive</text>
+  <text x="838" y="168" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- spur planning is hard (M09)</text>
+  <line x1="60" y1="348" x2="60" y2="326" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="326" x2="47" y2="312" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="326" x2="73" y2="312" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="348" x2="82" y2="348" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="82" y="327" width="60" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="112.0" y="346.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">RF</text>
+  <text x="112.0" y="360.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">BPF</text>
+  <line x1="142" y1="348" x2="164" y2="348" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="164" y="327" width="52" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="190.0" y="352.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">LNA</text>
+  <line x1="216" y1="348" x2="246" y2="348" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="246" y1="308" x2="246" y2="388" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="246" y1="308" x2="274" y2="308" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="291" cy="308" r="15" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="281.7" y1="298.7" x2="300.3" y2="317.3" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="281.7" y1="317.3" x2="300.3" y2="298.7" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="306" y1="308" x2="332" y2="308" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="332" y="289" width="66" height="38" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="365.0" y="312.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">LPF</text>
+  <line x1="398" y1="308" x2="422" y2="308" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 422 289 L 458 289 L 472 308.0 L 458 327 L 422 327 Z" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="443.0" y="312.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">ADC</text>
+  <line x1="472" y1="308" x2="500" y2="308" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="260" y="300" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">I</text>
+  <line x1="246" y1="388" x2="274" y2="388" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="291" cy="388" r="15" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="281.7" y1="378.7" x2="300.3" y2="397.3" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="281.7" y1="397.3" x2="300.3" y2="378.7" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="306" y1="388" x2="332" y2="388" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="332" y="369" width="66" height="38" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="365.0" y="392.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">LPF</text>
+  <line x1="398" y1="388" x2="422" y2="388" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 422 369 L 458 369 L 472 388.0 L 458 407 L 422 407 Z" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="443.0" y="392.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">ADC</text>
+  <line x1="472" y1="388" x2="500" y2="388" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="260" y="406" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">Q</text>
+  <circle cx="291" cy="348" r="14" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M 284 348 q 3.5 -6 7 0 q 3.5 6 7 0" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="291" y="424.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#E69F00" font-weight="bold">LO = RF, split 0 / 90 deg</text>
+  <line x1="291" y1="323" x2="291" y2="334" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="291" y1="362" x2="291" y2="373" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="500" y1="308" x2="500" y2="388" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="500" y1="348" x2="526" y2="348" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="532" y="352" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#1a1a1a" font-weight="bold">DSP</text>
+  <text x="560" y="296" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">+ fewest parts, easiest to integrate</text>
+  <text x="560" y="312" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">+ no image filter, no IF SAW</text>
+  <text x="560" y="332" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- DC offset from LO self-mixing</text>
+  <text x="560" y="348" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- 1/f noise sits right on the signal</text>
+  <text x="560" y="364" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- second-order distortion (IP2) lands at DC</text>
+  <text x="560" y="380" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- I/Q imbalance folds the channel onto itself</text>
+  <text x="560" y="400" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#0072B2" font-weight="bold">the dominant choice in modern integrated radios</text>
+  <line x1="60" y1="542" x2="60" y2="520" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="520" x2="47" y2="506" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="520" x2="73" y2="506" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="542" x2="82" y2="542" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="82" y="521" width="60" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="112.0" y="540.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">RF</text>
+  <text x="112.0" y="554.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">BPF</text>
+  <line x1="142" y1="542" x2="164" y2="542" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="164" y="521" width="52" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="190.0" y="546.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">LNA</text>
+  <line x1="216" y1="542" x2="246" y2="542" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="246" y1="508" x2="246" y2="576" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="246" y1="508" x2="274" y2="508" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="291" cy="508" r="15" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="281.7" y1="498.7" x2="300.3" y2="517.3" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="281.7" y1="517.3" x2="300.3" y2="498.7" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="306" y1="508" x2="332" y2="508" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="332" y="491" width="66" height="34" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="365.0" y="512.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">BPF</text>
+  <line x1="398" y1="508" x2="422" y2="508" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 422 491 L 458 491 L 472 508.0 L 458 525 L 422 525 Z" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="443.0" y="512.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">ADC</text>
+  <line x1="472" y1="508" x2="496" y2="508" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="246" y1="576" x2="274" y2="576" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="291" cy="576" r="15" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="281.7" y1="566.7" x2="300.3" y2="585.3" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="281.7" y1="585.3" x2="300.3" y2="566.7" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="306" y1="576" x2="332" y2="576" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="332" y="559" width="66" height="34" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="365.0" y="580.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">BPF</text>
+  <line x1="398" y1="576" x2="422" y2="576" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 422 559 L 458 559 L 472 576.0 L 458 593 L 422 593 Z" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="443.0" y="580.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">ADC</text>
+  <line x1="472" y1="576" x2="496" y2="576" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="291" cy="542" r="14" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <path d="M 284 542 q 3.5 -6 7 0 q 3.5 6 7 0" fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="291" y="612.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#E69F00" font-weight="bold">LO = RF - lowIF</text>
+  <line x1="291" y1="517" x2="291" y2="528" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <line x1="291" y1="556" x2="291" y2="567" stroke="#E69F00" stroke-width="2" stroke-linecap="round"/>
+  <rect x="496" y="512" width="84" height="60" rx="5" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8"/>
+  <text x="538.0" y="540.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">digital</text>
+  <text x="538.0" y="554.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">IQ correct</text>
+  <line x1="580" y1="542" x2="604" y2="542" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="610" y="546" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#1a1a1a" font-weight="bold">DSP</text>
+  <text x="640" y="498" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">+ moves the signal off DC and off 1/f noise</text>
+  <text x="640" y="514" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">+ still no IF SAW filter</text>
+  <text x="640" y="534" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- the adjacent channel becomes the image</text>
+  <text x="640" y="550" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- needs I/Q imbalance calibration (25-60 dB)</text>
+  <text x="640" y="570" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#0072B2" font-weight="bold">used by Bluetooth, many IoT radios</text>
+  <line x1="60" y1="716" x2="60" y2="694" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="694" x2="47" y2="680" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="694" x2="73" y2="680" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="60" y1="716" x2="82" y2="716" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="82" y="695" width="70" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="117.0" y="714.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">RF</text>
+  <text x="117.0" y="728.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">BPF (must!)</text>
+  <line x1="152" y1="716" x2="174" y2="716" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="174" y="695" width="52" height="42" rx="5" fill="#F4F7FA" stroke="#1a1a1a" stroke-width="1.8"/>
+  <text x="200.0" y="720.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">LNA</text>
+  <line x1="226" y1="716" x2="250" y2="716" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 250 692 L 312 692 L 326 716.0 L 312 740 L 250 740 Z" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="284.0" y="720.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#009E73" font-weight="bold">RF ADC</text>
+  <line x1="326" y1="716" x2="354" y2="716" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="354" y="692" width="96" height="48" rx="5" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8"/>
+  <text x="402.0" y="714.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">digital</text>
+  <text x="402.0" y="728.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">down-convert</text>
+  <line x1="450" y1="716" x2="474" y2="716" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="474" y="692" width="84" height="48" rx="5" fill="#EFF6EF" stroke="#009E73" stroke-width="1.8"/>
+  <text x="516.0" y="714.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#1a1a1a" font-weight="bold">decimate</text>
+  <text x="516.0" y="728.0" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="8.4" text-anchor="middle" fill="#666" font-weight="normal">+ filter</text>
+  <line x1="558" y1="716" x2="582" y2="716" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="588" y="720" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#1a1a1a" font-weight="bold">DSP</text>
+  <text x="620" y="672" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">+ no analogue mixer, no I/Q imbalance at all</text>
+  <text x="620" y="688" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#009E73" font-weight="normal">+ one radio covers many bands in software</text>
+  <text x="620" y="708" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- the ADC must swallow the whole band</text>
+  <text x="620" y="724" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- high power, and clock jitter now limits SNR</text>
+  <text x="620" y="744" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#c0392b" font-weight="normal">- an out-of-band signal aliases straight in</text>
+  <text x="580.0" y="814" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="11" text-anchor="middle" fill="#c0392b" font-weight="bold">Every architecture keeps the same jobs - filter, amplify, shift, digitise. Only WHERE each job happens changes.</text>
+</svg>
