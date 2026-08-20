@@ -135,6 +135,20 @@ def txt(s):
                   .replace("\u2082", "2").replace("\u2083", "3"))
 
 
+def emph(ax, *args, **kw):
+    """강조선을 그린다.
+
+    rcParams 의 prop_cycle 은 색과 **선 모양**을 함께 돌린다. 그래서 색만
+    지정하고 ls 를 빼면, 강조하려던 굵은 선이 점선으로 그려져 오히려 약해
+    보인다. 이 커리큘럼 제작 중 세 번 반복한 실수라 함수로 굳혀 둔다.
+    """
+    kw.setdefault("ls", "-")
+    kw.setdefault("lw", 2.6)
+    kw.setdefault("color", ACCENT)
+    kw.setdefault("zorder", 5)
+    return ax.plot(*args, **kw)
+
+
 def plain_log(ax, axis="both"):
     """로그 눈금의 지수 표기(10⁻²)를 평문(0.01)으로 바꾼다.
 
@@ -155,7 +169,7 @@ def plain_log(ax, axis="both"):
         if abs(e - round(e)) > 1e-9:      # 보조 눈금은 비워 둔다
             return ""
         e = int(round(e))
-        if -3 <= e <= 4:
+        if -3 <= e <= 5:
             return f"{v:,.0f}" if e >= 0 else f"{v:.{-e}f}"
         return f"10^{e}"                   # 아주 큰/작은 값만 지수로
 
