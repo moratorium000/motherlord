@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 840 604" width="840" height="604" role="img" aria-label="캐스케이드 예산표 양식과 세 가지 누적 공식">
+  <title>캐스케이드 예산표 양식과 세 가지 누적 공식</title>
+  <rect width="840" height="604" fill="#ffffff"/>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c0392b"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0072B2"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#009E73"/></marker>
+    <marker id="aa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#E69F00"/></marker>
+  </defs>
+  <text x="420.0" y="32" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="14" text-anchor="middle" fill="#1a1a1a" font-weight="bold">The cascade budget sheet - what each column is for</text>
+  <rect x="56" y="96" width="564" height="30" rx="0" fill="#E7EEF5" stroke="#1a1a1a" stroke-width="1.6"/>
+  <text x="131.0" y="116" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="middle" fill="#1a1a1a" font-weight="bold">stage</text>
+  <text x="239.0" y="116" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="middle" fill="#1a1a1a" font-weight="bold">gain</text>
+  <line x1="206" y1="96" x2="206" y2="336" stroke="#C9D4DE" stroke-width="1" stroke-linecap="round"/>
+  <text x="302.0" y="116" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="middle" fill="#1a1a1a" font-weight="bold">NF</text>
+  <line x1="272" y1="96" x2="272" y2="336" stroke="#C9D4DE" stroke-width="1" stroke-linecap="round"/>
+  <text x="365.0" y="116" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="middle" fill="#1a1a1a" font-weight="bold">IIP3</text>
+  <line x1="332" y1="96" x2="332" y2="336" stroke="#C9D4DE" stroke-width="1" stroke-linecap="round"/>
+  <text x="436.0" y="116" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="middle" fill="#1a1a1a" font-weight="bold">cum gain</text>
+  <line x1="398" y1="96" x2="398" y2="336" stroke="#C9D4DE" stroke-width="1" stroke-linecap="round"/>
+  <text x="509.0" y="116" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="middle" fill="#1a1a1a" font-weight="bold">cum NF</text>
+  <line x1="474" y1="96" x2="474" y2="336" stroke="#C9D4DE" stroke-width="1" stroke-linecap="round"/>
+  <text x="582.0" y="116" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="middle" fill="#1a1a1a" font-weight="bold">cum IIP3</text>
+  <line x1="544" y1="96" x2="544" y2="336" stroke="#C9D4DE" stroke-width="1" stroke-linecap="round"/>
+  <text x="66" y="146" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.0" text-anchor="start" fill="#1a1a1a" font-weight="normal">cable + switch</text>
+  <text x="262" y="146" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">-0.5</text>
+  <text x="322" y="146" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">0.5</text>
+  <text x="388" y="146" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#9AA7B4" font-weight="normal">(100)</text>
+  <text x="464" y="146" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">-0.5</text>
+  <text x="534" y="146" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">0.50</text>
+  <text x="610" y="146" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#9AA7B4" font-weight="bold">(100)</text>
+  <line x1="56" y1="126" x2="620" y2="126" stroke="#DDE5EC" stroke-width="1" stroke-linecap="round"/>
+  <rect x="56" y="156" width="564" height="30" rx="0" fill="#FAFCFE" stroke="none" stroke-width="0"/>
+  <text x="66" y="176" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.0" text-anchor="start" fill="#1a1a1a" font-weight="normal">RF band filter</text>
+  <text x="262" y="176" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">-1.0</text>
+  <text x="322" y="176" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">1.0</text>
+  <text x="388" y="176" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#9AA7B4" font-weight="normal">(100)</text>
+  <text x="464" y="176" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">-1.5</text>
+  <text x="534" y="176" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">1.50</text>
+  <text x="610" y="176" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">97.23</text>
+  <line x1="56" y1="156" x2="620" y2="156" stroke="#DDE5EC" stroke-width="1" stroke-linecap="round"/>
+  <text x="66" y="206" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.0" text-anchor="start" fill="#1a1a1a" font-weight="normal">LNA</text>
+  <text x="262" y="206" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">+22.0</text>
+  <text x="322" y="206" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">0.8</text>
+  <text x="388" y="206" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">+15.0</text>
+  <text x="464" y="206" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">+20.5</text>
+  <text x="534" y="206" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">2.30</text>
+  <text x="610" y="206" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">16.50</text>
+  <line x1="56" y1="186" x2="620" y2="186" stroke="#DDE5EC" stroke-width="1" stroke-linecap="round"/>
+  <rect x="56" y="216" width="564" height="30" rx="0" fill="#FAFCFE" stroke="none" stroke-width="0"/>
+  <text x="66" y="236" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.0" text-anchor="start" fill="#1a1a1a" font-weight="normal">band filter</text>
+  <text x="262" y="236" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">-2.5</text>
+  <text x="322" y="236" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">2.5</text>
+  <text x="388" y="236" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#9AA7B4" font-weight="normal">(100)</text>
+  <text x="464" y="236" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">+18.0</text>
+  <text x="534" y="236" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">2.32</text>
+  <text x="610" y="236" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">16.50</text>
+  <line x1="56" y1="216" x2="620" y2="216" stroke="#DDE5EC" stroke-width="1" stroke-linecap="round"/>
+  <text x="66" y="266" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.0" text-anchor="start" fill="#1a1a1a" font-weight="normal">mixer</text>
+  <text x="262" y="266" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">-7.0</text>
+  <text x="322" y="266" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">7.0</text>
+  <text x="388" y="266" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">+18.0</text>
+  <text x="464" y="266" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">+11.0</text>
+  <text x="534" y="266" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">2.48</text>
+  <text x="610" y="266" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">-0.10</text>
+  <line x1="56" y1="246" x2="620" y2="246" stroke="#DDE5EC" stroke-width="1" stroke-linecap="round"/>
+  <rect x="56" y="276" width="564" height="30" rx="0" fill="#FAFCFE" stroke="none" stroke-width="0"/>
+  <text x="66" y="296" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.0" text-anchor="start" fill="#1a1a1a" font-weight="normal">IF filter</text>
+  <text x="262" y="296" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">-3.0</text>
+  <text x="322" y="296" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">3.0</text>
+  <text x="388" y="296" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#9AA7B4" font-weight="normal">(100)</text>
+  <text x="464" y="296" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">+8.0</text>
+  <text x="534" y="296" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">2.67</text>
+  <text x="610" y="296" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">-0.10</text>
+  <line x1="56" y1="276" x2="620" y2="276" stroke="#DDE5EC" stroke-width="1" stroke-linecap="round"/>
+  <text x="66" y="326" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.0" text-anchor="start" fill="#1a1a1a" font-weight="normal">IF amplifier</text>
+  <text x="262" y="326" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">+25.0</text>
+  <text x="322" y="326" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">4.0</text>
+  <text x="388" y="326" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#1a1a1a" font-weight="normal">+10.0</text>
+  <text x="464" y="326" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">+33.0</text>
+  <text x="534" y="326" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">3.20</text>
+  <text x="610" y="326" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="10.0" text-anchor="end" fill="#0072B2" font-weight="bold">-2.18</text>
+  <line x1="56" y1="306" x2="620" y2="306" stroke="#DDE5EC" stroke-width="1" stroke-linecap="round"/>
+  <rect x="56" y="96" width="564" height="240" rx="0" fill="none" stroke="#1a1a1a" stroke-width="1.6"/>
+  <rect x="398" y="306" width="222" height="30" rx="0" fill="none" stroke="#c0392b" stroke-width="2.2"/>
+  <path d="M 509.0 342 L 509.0 362" fill="none" stroke="#c0392b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#ar)"/>
+  <text x="509.0" y="378" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.6" text-anchor="middle" fill="#c0392b" font-weight="bold">the last row IS the system spec</text>
+  <text x="56" y="406" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="start" fill="#1a1a1a" font-weight="bold">input columns</text>
+  <text x="174" y="406" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.8" text-anchor="start" fill="#555" font-weight="normal">measured, or taken from the datasheet - one row per part</text>
+  <text x="56" y="424" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.4" text-anchor="start" fill="#0072B2" font-weight="bold">cumulative columns</text>
+  <text x="204" y="424" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.8" text-anchor="start" fill="#555" font-weight="normal">computed by the three formulas below</text>
+  <rect x="56" y="446" width="564" height="132" rx="6" fill="#F4F7FA" stroke="#C9D4DE" stroke-width="1.4"/>
+  <text x="72" y="470" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.8" text-anchor="start" fill="#c0392b" font-weight="bold">All three run on LINEAR ratios, not dB. Convert first, convert back at the end.</text>
+  <text x="72" y="498" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.8" text-anchor="start" fill="#1a1a1a" font-weight="bold">cumulative gain</text>
+  <text x="232" y="498" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="9.8" text-anchor="start" fill="#1a1a1a" font-weight="normal">G = G1 x G2 x ...</text>
+  <text x="72" y="526" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.8" text-anchor="start" fill="#009E73" font-weight="bold">cumulative noise factor</text>
+  <text x="232" y="526" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="9.8" text-anchor="start" fill="#1a1a1a" font-weight="normal">F = F1 + (F2-1)/G1 + (F3-1)/(G1 G2) + ...</text>
+  <text x="72" y="554" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.8" text-anchor="start" fill="#c0392b" font-weight="bold">cumulative IIP3</text>
+  <text x="232" y="554" font-family='DejaVu Sans Mono, Consolas, monospace' font-size="9.8" text-anchor="start" fill="#1a1a1a" font-weight="normal">1/IIP3 = 1/IIP3_1 + G1/IIP3_2 + (G1 G2)/IIP3_3 + ...</text>
+  <text x="56" y="586" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#777" font-weight="normal">(100) means the part is passive, so its IIP3 is effectively infinite - it never limits linearity.</text>
+</svg>
