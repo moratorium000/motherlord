@@ -1,0 +1,129 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 620" width="1000" height="620" role="img" aria-label="단일 단 저잡음 증폭기의 실제 회로도와 각 부품의 역할">
+  <title>단일 단 저잡음 증폭기의 실제 회로도와 각 부품의 역할</title>
+  <rect width="1000" height="620" fill="#ffffff"/>
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c0392b"/></marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#0072B2"/></marker>
+    <marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#009E73"/></marker>
+    <marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1a1a1a"/></marker>
+  </defs>
+  <text x="500.0" y="32" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="14" text-anchor="middle" fill="#1a1a1a" font-weight="bold">A real single-stage LNA - what every part is for</text>
+  <line x1="56" y1="96" x2="960" y2="96" stroke="#c0392b" stroke-width="2" stroke-linecap="round"/>
+  <text x="56" y="84" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="11" text-anchor="start" fill="#c0392b" font-weight="bold">VDD</text>
+  <circle cx="64" cy="310" r="14" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="64" y="284" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="middle" fill="#1a1a1a" font-weight="bold">RF IN</text>
+  <line x1="78" y1="310" x2="104" y2="310" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="104" y1="300.5" x2="104" y2="319.5" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="113" y1="300.5" x2="113" y2="319.5" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="113" y1="310" x2="152" y2="310" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="108" y="290" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.5" text-anchor="middle" fill="#0072B2" font-weight="normal">Cblk</text>
+  <path d="M 152 310 a 7 7 0 0 1 14 0 a 7 7 0 0 1 14 0 a 7 7 0 0 1 14 0" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="194" y1="310" x2="292" y2="310" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="173" y="290" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.5" text-anchor="middle" fill="#009E73" font-weight="normal">Lser</text>
+  <line x1="226" y1="310" x2="226" y2="350" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="216.5" y1="350" x2="235.5" y2="350" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="216.5" y1="359" x2="235.5" y2="359" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="226" y1="359" x2="226" y2="376" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="226" y1="376" x2="226" y2="384" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="217.0" y1="384" x2="235.0" y2="384" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="222.0" y1="389" x2="230.0" y2="389" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="226.0" y1="394" x2="226.0" y2="394" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="240" y="356" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.5" text-anchor="start" fill="#009E73" font-weight="normal">Cshunt</text>
+  <line x1="266" y1="310" x2="266" y2="190" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="266" y1="190" x2="232" y2="190" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <rect x="198" y="182.5" width="34" height="15" rx="0" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <line x1="184" y1="190" x2="198" y2="190" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="215" y="176" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.5" text-anchor="middle" fill="#E69F00" font-weight="normal">Rgate</text>
+  <circle cx="160" cy="190" r="14" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="160" y="164" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="middle" fill="#1a1a1a" font-weight="bold">VG</text>
+  <line x1="184" y1="190" x2="184" y2="216" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="174.5" y1="216" x2="193.5" y2="216" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="174.5" y1="225" x2="193.5" y2="225" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="184" y1="225" x2="184" y2="240" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="184" y1="240" x2="184" y2="248" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="175.0" y1="248" x2="193.0" y2="248" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="180.0" y1="253" x2="188.0" y2="253" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="184.0" y1="258" x2="184.0" y2="258" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="198" y="224" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.5" text-anchor="start" fill="#E69F00" font-weight="normal">Cbyp</text>
+  <text x="60" y="442" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="start" fill="#E69F00" font-weight="normal">Rgate: bias enters through a resistor, so the bias line barely loads the RF</text>
+  <line x1="292" y1="310" x2="314" y2="310" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="314" y1="288" x2="314" y2="332" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="328" y1="284" x2="328" y2="336" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="328" y1="290" x2="372" y2="290" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="372" y1="290" x2="372" y2="270" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="328" y1="330" x2="372" y2="330" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="372" y1="330" x2="372" y2="354" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="390" y="316" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="start" fill="#1a1a1a" font-weight="bold">LNA device</text>
+  <path d="M 372 354 a 7 7 0 0 1 0 14 a 7 7 0 0 1 0 14 a 7 7 0 0 1 0 14" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="372" y1="396" x2="372" y2="410" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="372" y1="410" x2="372" y2="418" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="363.0" y1="418" x2="381.0" y2="418" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="368.0" y1="423" x2="376.0" y2="423" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="372.0" y1="428" x2="372.0" y2="428" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="390" y="376" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#c0392b" font-weight="normal">Ldeg (source degeneration)</text>
+  <text x="390" y="392" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.2" text-anchor="start" fill="#666" font-weight="normal">adds a real part to Zin WITHOUT adding noise</text>
+  <line x1="372" y1="270" x2="372" y2="190" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 372 148 a 7 7 0 0 1 0 14 a 7 7 0 0 1 0 14 a 7 7 0 0 1 0 14" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="372" y1="148" x2="372" y2="96" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="388" y="156" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#E69F00" font-weight="normal">Lchoke</text>
+  <text x="388" y="172" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.2" text-anchor="start" fill="#666" font-weight="normal">RF blocked, DC passes</text>
+  <line x1="372" y1="270" x2="430" y2="270" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <path d="M 430 270 a 7 7 0 0 1 14 0 a 7 7 0 0 1 14 0 a 7 7 0 0 1 14 0" fill="none" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="472" y1="270" x2="520" y2="270" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="451" y="250" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.5" text-anchor="middle" fill="#009E73" font-weight="normal">Lout</text>
+  <line x1="520" y1="260.5" x2="520" y2="279.5" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="529" y1="260.5" x2="529" y2="279.5" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="529" y1="270" x2="592" y2="270" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="524" y="250" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.5" text-anchor="middle" fill="#0072B2" font-weight="normal">Cblk</text>
+  <line x1="560" y1="270" x2="560" y2="310" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="550.5" y1="310" x2="569.5" y2="310" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="550.5" y1="319" x2="569.5" y2="319" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="560" y1="319" x2="560" y2="336" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="560" y1="336" x2="560" y2="344" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="551.0" y1="344" x2="569.0" y2="344" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="556.0" y1="349" x2="564.0" y2="349" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="560.0" y1="354" x2="560.0" y2="354" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="574" y="316" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.5" text-anchor="start" fill="#009E73" font-weight="normal">Cshunt</text>
+  <circle cx="606" cy="270" r="14" fill="none" stroke="#1a1a1a" stroke-width="2"/>
+  <text x="606" y="244" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="middle" fill="#1a1a1a" font-weight="bold">RF OUT</text>
+  <line x1="700" y1="96" x2="700" y2="126" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="690.5" y1="126" x2="709.5" y2="126" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="690.5" y1="135" x2="709.5" y2="135" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="700" y1="135" x2="700" y2="150" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="700" y1="150" x2="700" y2="158" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="691.0" y1="158" x2="709.0" y2="158" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="696.0" y1="163" x2="704.0" y2="163" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="700.0" y1="168" x2="700.0" y2="168" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="700" y="188" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#0072B2" font-weight="normal">100 pF</text>
+  <line x1="770" y1="96" x2="770" y2="126" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="760.5" y1="126" x2="779.5" y2="126" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="760.5" y1="135" x2="779.5" y2="135" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="770" y1="135" x2="770" y2="150" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="770" y1="150" x2="770" y2="158" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="761.0" y1="158" x2="779.0" y2="158" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="766.0" y1="163" x2="774.0" y2="163" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="770.0" y1="168" x2="770.0" y2="168" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="770" y="188" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#0072B2" font-weight="normal">10 nF</text>
+  <line x1="840" y1="96" x2="840" y2="126" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="830.5" y1="126" x2="849.5" y2="126" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="830.5" y1="135" x2="849.5" y2="135" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="840" y1="135" x2="840" y2="150" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="840" y1="150" x2="840" y2="158" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="831.0" y1="158" x2="849.0" y2="158" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="836.0" y1="163" x2="844.0" y2="163" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <line x1="840.0" y1="168" x2="840.0" y2="168" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>
+  <text x="840" y="188" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#0072B2" font-weight="normal">10 uF</text>
+  <text x="770" y="212" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.4" text-anchor="middle" fill="#555" font-weight="normal">decoupling: smallest value nearest the pin, and watch the anti-resonance (M06)</text>
+  <rect x="56" y="456" width="888" height="86" rx="8" fill="#FCFCFD" stroke="#DDD" stroke-width="1.4"/>
+  <line x1="76" y1="474" x2="106" y2="474" stroke="#009E73" stroke-width="4" stroke-linecap="round"/>
+  <text x="118" y="478" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="start" fill="#009E73" font-weight="bold">matching</text>
+  <text x="268" y="478" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#444" font-weight="normal">sets Gs and GL - the terminations the device wants, not 50 ohm</text>
+  <line x1="76" y1="498" x2="106" y2="498" stroke="#E69F00" stroke-width="4" stroke-linecap="round"/>
+  <text x="118" y="502" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="start" fill="#E69F00" font-weight="bold">bias</text>
+  <text x="268" y="502" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#444" font-weight="normal">sets the DC operating point, and must look like an open circuit to RF</text>
+  <line x1="76" y1="522" x2="106" y2="522" stroke="#0072B2" stroke-width="4" stroke-linecap="round"/>
+  <text x="118" y="526" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10" text-anchor="start" fill="#0072B2" font-weight="bold">DC block / decoupling</text>
+  <text x="268" y="526" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="start" fill="#444" font-weight="normal">keeps DC out of the RF path and RF out of the supply</text>
+  <text x="500.0" y="586" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="10.5" text-anchor="middle" fill="#c0392b" font-weight="bold">The matching networks are NOT there to make 50 ohm - they are there to present the source and load the device wants.</text>
+  <text x="500.0" y="606" font-family='DejaVu Sans, Helvetica, Arial, sans-serif' font-size="9.6" text-anchor="middle" fill="#555" font-weight="normal">G = Gamma (reflection coefficient).</text>
+</svg>
