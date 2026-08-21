@@ -19,7 +19,7 @@ python3 scripts/docx/render_assets.py            # 그림 -> PNG (한 번만)
 python3 scripts/docx/build.py                    # 본문 조립 -> DOCX
 ```
 
-결과: `_build/RF_시스템_엔지니어링_교재.docx` (M16 까지 반영 시 목차 342항목 · 17.9 MB)
+결과: `_build/RF_시스템_엔지니어링_교재.docx` (본문 M00–M17 전편 · A4 484쪽 · 목차 366항목 · 19.3 MB)
 
 PDF 는 LibreOffice 로 변환합니다.
 
@@ -34,7 +34,7 @@ soffice --headless --convert-to pdf --outdir _build _build/RF_시스템_엔지�
 
 | 파일 | 역할 |
 |---|---|
-| `render_assets.py` | 본문이 참조하는 SVG 82종과 mermaid 블록 20종을 PNG 로 변환하고, 어느 그림이 어느 파일인지 표로 남긴다 |
+| `render_assets.py` | 본문이 참조하는 SVG 114종과 mermaid 블록 24종을 PNG 로 변환하고, 어느 그림이 어느 파일인지 표로 남긴다 |
 | `make_ref.py` | pandoc 의 기본 서식 문서를 꺼내 한국어 기술서용으로 고친다 — 글꼴(맑은 고딕), A4 여백, 제목·인용 상자·코드·표 스타일, 가운데 쪽번호 |
 | `prep.py` | 마크다운을 워드가 받아들일 형태로 다듬는다 (아래) |
 | `build.py` | 부(Part) 구조로 원고를 엮고 pandoc 을 돌린 뒤 표와 그림을 후처리한다 |
@@ -64,13 +64,13 @@ soffice --headless --convert-to pdf --outdir _build _build/RF_시스템_엔지�
 **그림**
 
 - SVG·mermaid 를 PNG 로 바꾸고, 본문 폭(16 cm)에 맞춰 크기를 정한다
-- 세로 쪽에서 글자가 6.5 pt 밑으로 내려가는 **넓은 도표 8종은 가로 쪽**에 앉힌다.
+- 세로 쪽에서 글자가 6.5 pt 밑으로 내려가는 **넓은 도표 9종은 가로 쪽**에 앉힌다.
   pandoc 이 그림을 참조 문서의 세로 폭으로 깎아 버리므로 변환 뒤에 다시 늘린다
 - 세로로 긴 도표는 쪽 높이를 끝까지 쓰게 한다
 
 **표**
 
-- 402개 표의 모든 행에 `cantSplit` 을, 머리행에 `tblHeader` 를 넣어
+- 575개 표의 모든 행에 `cantSplit` 을, 머리행에 `tblHeader` 를 넣어
   쪽 경계에서 행이 잘리지 않고 머리행이 쪽마다 반복되게 한다
 - 좁은 칸에서 양쪽정렬은 글자 사이가 벌어지므로 표 안은 왼쪽정렬
 
