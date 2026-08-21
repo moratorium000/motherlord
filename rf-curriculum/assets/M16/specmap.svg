@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="430" viewBox="0 0 1040 430" font-family="Helvetica,Arial,sans-serif"><title>스펙 매핑표 양식</title><rect width="1040" height="430" fill="white"/>
+<defs><marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1A1A1A"/></marker><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C0392B"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0072B2"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#009E73"/></marker></defs>
+<text x="520.0" y="32" font-size="16" fill="#1A1A1A" text-anchor="middle" font-weight="bold">Spec mapping sheet - our requirement vs the part</text>
+<rect x="50" y="62" width="940" height="34" rx="4" fill="#E8EDF5" stroke="#1A1A1A" stroke-width="1.6"/>
+<text x="125.0" y="84" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">OUR SPEC</text>
+<text x="265.0" y="84" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">value</text>
+<text x="410.0" y="84" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">DATASHEET</text>
+<text x="550.0" y="84" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">value</text>
+<text x="665.0" y="84" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">condition</text>
+<text x="775.0" y="84" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">margin</text>
+<text x="910.0" y="84" font-size="11" fill="#1A1A1A" text-anchor="middle" font-weight="bold">verdict / action</text>
+<rect x="50" y="96" width="940" height="34" rx="0" fill="#FAFAFA" stroke="#7F7F7F" stroke-width="0.8"/>
+<text x="58" y="118" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">Noise figure</text>
+<text x="208" y="118" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">&lt;= 2.0 dB</text>
+<text x="338" y="118" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">NF</text>
+<text x="498" y="118" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">1.3 dB typ</text>
+<text x="618" y="118" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">25 C</text>
+<text x="728" y="118" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">0.7 dB</text>
+<text x="838" y="118" font-size="10.5" fill="#C0392B" text-anchor="start" font-weight="bold">TYP ONLY - ask vendor</text>
+<rect x="50" y="130" width="940" height="34" rx="0" fill="white" stroke="#7F7F7F" stroke-width="0.8"/>
+<text x="58" y="152" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">Gain</text>
+<text x="208" y="152" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">&gt;= 15 dB</text>
+<text x="338" y="152" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">Gain</text>
+<text x="498" y="152" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">16.5 dB min</text>
+<text x="618" y="152" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">25 C</text>
+<text x="728" y="152" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">1.5 dB</text>
+<text x="838" y="152" font-size="10.5" fill="#009E73" text-anchor="start" font-weight="bold">OK</text>
+<rect x="50" y="164" width="940" height="34" rx="0" fill="#FAFAFA" stroke="#7F7F7F" stroke-width="0.8"/>
+<text x="58" y="186" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">OIP3</text>
+<text x="208" y="186" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">&gt;= 26 dBm</text>
+<text x="338" y="186" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">OIP3</text>
+<text x="498" y="186" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">28 dBm min</text>
+<text x="618" y="186" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">60 mA</text>
+<text x="728" y="186" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">2 dB</text>
+<text x="838" y="186" font-size="10.5" fill="#D55E00" text-anchor="start" font-weight="bold">OK if Idq kept</text>
+<rect x="50" y="198" width="940" height="34" rx="0" fill="white" stroke="#7F7F7F" stroke-width="0.8"/>
+<text x="58" y="220" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">Current</text>
+<text x="208" y="220" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">&lt;= 80 mA</text>
+<text x="338" y="220" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">Idd</text>
+<text x="498" y="220" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">75 mA max</text>
+<text x="618" y="220" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">5 V</text>
+<text x="728" y="220" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">5 mA</text>
+<text x="838" y="220" font-size="10.5" fill="#009E73" text-anchor="start" font-weight="bold">OK</text>
+<rect x="50" y="232" width="940" height="34" rx="0" fill="#FAFAFA" stroke="#7F7F7F" stroke-width="0.8"/>
+<text x="58" y="254" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">Temp range</text>
+<text x="208" y="254" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">-20..+70 C</text>
+<text x="338" y="254" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">-</text>
+<text x="498" y="254" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">25 C only</text>
+<text x="618" y="254" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">-</text>
+<text x="728" y="254" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">?</text>
+<text x="838" y="254" font-size="10.5" fill="#C0392B" text-anchor="start" font-weight="bold">NOT COVERED - test it</text>
+<text x="50" y="330" font-size="12" fill="#C0392B" text-anchor="start" font-weight="bold">the two red rows are the whole point of this sheet</text>
+<text x="50" y="352" font-size="11" fill="#7F7F7F" text-anchor="start" font-weight="normal">a Typ-only number is not a promise, and a spec the datasheet never covers is a test you have to run yourself.</text>
+<text x="50" y="386" font-size="11" fill="#1A1A1A" text-anchor="start" font-weight="normal">margin = our spec - datasheet guaranteed value.  If you cannot write a number here, the row is not finished.</text>
+</svg>

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1020" height="560" viewBox="0 0 1020 560" font-family="Helvetica,Arial,sans-serif"><title>시험 자동화 구성도</title><rect width="1020" height="560" fill="white"/>
+<defs><marker id="ak" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1A1A1A"/></marker><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#C0392B"/></marker><marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0072B2"/></marker><marker id="ag" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#009E73"/></marker></defs>
+<text x="510.0" y="32" font-size="16" fill="#1A1A1A" text-anchor="middle" font-weight="bold">Test automation: what talks to what</text>
+<rect x="60" y="70" width="240" height="150" rx="6" fill="white" stroke="#0072B2" stroke-width="2"/>
+<text x="180" y="96" font-size="13" fill="#0072B2" text-anchor="middle" font-weight="bold">PC  /  Python</text>
+<text x="180" y="122" font-size="12" fill="#1A1A1A" text-anchor="middle" font-weight="normal" font-family="Courier,monospace">pyvisa</text>
+<text x="180" y="144" font-size="10.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal">your test script</text>
+<text x="180" y="168" font-size="10" fill="#7F7F7F" text-anchor="middle" font-weight="normal">sweep - measure - judge</text>
+<text x="180" y="192" font-size="10" fill="#7F7F7F" text-anchor="middle" font-weight="normal">write CSV / Touchstone</text>
+<line x1="300" y1="145" x2="380" y2="145" stroke="#1A1A1A" stroke-width="2" marker-end="url(#ak)"/>
+<rect x="380" y="118" width="150" height="54" rx="5" fill="#F0F0F0" stroke="#1A1A1A" stroke-width="1.6"/>
+<text x="455" y="142" font-size="12" fill="#1A1A1A" text-anchor="middle" font-weight="bold">VISA layer</text>
+<text x="455" y="160" font-size="9.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal">USB / LAN / GPIB</text>
+<line x1="530" y1="145" x2="620" y2="97" stroke="#1A1A1A" stroke-width="1.6" marker-end="url(#ak)"/>
+<rect x="620" y="70" width="190" height="54" rx="5" fill="white" stroke="#1A1A1A" stroke-width="1.6"/>
+<text x="715" y="94" font-size="12" fill="#1A1A1A" text-anchor="middle" font-weight="bold">VNA</text>
+<text x="715" y="112" font-size="9.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal">S-parameters</text>
+<line x1="530" y1="145" x2="620" y2="175" stroke="#1A1A1A" stroke-width="1.6" marker-end="url(#ak)"/>
+<rect x="620" y="148" width="190" height="54" rx="5" fill="white" stroke="#1A1A1A" stroke-width="1.6"/>
+<text x="715" y="172" font-size="12" fill="#1A1A1A" text-anchor="middle" font-weight="bold">SIGNAL GEN</text>
+<text x="715" y="190" font-size="9.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal">stimulus</text>
+<line x1="530" y1="145" x2="620" y2="253" stroke="#1A1A1A" stroke-width="1.6" marker-end="url(#ak)"/>
+<rect x="620" y="226" width="190" height="54" rx="5" fill="white" stroke="#1A1A1A" stroke-width="1.6"/>
+<text x="715" y="250" font-size="12" fill="#1A1A1A" text-anchor="middle" font-weight="bold">SPECTRUM AN.</text>
+<text x="715" y="268" font-size="9.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal">spurious, ACLR</text>
+<rect x="850" y="118" width="120" height="118" rx="6" fill="white" stroke="#009E73" stroke-width="2"/>
+<text x="910" y="146" font-size="14" fill="#009E73" text-anchor="middle" font-weight="bold">DUT</text>
+<text x="910" y="168" font-size="9.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal">one board,</text>
+<text x="910" y="184" font-size="9.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal">one serial</text>
+<text x="910" y="200" font-size="9.5" fill="#7F7F7F" text-anchor="middle" font-weight="normal">number</text>
+<line x1="810" y1="97" x2="848" y2="97" stroke="#7F7F7F" stroke-width="1.4"/>
+<line x1="810" y1="175" x2="848" y2="175" stroke="#7F7F7F" stroke-width="1.4"/>
+<line x1="810" y1="253" x2="848" y2="253" stroke="#7F7F7F" stroke-width="1.4"/>
+<rect x="60" y="300" width="470" height="210" rx="6" fill="#FAFAFA" stroke="#7F7F7F" stroke-width="1.4"/>
+<text x="80" y="326" font-size="12" fill="#1A1A1A" text-anchor="start" font-weight="bold">the four calls you actually need</text>
+<text x="80" y="352" font-size="10" fill="#1A1A1A" text-anchor="start" font-weight="normal" font-family="Courier,monospace">rm = pyvisa.ResourceManager()</text>
+<text x="80" y="376" font-size="10" fill="#1A1A1A" text-anchor="start" font-weight="normal" font-family="Courier,monospace">inst = rm.open_resource("TCPIP::192.168.0.10::INSTR")</text>
+<text x="80" y="400" font-size="10" fill="#1A1A1A" text-anchor="start" font-weight="normal" font-family="Courier,monospace">inst.timeout = 10000            # ms</text>
+<text x="80" y="424" font-size="10" fill="#1A1A1A" text-anchor="start" font-weight="normal" font-family="Courier,monospace">print(inst.query("*IDN?"))      # who are you</text>
+<text x="80" y="448" font-size="10" fill="#1A1A1A" text-anchor="start" font-weight="normal" font-family="Courier,monospace">inst.write("SENS:FREQ:STAR 2.4e9")</text>
+<text x="80" y="472" font-size="10" fill="#1A1A1A" text-anchor="start" font-weight="normal" font-family="Courier,monospace">data = inst.query("CALC:DATA? SDATA")</text>
+<rect x="560" y="300" width="400" height="210" rx="6" fill="white" stroke="#C0392B" stroke-width="1.6"/>
+<text x="580" y="326" font-size="12" fill="#C0392B" text-anchor="start" font-weight="bold">rules that save you later</text>
+<text x="580" y="352" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">- always ask *IDN? first and log the answer</text>
+<text x="580" y="376" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">- set a timeout - the default is too short</text>
+<text x="580" y="400" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">- *OPC? after a slow sweep, do not sleep()</text>
+<text x="580" y="424" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">- save raw data, never only the verdict</text>
+<text x="580" y="448" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">- put the settings into the file you save</text>
+<text x="580" y="472" font-size="10.5" fill="#1A1A1A" text-anchor="start" font-weight="normal">- one file per DUT serial number</text>
+</svg>
