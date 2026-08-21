@@ -225,7 +225,7 @@ def m09_spur():
     ax.set_yticks(range(0, 10))
     ax.set_xlabel("믹서 입력 주파수 (MHz)")
     ax.set_ylabel("차수 m + n  (낮을수록 세게 나온다)")
-    ax.set_title("그림 M09-3  스퍼 응답 차트 — 어떤 입력이 IF 로 새어 들어오는가")
+    ax.set_title("그림 M09-5  스퍼 응답 차트 — 어떤 입력이 IF 로 새어 들어오는가")
     S.save(fig, "M09", "spur")
     return dict(rows=rows, n=len(rows), rf=RF, image=IMAGE, half_if=HALF_IF,
                 wifi=[r for r in rows if 5150 <= r["f"] <= 5350])
@@ -283,7 +283,7 @@ def m09_phasenoise():
     S.hz_ticks(ax, [1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8])
     ax.set_xlabel("반송파로부터의 오프셋 주파수")
     ax.set_ylabel("위상잡음 L(f) (dBc/Hz)")
-    ax.set_title("그림 M09-4  위상잡음 곡선의 세 영역 (Leeson 모델, 2.4 GHz VCO)")
+    ax.set_title("그림 M09-8  위상잡음 곡선의 세 영역 (Leeson 모델, 2.4 GHz VCO)")
     ax.set_ylim(-175, -20)
     ax.grid(which="both", alpha=0.35)
     S.save(fig, "M09", "phasenoise")
@@ -367,7 +367,7 @@ def m09_pll():
     ax.set_title("그래서 루프 대역폭에는 최적값이 있다", fontsize=10.5)
     ax.grid(which="both", alpha=0.35)
 
-    fig.suptitle("그림 M09-5  PLL 루프 대역폭 — 무엇을 얻고 무엇을 잃는가",
+    fig.suptitle("그림 M09-7  PLL 루프 대역폭 — 무엇을 얻고 무엇을 잃는가",
                  fontweight="bold")
     fig.tight_layout()
     S.save(fig, "M09", "pll")
@@ -463,7 +463,7 @@ def m09_reciprocal():
                  fontsize=10.5)
     ax.grid(axis="x", alpha=0.4)
 
-    fig.suptitle("그림 M09-6  상호혼합 — LO 가 나쁘면 간섭이 잡음으로 바뀐다",
+    fig.suptitle("그림 M09-9  상호혼합 — LO 가 나쁘면 간섭이 잡음으로 바뀐다",
                  fontweight="bold")
     fig.tight_layout()
     S.save(fig, "M09", "reciprocal")
@@ -513,7 +513,7 @@ def m09_imagerej():
 
     ax.set_xlabel("두 경로의 위상 오차 (도)")
     ax.set_ylabel("이미지 억압 (dB)")
-    ax.set_title("그림 M09-8  I/Q 믹서의 이미지 억압은 정합 오차가 정한다")
+    ax.set_title("그림 M09-3  I/Q 믹서의 이미지 억압은 정합 오차가 정한다")
     ax.set_xlim(0, 12)
     ax.set_ylim(8, 52)
     ax.legend(fontsize=9, loc="upper right")

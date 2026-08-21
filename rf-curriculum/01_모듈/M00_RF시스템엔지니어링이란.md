@@ -54,7 +54,7 @@ $$\lambda = \frac{c}{f}$$
 
 ![파장과 회로 크기](../assets/M00/wavelength_vs_size.svg)
 
-*그림 M00-2. 파장과 회로 크기. 가로축은 주파수(로그), 세로축은 길이(cm, 로그)입니다. 파란 실선이 파장 λ, 주황 파선이 λ/10 경계입니다. 회색 점선(1 cm)은 보통의 PCB 배선 길이인데, **2.4 GHz에서는 이 선이 이미 λ/10 경계(1.25 cm) 근처에 있습니다.** 즉 Wi-Fi 주파수에서 PCB 위 1 cm 배선은 이미 "긴 선"입니다.*
+*그림 M00-1. 파장과 회로 크기. 가로축은 주파수(로그), 세로축은 길이(cm, 로그)입니다. 파란 실선이 파장 λ, 주황 파선이 λ/10 경계입니다. 회색 점선(1 cm)은 보통의 PCB 배선 길이인데, **2.4 GHz에서는 이 선이 이미 λ/10 경계(1.25 cm) 근처에 있습니다.** 즉 Wi-Fi 주파수에서 PCB 위 1 cm 배선은 이미 "긴 선"입니다.*
 
 | 주파수 | 파장 λ | λ/10 | 감각 |
 |---|---|---|---|
@@ -70,7 +70,7 @@ $$\lambda = \frac{c}{f}$$
 
 ![전선 위 전압 분포](../assets/M00/voltage_along_wire.svg)
 
-*그림 M00-3. 10 cm 전선 위의 순간 전압 분포. 위는 1 MHz, 아래는 2.4 GHz입니다. 가로축은 전선 위의 위치(cm), 세로축은 그 순간의 전압(정규화)입니다. 빨간 점은 전선의 양 끝입니다. **1 MHz에서는 양 끝의 전압이 같지만(차이 0 %), 2.4 GHz에서는 69 %나 다릅니다.** "이 전선의 전압"이라고 말할 수 없게 된 것입니다.*
+*그림 M00-2. 10 cm 전선 위의 순간 전압 분포. 위는 1 MHz, 아래는 2.4 GHz입니다. 가로축은 전선 위의 위치(cm), 세로축은 그 순간의 전압(정규화)입니다. 빨간 점은 전선의 양 끝입니다. **1 MHz에서는 양 끝의 전압이 같지만(차이 0 %), 2.4 GHz에서는 69 %나 다릅니다.** "이 전선의 전압"이라고 말할 수 없게 된 것입니다.*
 
 > 💡 **이것이 RF의 출발점입니다.** M02(전송선로)에서 이 현상을 정면으로 다룹니다.
 
@@ -90,7 +90,7 @@ $$\lambda = \frac{c}{f}$$
 
 ![주파수 대역 지도](../assets/M00/spectrum_map.svg)
 
-*그림 M00-1. 주파수 대역 지도. 가로축은 주파수(로그 눈금)입니다. 위에서부터 ITU 대역 명칭, IEEE 레이더 대역, 실제 서비스입니다. 실제 서비스는 서로 겹치므로 두 줄로 나누어 그렸습니다 — Wi-Fi 2.4 GHz는 셀룰러 FR1의 주파수 범위 안에 들어 있습니다.*
+*그림 M00-3. 주파수 대역 지도. 가로축은 주파수(로그 눈금)입니다. 위에서부터 ITU 대역 명칭, IEEE 레이더 대역, 실제 서비스입니다. 실제 서비스는 서로 겹치므로 두 줄로 나누어 그렸습니다 — Wi-Fi 2.4 GHz는 셀룰러 FR1의 주파수 범위 안에 들어 있습니다.*
 
 ### 이 커리큘럼에서 "RF"의 범위
 
@@ -353,6 +353,17 @@ flowchart LR
 | EVM | Error Vector Magnitude | 오차 벡터 크기 |
 | EIRP | Effective Isotropic Radiated Power | 등가 등방성 복사 전력 |
 | PCB | Printed Circuit Board | 인쇄 회로 기판 |
+| ACLR | Adjacent Channel Leakage Ratio | 인접 채널 누설비 |
+| DUT | Device Under Test | 피시험 소자 |
+| EHF | Extremely High Frequency | 초고주파 (30~300 GHz) |
+| ETSI | European Telecommunications Standards Institute | 유럽 전기통신 표준화 기구 |
+| FM | Frequency Modulation | 주파수 변조 |
+| HF | High Frequency | 단파 (3~30 MHz) |
+| IIP3 | Input second/third-order Intercept Point | 입력 2차/3차 교차점 |
+| RX / TX | Receive / Transmit | 수신 / 송신 |
+| SHF | Super High Frequency | 초고주파 (3~30 GHz) |
+| UHF | Ultra High Frequency | 극초단파 (300 MHz~3 GHz) |
+| VHF | Very High Frequency | 초단파 (30~300 MHz) |
 
 전체 목록: [부록 A](../03_부록/A_축약어_마스터목록.md)
 

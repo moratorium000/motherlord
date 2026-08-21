@@ -126,7 +126,7 @@ def m06_q_bandwidth():
 
     ax.set_xlabel("주파수 (중심 주파수 f0 기준)")
     ax.set_ylabel("응답 (dB)")
-    ax.set_title("그림 M06-5  품질계수 Q와 대역폭:  BW = f0 / Q")
+    ax.set_title("그림 M06-4  품질계수 Q와 대역폭:  BW = f0 / Q")
     ax.set_ylim(-30, 3)
     ax.legend(fontsize=9.2)
     S.save(fig, "M06", "q_bandwidth")
@@ -215,7 +215,7 @@ def m07_responses():
     axes[1].set_ylim(-2.2, 0.4)
     axes[1].grid(alpha=0.5)
 
-    fig.suptitle("그림 M07-1  필터 응답 4종 비교 (같은 5차)", fontweight="bold")
+    fig.suptitle("그림 M07-2  필터 응답 4종 비교 (같은 5차)", fontweight="bold")
     fig.tight_layout()
     S.save(fig, "M07", "responses")
 
@@ -241,7 +241,7 @@ def m07_group_delay():
 
     ax.set_xlabel("정규화 주파수")
     ax.set_ylabel("군지연 (정규화)")
-    ax.set_title("그림 M07-2  같은 필터들의 군지연 — 진폭만 봐서는 모른다")
+    ax.set_title("그림 M07-4  같은 필터들의 군지연 — 진폭만 봐서는 모른다")
     ax.set_ylim(0, 11)
     ax.legend(fontsize=8.6, loc="upper right")
     S.save(fig, "M07", "group_delay")
@@ -297,7 +297,7 @@ def m07_spec_annotated():
 
     ax.set_xlabel("주파수 (GHz)")
     ax.set_ylabel("|S21| (dB)")
-    ax.set_title("그림 M07-3  필터 사양서의 용어를 응답 위에 얹으면")
+    ax.set_title("그림 M07-1  필터 사양서의 용어를 응답 위에 얹으면")
     ax.set_ylim(-75, 16)
     ax.set_xlim(2.15, 2.75)
     S.save(fig, "M07", "spec_annotated")
@@ -320,7 +320,7 @@ def m07_order():
                 bbox=dict(fc="white", ec=S.GRID, alpha=0.95))
     ax.set_xlabel("정규화 주파수 (차단 = 1)")
     ax.set_ylabel("|S21| (dB)")
-    ax.set_title("그림 M07-4  버터워스 필터의 차수와 롤오프")
+    ax.set_title("그림 M07-3  버터워스 필터의 차수와 롤오프")
     ax.set_ylim(-100, 6)
     ax.legend(fontsize=8.6, loc="lower left")
     ax.grid(alpha=0.5, which="both")

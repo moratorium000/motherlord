@@ -45,7 +45,7 @@ def m04_cable_phase():
 
     ax.set_xlabel("주파수 (GHz)")
     ax.set_ylabel("생기는 위상 오차 (도)")
-    ax.set_title("그림 M04-3  케이블 길이 변화가 만드는 위상 오차")
+    ax.set_title("그림 M04-6  케이블 길이 변화가 만드는 위상 오차")
     ax.set_ylim(0, 55)
     ax.legend(loc="upper left", fontsize=9)
     S.save(fig, "M04", "cable_phase")
@@ -82,7 +82,7 @@ def m04_power_headroom():
     ax.set_xlim(-175, 60)
     ax.set_ylim(-0.7, len(rows) - 0.15)
     ax.set_xlabel("입력 전력 (dBm)")
-    ax.set_title("그림 M04-4  장비별 안전 입력 범위 (대표값, 반드시 자기 장비 사양 확인)")
+    ax.set_title("그림 M04-2  장비별 안전 입력 범위 (대표값, 반드시 자기 장비 사양 확인)")
     ax.grid(axis="x", alpha=0.5)
     for s in ("left", "right", "top"):
         ax.spines[s].set_visible(False)
@@ -148,7 +148,7 @@ def m05_rbw_noise_floor():
                  bbox=dict(fc="white", ec=S.GRID, alpha=0.96),
                  arrowprops=dict(arrowstyle="->", color=S.INK, lw=1.0))
 
-    fig.suptitle("그림 M05-3  분해능 대역폭(RBW)의 3중 효과", fontweight="bold")
+    fig.suptitle("그림 M05-4  분해능 대역폭(RBW)의 3중 효과", fontweight="bold")
     fig.tight_layout()
     S.save(fig, "M05", "rbw_noise_floor")
 
@@ -176,7 +176,7 @@ def m05_resolution():
         ax.set_xticks([-200, -100, 0, 100, 200])
     axes[0].set_ylabel("전력 (dBm)")
     axes[0].set_ylim(-125, -40)
-    fig.suptitle("그림 M05-4  200 kHz 떨어진 두 신호 — RBW가 분해능을 정한다",
+    fig.suptitle("그림 M05-5  200 kHz 떨어진 두 신호 — RBW가 분해능을 정한다",
                  fontweight="bold")
     fig.tight_layout()
     S.save(fig, "M05", "resolution")
@@ -216,7 +216,7 @@ def m05_detectors():
 
     ax.set_xlabel("화면의 가로 표시점 (bucket)")
     ax.set_ylabel("표시 전력 (dBm)")
-    ax.set_title("그림 M05-5  검출기(detector) 세 종류가 같은 데이터를 다르게 읽는다")
+    ax.set_title("그림 M05-6  검출기(detector) 세 종류가 같은 데이터를 다르게 읽는다")
     ax.legend(loc="lower left", fontsize=8.6)
     ax.set_ylim(-118, -78)
     S.save(fig, "M05", "detectors")
@@ -250,7 +250,7 @@ def m05_attenuator_window():
 
     ax.set_xlabel("입력 감쇠기 설정 (dB)")
     ax.set_ylabel("전력 (dBm)")
-    ax.set_title("그림 M05-6  입력 감쇠기가 측정 창을 움직인다 (대표값)")
+    ax.set_title("그림 M05-7  입력 감쇠기가 측정 창을 움직인다 (대표값)")
     ax.set_ylim(-168, 40)
     ax.set_xticks(att)
     ax.legend(loc="upper left", fontsize=9)

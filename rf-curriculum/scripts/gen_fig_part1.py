@@ -76,7 +76,7 @@ def m00_spectrum_map():
     ax.set_xticklabels(["1 MHz", "10 MHz", "100 MHz", "1 GHz", "10 GHz", "100 GHz"])
     ax.set_yticks([])
     ax.set_xlabel("주파수 (로그 눈금)")
-    ax.set_title("그림 M00-1  주파수 대역 지도")
+    ax.set_title("그림 M00-3  주파수 대역 지도")
     ax.grid(axis="x", alpha=0.5)
     for s in ("left", "right", "top"):
         ax.spines[s].set_visible(False)
@@ -117,7 +117,7 @@ def m00_wavelength_vs_size():
 
     ax.set_xlabel("주파수 (Hz)")
     ax.set_ylabel("길이 (cm)")
-    ax.set_title("그림 M00-2  파장과 회로 크기")
+    ax.set_title("그림 M00-1  파장과 회로 크기")
     ax.set_ylim(1e-2, 1e4)
     ax.legend(loc="upper right")
     S.plain_log(ax, "y")
@@ -149,7 +149,7 @@ def m00_voltage_along_wire():
                     color=S.ACCENT, fontweight="bold")
 
     axes[1].set_xlabel("전선 위 위치 (cm)")
-    fig.suptitle("그림 M00-3  10 cm 전선 위의 순간 전압 분포", fontweight="bold")
+    fig.suptitle("그림 M00-2  10 cm 전선 위의 순간 전압 분포", fontweight="bold")
     fig.tight_layout()
     S.save(fig, "M00", "voltage_along_wire")
 
@@ -356,7 +356,7 @@ def m02_standing_wave():
                     va="center", bbox=dict(fc="white", ec=S.GRID, alpha=0.92))
 
     axes[0].set_ylabel("전압 (정규화)")
-    fig.suptitle("그림 M02-3  전송선 위의 정재파 — 얇은 선은 여러 순간, 굵은 선은 포락선",
+    fig.suptitle("그림 M02-2  전송선 위의 정재파 — 얇은 선은 여러 순간, 굵은 선은 포락선",
                  fontweight="bold", fontsize=11)
     fig.tight_layout()
     S.save(fig, "M02", "standing_wave")
@@ -393,7 +393,7 @@ def m02_gamma_vswr_rl():
                      bbox=dict(fc="white", ec=S.ACCENT, alpha=0.92, lw=0.7),
                      arrowprops=dict(arrowstyle="->", color=S.ACCENT, lw=1.0))
 
-    ax1.set_title("그림 M02-4  Γ · VSWR · 반사손실은 같은 것의 세 얼굴")
+    ax1.set_title("그림 M02-3  Γ · VSWR · 반사손실은 같은 것의 세 얼굴")
     S.save(fig, "M02", "gamma_vswr_rl")
 
 
@@ -435,7 +435,7 @@ def m02_coax_tradeoff():
     ax.set_ylim(0.95, 3.0)
     ax.set_xlabel("동축선 특성 임피던스 Z₀ (Ω, 공기 유전체)")
     ax.set_ylabel("정규화 지표 (1 = 그 항목의 최적)")
-    ax.set_title("그림 M02-6  50 Ω의 유래 — 세 최적점의 절충")
+    ax.set_title("그림 M02-4  50 Ω의 유래 — 세 최적점의 절충")
     ax.legend(loc="lower right", fontsize=8.6, framealpha=0.95)
     S.save(fig, "M02", "coax_tradeoff")
 
@@ -485,7 +485,7 @@ def m02_microstrip():
 
     ax.set_xlabel("선폭 / 기판 두께  (W/h)")
     ax.set_ylabel("특성 임피던스 Z₀ (Ω)")
-    ax.set_title("그림 M02-7  마이크로스트립 Z₀ (Hammerstad 근사식)")
+    ax.set_title("그림 M02-6  마이크로스트립 Z₀ (Hammerstad 근사식)")
     ax.set_ylim(10, 200)
     ax.legend(fontsize=9)
     S.plain_log(ax, "x")
@@ -549,7 +549,7 @@ def m03_smith_anatomy():
     ax.legend(loc="lower center", bbox_to_anchor=(0.5, -0.09), fontsize=8.8,
               framealpha=0.95)
 
-    ax.set_title("그림 M03-3  스미스 차트 해부도", fontweight="bold")
+    ax.set_title("그림 M03-2  스미스 차트 해부도", fontweight="bold")
     S.save(fig, "M03", "smith_anatomy")
 
 

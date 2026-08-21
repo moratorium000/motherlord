@@ -987,6 +987,8 @@ data = inst.query("CALC:DATA? SDATA")
 | ACLR | Adjacent Channel Leakage Ratio | 인접채널 누설비 (→ M13) |
 | EIRP | Equivalent Isotropically Radiated Power | 등가등방복사전력 (→ M10·M12) |
 | ISO/IEC | International Organization for Standardization / International Electrotechnical Commission | 국제표준화기구 / 국제전기기술위원회 |
+| LC | Inductor-Capacitor | 인덕터-커패시터 |
+| RF | Radio Frequency | 무선 주파수 |
 
 ---
 

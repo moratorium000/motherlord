@@ -253,7 +253,7 @@ def m10_vswr():
     ax.set_title("그래서 실제로 잃는 전력은?", fontsize=10.5)
     ax.grid(alpha=0.45)
 
-    fig.suptitle("그림 M10-3  VSWR 2:1 은 정말 얼마나 나쁜가", fontweight="bold")
+    fig.suptitle("그림 M10-4  VSWR 2:1 은 정말 얼마나 나쁜가", fontweight="bold")
     fig.tight_layout()
     S.save(fig, "M10", "vswr")
     return {f"{vv}": dict(g=(vv - 1) / (vv + 1),
@@ -301,7 +301,7 @@ def m10_nearfield():
     ax.xaxis.set_minor_formatter(lambda *_: "")
     ax.set_xlabel("안테나의 최대 치수 D")
     ax.set_ylabel("원거리장 시작 거리  2D²/λ  (m)")
-    ax.set_title("그림 M10-4  원거리장은 얼마나 멀리서 시작하는가")
+    ax.set_title("그림 M10-3  원거리장은 얼마나 멀리서 시작하는가")
     ax.set_ylim(1e-3, 1e4)
     ax.grid(which="both", alpha=0.35)
     ax.legend(fontsize=9, loc="lower right")
@@ -390,7 +390,7 @@ def m10_linkbudget():
                         "② LEO 위성 하향 링크 (2.2 GHz, 1000 km)", l_leo)
     axes[1].set_ylim(-130, 45)
 
-    fig.suptitle("그림 M10-6  링크 버짓 — 더하고 빼면 끝난다", fontweight="bold")
+    fig.suptitle("그림 M10-7  링크 버짓 — 더하고 빼면 끝난다", fontweight="bold")
     fig.tight_layout()
     S.save(fig, "M10", "linkbudget")
     return dict(wifi_fspl=l_wifi, wifi_pr=pr_wifi,

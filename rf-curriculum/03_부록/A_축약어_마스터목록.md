@@ -53,12 +53,14 @@ NF                             ← 그 모듈 안에서 두 번째부터
 
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
+| ABCD | ABCD Parameters | ABCD 파라미터 | 2포트를 전압·전류로 기술하는 행렬. 종속 연결이 곱셈이 된다 | M03 |
 | ACLR | Adjacent Channel Leakage Ratio | 인접 채널 누설비 | 내 채널 전력 대비 옆 채널로 새는 전력의 비 | M13 |
 | ACPR | Adjacent Channel Power Ratio | 인접 채널 전력비 | ACLR과 사실상 같은 뜻. 규격에 따라 용어가 갈림 | M13 |
 | ADC | Analog-to-Digital Converter | 아날로그-디지털 변환기 | 아날로그 신호를 숫자로 바꾸는 소자 | M11 |
 | ADS | Advanced Design System | (상용 RF 설계 소프트웨어 이름) | Keysight의 회로·시스템 시뮬레이터 | M07 |
 | AGC | Automatic Gain Control | 자동 이득 제어 | 입력 세기에 따라 이득을 자동 조절하는 회로 | M11 |
 | AM | Amplitude Modulation | 진폭 변조 | 진폭에 정보를 싣는 변조 | M13 |
+| AWGN | Additive White Gaussian Noise | 가산 백색 가우스 잡음 | 모든 주파수에 고르게 퍼진 이론적 잡음 모형. 링크 해석의 기본 가정 | M13 |
 | AWR | (Microwave Office 계열 도구 이름) | — | Cadence의 RF 설계 소프트웨어 | M07 |
 
 ### B
@@ -70,16 +72,22 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | BJT | Bipolar Junction Transistor | 양극성 접합 트랜지스터 | 전류로 제어하는 트랜지스터 | M08 |
 | BNC | Bayonet Neill–Concelman | (커넥터 이름) | 돌려 끼우는 방식의 저주파용 동축 커넥터 | M04 |
 | BPF | Band Pass Filter | 대역 통과 필터 | 원하는 주파수 대역만 통과시키는 필터 | M07 |
+| BPSK | Binary Phase Shift Keying | 2진 위상 편이 변조 | 위상 두 개(0°, 180°)만 쓰는 가장 단순한 디지털 변조 | M13 |
 | BW | Bandwidth | 대역폭 | 신호나 회로가 차지하는 주파수 폭 | M01 |
 
 ### C
 
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
+| C0G | Class 1 Ceramic Dielectric (= NP0) | C0G 유전체 | 온도·전압에 거의 변하지 않는 세라믹 커패시터 등급. RF 정합용 | M06 |
 | CATR | Compact Antenna Test Range | 소형 안테나 시험장 | 반사경으로 원거리장을 만드는 측정 설비 | M10 |
+| CATV | Cable Television | 케이블 텔레비전 | 동축 케이블 방송망. 50 Ω이 아니라 75 Ω 계를 쓴다 | M02 |
 | CCDF | Complementary Cumulative Distribution Function | 상보 누적 분포 함수 | 첨두가 평균보다 얼마나 큰지 확률로 보는 그래프 | M13 |
 | CFR | Crest Factor Reduction | 첨두 저감 | 신호의 뾰족한 첨두를 깎아 PAPR을 줄이는 처리 | M13 |
+| CMOS | Complementary Metal-Oxide-Semiconductor | 상보형 금속 산화막 반도체 | 디지털·아날로그를 한 칩에 넣는 대표 반도체 공정 | M09 |
 | CP | Compression Point | 압축점 | 이득이 줄어들기 시작하는 지점 | M08 |
+| CST | CST Studio Suite | (상용 전자기 해석 소프트웨어 이름) | 3차원 전자기장 시뮬레이터. 안테나·구조물 해석에 쓴다 | 부록 D |
+| CTIA | Cellular Telecommunications and Internet Association | (미국 이동통신 산업 협회) | 단말 무선 성능(OTA) 시험 규격을 만드는 단체 | M10 |
 | CW | Continuous Wave | 연속파 | 변조 없이 계속 나오는 순수한 사인파 | M05 |
 
 ### D
@@ -98,9 +106,12 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | DC | Direct Current | 직류 | 시간에 따라 변하지 않는 전류/전압 | M01 |
 | DFM | Design for Manufacturability | 제조 용이성 설계 | 실제로 만들 수 있게 설계하는 일 | M17 |
 | Df | Dissipation Factor | 손실 탄젠트 | 기판 재료가 에너지를 얼마나 까먹는지 | M02 |
+| DIN | Deutsches Institut für Normung | 독일 표준화 기구 | 7/16 DIN 커넥터처럼 규격 이름 앞에 붙는다 | M04 |
 | Dk | Dielectric Constant | 유전율(비유전율) | 기판 재료가 전파 속도를 얼마나 늦추는지 | M02 |
 | DPD | Digital Predistortion | 디지털 사전왜곡 | 증폭기 왜곡을 미리 반대로 왜곡시켜 상쇄하는 기법 | M13 |
 | DR | Dynamic Range | 동적 범위 | 다룰 수 있는 가장 작은 신호와 큰 신호의 폭 | M12 |
+| DRO | Dielectric Resonator Oscillator | 유전체 공진 발진기 | 유전체 공진기로 주파수를 정하는 발진기. 위상잡음이 낮다 | M09 |
+| DSP | Digital Signal Processing | 디지털 신호 처리 | 표본으로 바꾼 신호를 계산으로 거르고 복조하는 단계 | M11 |
 | DUT | Device Under Test | 피시험 소자 | 지금 측정하고 있는 그 물건 | M04 |
 
 ### E
@@ -108,7 +119,9 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
 | ECal | Electronic Calibration | 전자식 교정 | 표준기를 손으로 바꿔 끼우지 않는 자동 교정 모듈 | M14 |
+| EHF | Extremely High Frequency | 초고주파 (30~300 GHz) | ITU 대역 구분의 하나. 밀리미터파 영역 | M00 |
 | EIRP | Effective Isotropic Radiated Power | 등가 등방성 복사 전력 | 송신 전력 × 안테나 이득. 규제가 이 값을 제한함 | M10 |
+| EM | Electromagnetic | 전자기 | EM 시뮬레이션 = 맥스웰 방정식을 직접 푸는 구조 해석 | M17 |
 | EMC | Electromagnetic Compatibility | 전자파 적합성 | 남에게 방해 안 하고 남의 방해도 견디는 성질 | M17 |
 | EMI | Electromagnetic Interference | 전자파 간섭 | 원치 않는 전자파 방해 | M17 |
 | ENOB | Effective Number of Bits | 유효 비트수 | ADC가 실제로 쓸모 있게 쓰는 비트 수 | M11 |
@@ -117,6 +130,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | ESD | Electrostatic Discharge | 정전기 방전 | 정전기가 튀어 소자를 죽이는 현상 | M04 |
 | ESL | Equivalent Series Inductance | 등가 직렬 인덕턴스 | 커패시터에 딸려 오는 기생 인덕턴스 | M06 |
 | ESR | Equivalent Series Resistance | 등가 직렬 저항 | 부품에 딸려 오는 기생 저항 | M06 |
+| ET | Envelope Tracking | 포락선 추종 | 신호 세기에 맞춰 전력 증폭기 전원을 실시간으로 낮춰 효율을 올리는 기법 | M08 |
 | ETSI | European Telecommunications Standards Institute | 유럽 전기통신 표준화 기구 | 유럽 무선 규격을 만드는 단체 | M13 |
 | EVM | Error Vector Magnitude | 오차 벡터 크기 | 받은 신호가 이상적 위치에서 얼마나 벗어났는지 | M13 |
 
@@ -128,8 +142,10 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | FCC | Federal Communications Commission | 미국 연방통신위원회 | 미국의 무선 규제 기관 | M13 |
 | FBAR | Film Bulk Acoustic Resonator | 박막 체적 음향 공진기 | BAW의 대표적 구현 방식 | M07 |
 | FDD | Frequency Division Duplex | 주파수 분할 이중통신 | 송신·수신에 다른 주파수를 쓰는 방식 | M11 |
+| FDTD | Finite-Difference Time-Domain | 시간영역 유한차분법 | 전자기장을 시간 격자로 푸는 수치 해석 방법 | M17 |
 | FET | Field Effect Transistor | 전계효과 트랜지스터 | 전압으로 제어하는 트랜지스터 | M08 |
 | FFT | Fast Fourier Transform | 고속 푸리에 변환 | 시간 신호를 주파수 성분으로 바꾸는 계산법 | M05 |
+| FM | Frequency Modulation | 주파수 변조 | 정보를 주파수 변화에 싣는 아날로그 변조. 라디오 방송에 쓴다 | M00 |
 | F_min | Minimum Noise Figure | 최소 잡음지수 | 소자가 낼 수 있는 가장 좋은 잡음지수 | M08 |
 | FR1 / FR2 | Frequency Range 1 / 2 | 주파수 범위 1 / 2 | 5G의 저주파 대역(~7 GHz) / 밀리미터파 대역 | M00 |
 | FR-4 | Flame Retardant 4 | (기판 재료 등급 이름) | 가장 흔한 유리섬유 기판. RF에서는 손실이 큼 | M17 |
@@ -140,6 +156,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
 | GCPW | Grounded Coplanar Waveguide | 접지형 코플래너 도파관 | 신호선 양옆에도 접지를 둔 기판 전송선 | M02 |
+| GND | Ground | 접지 | 회로도·보드에서 기준 전위. RF 에서는 '기준면'이자 '귀환 경로' | M17 |
 | GPIB | General Purpose Interface Bus | 범용 인터페이스 버스 | 옛날부터 쓰던 계측기 연결 규격 | M16 |
 | GUM | Guide to the Expression of Uncertainty in Measurement | 측정 불확도 표현 지침 | 불확도를 계산·표기하는 국제 지침 | M14 |
 
@@ -147,14 +164,23 @@ NF                             ← 그 모듈 안에서 두 번째부터
 
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
+| HFSS | High Frequency Structure Simulator | (상용 전자기 해석 소프트웨어 이름) | Ansys의 3차원 전자기장 시뮬레이터 | 부록 D |
+| HPBW | Half-Power Beamwidth | 반전력 빔폭 | 방사 패턴에서 최대값보다 3 dB 낮아지는 두 각도 사이의 폭 | M10 |
+| HF | High Frequency | 단파 (3~30 MHz) | ITU 대역 구분의 하나. 지구 반대편까지 닿는 전리층 반사로 유명 | M00 |
 | HPF | High Pass Filter | 고역 통과 필터 | 높은 주파수만 통과시키는 필터 | M07 |
+| HVLP | Hyper Very Low Profile (copper foil) | 초저조도 동박 | 표면이 아주 매끄러운 동박. 고주파 도체 손실을 줄인다 | M17 |
+| IC | Integrated Circuit | 집적 회로 | 여러 소자를 한 칩에 넣은 부품 | M02 |
 | I/Q | In-phase / Quadrature | 동상 / 직교 | 신호를 90° 어긋난 두 성분으로 나눈 표현 | M11 |
 | IF | Intermediate Frequency | 중간주파수 | RF와 기저대역 사이에 두는 중간 단계 주파수 | M09 |
+| IFBW | IF Bandwidth | 중간주파 대역폭 | VNA 수신부의 필터 폭. 좁힐수록 잡음은 줄고 측정은 느려진다 | M05 |
 | IIP2 / IIP3 | Input second/third-order Intercept Point | 입력 2차/3차 교차점 | 입력 기준으로 본 선형성 지표 | M08 |
 | IL | Insertion Loss | 삽입 손실 | 부품을 끼웠을 때 줄어드는 신호량 | M02 |
+| IM2 / IM5 | 2nd / 5th-order Intermodulation | 2차 · 5차 상호변조 | IM3 말고도 생기는 상호변조 성분. 차수마다 나타나는 위치가 다르다 | M08 |
 | IMD | Intermodulation Distortion | 상호변조 왜곡 | 두 신호가 섞여 새 주파수를 만드는 왜곡 | M08 |
 | IM3 | Third-order Intermodulation | 3차 상호변조 | 대역 안에 떨어져 특히 골치 아픈 왜곡 성분 | M08 |
+| IP2 / IP3 | 2nd / 3rd-order Intercept Point | 2차 · 3차 교차점 | 입력 기준이면 IIP2·IIP3, 출력 기준이면 OIP2·OIP3 | M08 |
 | IRM | Image Reject Mixer | 이미지 제거 믹서 | 이미지 주파수를 구조적으로 없애는 믹서 | M09 |
+| IRR | Image Rejection Ratio | 이미지 억압비 | 원하는 신호 대비 이미지 성분이 얼마나 작은가 (dB) | M11 |
 | ISM | Industrial, Scientific and Medical | 산업·과학·의료 (대역) | 면허 없이 쓸 수 있는 주파수 대역 | M13 |
 | ITU | International Telecommunication Union | 국제전기통신연합 | 주파수 국제 배분을 담당하는 UN 기구 | M13 |
 
@@ -165,9 +191,16 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | K-factor | Rollett Stability Factor | 롤렛 안정도 계수 | 증폭기가 발진하지 않을 조건을 판정하는 값 | M08 |
 | KC | Korea Certification | 국가통합인증마크 | 한국의 제품 인증 제도 | M17 |
 | kTB | — | 열잡음 전력 | 온도와 대역폭만으로 정해지는 잡음의 바닥 | M01 |
+| LAN | Local Area Network | 근거리 통신망 | 장비 자동화에서 LXI 장비를 잇는 이더넷 연결 | M16 |
+| LC | Inductor-Capacitor | 인덕터-커패시터 | L 과 C 만으로 만든 회로. LC 정합, LC 필터 | M02 |
+| LDO | Low-Dropout Regulator | 저전압강하 레귤레이터 | 입출력 전압 차가 작아도 동작하는 선형 전원. 잡음이 낮다 | M16 |
+| LEO | Low Earth Orbit | 저궤도 | 고도 수백 km 위성 궤도. 링크 버짓 예제에 쓴다 | M10 |
+| LISN | Line Impedance Stabilization Network | 선로 임피던스 안정화 회로망 | 전도 방사 시험에서 전원선 임피던스를 규격값으로 고정하는 장치 | M17 |
 | LNA | Low Noise Amplifier | 저잡음 증폭기 | 수신단 맨 앞에서 잡음을 최소로 하며 키우는 증폭기 | M08 |
 | LO | Local Oscillator | 국부 발진기 | 주파수를 옮기기 위해 믹서에 넣는 자체 신호 | M09 |
+| LOS | Line of Sight | 가시선 | 송수신 사이에 가로막는 것이 없는 경로 | M10 |
 | LPF | Low Pass Filter | 저역 통과 필터 | 낮은 주파수만 통과시키는 필터 | M07 |
+| LTCC | Low Temperature Co-fired Ceramic | 저온 동시소성 세라믹 | 세라믹 층을 겹쳐 구운 소형 필터·정합 부품 공정 | 캡스톤 |
 | LTE | Long Term Evolution | (4세대 이동통신 규격 이름) | 4G 이동통신 표준 | M13 |
 | LXI | LAN eXtensions for Instrumentation | 계측기용 LAN 확장 | 이더넷으로 계측기를 연결하는 규격 | M16 |
 
@@ -176,10 +209,15 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
 | MAG | Maximum Available Gain | 최대 가용 이득 | 입출력을 완벽히 정합했을 때 낼 수 있는 최대 이득 | M08 |
+| MCU | Microcontroller Unit | 마이크로컨트롤러 | 보드를 제어하는 작은 프로세서. 클록 하모닉의 발생원이기도 하다 | M17 |
 | MDS | Minimum Detectable Signal | 최소 검출 신호 | 겨우 알아볼 수 있는 가장 작은 신호 | M12 |
+| MIMO | Multiple-Input Multiple-Output | 다중 입출력 | 안테나를 여러 개 써서 같은 대역에 여러 신호를 동시에 보내는 방식 | M10 |
 | MMIC | Monolithic Microwave Integrated Circuit | 단일칩 마이크로파 집적회로 | RF 회로를 통째로 집적한 칩 | M08 |
+| MSPS | Mega-Samples Per Second | 초당 백만 표본 | ADC·DAC 의 표본화 속도 단위 | M11 |
 | NF | Noise Figure | 잡음지수 | 소자를 지나며 신호대잡음비가 얼마나 나빠지는지 (dB) | M08 |
 | NIST | National Institute of Standards and Technology | 미국 국립표준기술연구소 | 미국의 국가 계량 표준 기관 | M14 |
+| NP0 | Negative-Positive-Zero (temperature coefficient) | NP0 유전체 | 온도계수가 0에 가깝다는 뜻. C0G 와 같은 등급을 가리키는 다른 이름 | M06 |
+| NR | New Radio | 뉴 라디오 (5G 무선 규격) | 3GPP 가 정한 5G 무선접속 규격. FR1·FR2 대역을 쓴다 | M11 |
 | NSD | Noise Spectral Density | 잡음 스펙트럼 밀도 | 1 Hz당 잡음 전력 | M11 |
 | NTN | Non-Terrestrial Network | 비지상 네트워크 | 위성 등을 이용한 통신망 | M10 |
 
@@ -187,8 +225,10 @@ NF                             ← 그 모듈 안에서 두 번째부터
 
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
+| OCXO | Oven-Controlled Crystal Oscillator | 항온조 수정 발진기 | 수정을 항온조에 넣어 온도 변화를 없앤 기준 발진기. 가장 안정 | M09 |
 | OFDM | Orthogonal Frequency Division Multiplexing | 직교 주파수 분할 다중 | 수많은 좁은 반송파에 나눠 싣는 변조 방식 | M13 |
 | OIP3 | Output third-order Intercept Point | 출력 3차 교차점 | 출력 기준으로 본 선형성 지표 | M08 |
+| OSL | Open-Short-Load | 개방-단락-부하 | 1포트 VNA 교정에 쓰는 표준 세 개. SOL 과 같은 말 | M10 |
 | OTA | Over-The-Air | 공중 방사 (측정) | 케이블 대신 실제로 전파를 쏴서 하는 측정 | M10 |
 | P1dB | 1 dB Compression Point | 1 dB 압축점 | 이득이 1 dB 줄어드는 전력 수준 | M08 |
 | PA | Power Amplifier | 전력 증폭기 | 송신단 마지막에서 세게 키우는 증폭기 | M08 |
@@ -196,7 +236,9 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | PAPR | Peak-to-Average Power Ratio | 첨두대평균 전력비 | 신호의 첨두가 평균보다 몇 배나 큰지 | M13 |
 | PCB | Printed Circuit Board | 인쇄 회로 기판 | 부품을 얹고 배선을 새긴 판 | M17 |
 | PDN | Power Distribution Network | 전원 분배망 | 각 부품에 전원을 안정적으로 나눠 주는 회로 | M17 |
+| PER | Packet Error Rate | 패킷 오류율 | 받은 패킷 중 복구에 실패한 비율. 규격의 감도 판정 기준 | M12 |
 | PLL | Phase-Locked Loop | 위상동기루프 | 기준 신호에 위상을 맞춰 원하는 주파수를 만드는 회로 | M09 |
+| PSD | Power Spectral Density | 전력 스펙트럼 밀도 | 주파수 1 Hz 당 전력. 단위는 보통 dBm/Hz | M13 |
 | PTFE | Polytetrafluoroethylene | 폴리테트라플루오로에틸렌 | 손실이 매우 낮은 고급 기판 재료(테프론) | M17 |
 
 ### Q – R
@@ -207,12 +249,19 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | QAM | Quadrature Amplitude Modulation | 직교 진폭 변조 | 진폭과 위상을 함께 써서 정보를 싣는 변조 | M13 |
 | QPSK | Quadrature Phase Shift Keying | 4위상 편이 변조 | 위상 4개로 2비트씩 싣는 변조 | M13 |
 | RBW | Resolution Bandwidth | 분해능 대역폭 | 스펙트럼 분석기가 두 신호를 구별하는 능력 | M05 |
+| RC | Resistor-Capacitor | 저항-커패시터 | R 과 C 로 만든 회로. 증폭기 저주파 안정화에 쓴다 | M08 |
 | RED | Radio Equipment Directive | 무선기기 지침 | 유럽의 무선기기 규제 지침 (2014/53/EU) | M17 |
 | REFSENS | Reference Sensitivity | 기준 감도 | 3GPP가 정한 최소 수신 감도 요구값 | M13 |
 | RF | Radio Frequency | 무선 주파수 | 전파로 쓰이는 주파수 대역 전반 | M00 |
 | RL | Return Loss | 반사 손실 | 되돌아온 신호가 원신호보다 몇 dB 작은지 (클수록 좋음) | M02 |
+| RLC | Resistor-Inductor-Capacitor | 저항-인덕터-커패시터 | 공진 회로의 기본 3소자 모형 | M16 |
 | RMS | Root Mean Square | 제곱평균제곱근 | 변동하는 값의 실효값 | M01 |
+| RO3000 / RO4000 / RO4350B | Rogers RO4000 Series | (고주파 기판 재료 이름) | FR-4 보다 손실이 낮고 Dk 산포가 작은 기판. RO4350B 는 Dk 3.66 | M02 |
+| RRC | Root Raised Cosine | 제곱근 상승 코사인 | 송수신에 나눠 거는 대역 제한 필터. 심볼 간 간섭을 없앤다 | M15 |
 | RSS | Root Sum Square | 제곱합근 | 독립적인 오차들을 합치는 방법 | M12 |
+| RTF | Reverse Treated Foil | 역처리 동박 | 거친 면을 바깥으로 돌린 동박. 조도와 접착력의 절충 | M17 |
+| RTL-SDR | Realtek RTL2832U-based SDR | (저가 소프트웨어 정의 무선 수신기) | TV 튜너 칩을 쓴 2만 원대 수신기. T0 등급 실습 장비 | M11 |
+| RX / TX | Receive / Transmit | 수신 / 송신 | 블록도에서 수신 경로와 송신 경로를 가리키는 표시 | M00 |
 
 ### S
 
@@ -224,8 +273,12 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | SDR | Software Defined Radio | 소프트웨어 정의 무선 | 기능 대부분을 소프트웨어로 처리하는 무선기 | M11 |
 | SEM | Spectrum Emission Mask | 스펙트럼 방출 마스크 | 주파수별로 넘으면 안 되는 전력 한계선 | M13 |
 | SFDR | Spurious-Free Dynamic Range | 무스퓨리어스 동적 범위 | 가짜 신호에 묻히지 않고 볼 수 있는 범위 | M11 |
+| SHF | Super High Frequency | 초고주파 (3~30 GHz) | ITU 대역 구분의 하나. Wi-Fi·위성이 여기 든다 | M00 |
+| SHORT · OPEN · LOAD · THRU · LINE · REFLECT | (calibration standard names) | 단락 · 개방 · 부하 · 관통 · 선로 · 반사 표준 | VNA 교정에 쓰는 기준 소자들의 이름. SOLT 는 앞 네 개, TRL 은 관통·반사·선로를 쓴다 | M14 |
 | SMA | SubMiniature version A | (커넥터 이름) | RF에서 가장 흔한 소형 나사식 커넥터 | M04 |
+| SNDR | Signal-to-Noise and Distortion Ratio | 신호 대 잡음·왜곡비 | 잡음뿐 아니라 하모닉까지 포함해 계산한 SNR. ENOB 의 근거 | M11 |
 | SNR | Signal-to-Noise Ratio | 신호대잡음비 | 신호가 잡음보다 몇 dB 큰지 | M01 |
+| SOL | Short-Open-Load | 단락-개방-부하 | 1포트 교정 표준 세 개. OSL 과 같은 말 | M14 |
 | SOLR | Short-Open-Load-Reciprocal | (교정 방식 이름) | 스루 표준을 정확히 몰라도 되는 교정법 | M14 |
 | SOLT | Short-Open-Load-Thru | (교정 방식 이름) | 표준기 4종으로 하는 가장 흔한 VNA 교정 | M14 |
 | SPDT | Single Pole Double Throw | 단극쌍투 | 한 입력을 두 출력 중 하나로 보내는 스위치 | M07 |
@@ -236,17 +289,29 @@ NF                             ← 그 모듈 안에서 두 번째부터
 
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
+| T₀ | Reference Temperature (290 K) | 기준 온도 | 잡음지수 정의에 쓰는 약속된 온도 | M01 |
 | TCXO | Temperature Compensated Crystal Oscillator | 온도보상 수정발진기 | 온도가 변해도 주파수가 잘 안 변하는 발진기 | M09 |
 | TDD | Time Division Duplex | 시분할 이중통신 | 송신과 수신을 시간으로 나눠 번갈아 하는 방식 | M11 |
 | TDR | Time Domain Reflectometry | 시간 영역 반사 측정 | 반사가 **어느 위치**에서 생겼는지 찾는 기법 | M14 |
+| TEM | Transverse Electromagnetic | 횡전자기파 | 전기장·자기장이 모두 진행 방향에 수직인 모드. 동축선의 기본 모드 | M02 |
+| TNC | Threaded Neill-Concelman | (나사식 커넥터 계열) | BNC 를 나사식으로 바꾼 커넥터. 진동에 강하다 | M04 |
 | TRL | Thru-Reflect-Line | (교정 방식 이름) | 기판 위 측정에 유리한 VNA 교정법 | M14 |
-| T₀ | Reference Temperature (290 K) | 기준 온도 | 잡음지수 정의에 쓰는 약속된 온도 | M01 |
+| TS | Technical Specification | 기술 규격서 | 3GPP 문서 종류. TS 는 규격, TR 은 기술 보고서 | M13 |
 | UE | User Equipment | 사용자 단말 | 3GPP 용어로 휴대폰 등 단말기 | M13 |
+| UHF | Ultra High Frequency | 극초단파 (300 MHz~3 GHz) | ITU 대역 구분의 하나. 셀룰러 저대역이 여기 든다 | M00 |
+| USB | Universal Serial Bus | 범용 직렬 버스 | 장비 제어·데이터 내보내기에 쓰는 연결. VISA 가 지원한다 | M03 |
 | VBW | Video Bandwidth | 비디오 대역폭 | 트레이스를 매끄럽게 다듬는 필터 설정 | M05 |
 | VCO | Voltage Controlled Oscillator | 전압제어 발진기 | 전압으로 주파수를 바꾸는 발진기 | M09 |
+| VDD | Drain Supply Voltage | 드레인 공급 전압 | 전계효과 트랜지스터의 드레인에 거는 직류 전원 | M08 |
+| VGA | Variable Gain Amplifier | 가변 이득 증폭기 | 제어 전압으로 이득을 바꾸는 증폭기. AGC 의 실행부 | 캡스톤 |
+| VHF | Very High Frequency | 초단파 (30~300 MHz) | ITU 대역 구분의 하나. FM 방송이 여기 든다 | M00 |
 | VISA | Virtual Instrument Software Architecture | 가상 계측기 소프트웨어 구조 | 어떤 연결 방식이든 같은 방법으로 계측기를 다루게 해 주는 계층 | M16 |
+| VLP | Very Low Profile (copper foil) | 저조도 동박 | 표면 거칠기를 낮춘 동박. HVLP 보다는 거칠다 | M17 |
 | VNA | Vector Network Analyzer | 벡터 회로망 분석기 | S-파라미터를 크기와 위상까지 재는 장비 | M04 |
+| VRM | Voltage Regulator Module | 전압 조정 모듈 | 보드에 전원을 공급하는 스위칭 레귤레이터. PDN 의 출발점 | M17 |
 | VSWR | Voltage Standing Wave Ratio | 전압 정재파비 | 정합이 얼마나 잘 됐는지 나타내는 1 이상의 수 | M02 |
+| X7R / Y5V | Class 2 Ceramic Dielectric | X7R · Y5V 유전체 | 용량은 크지만 온도·직류 전압에 따라 값이 크게 변하는 등급. RF 정합에는 쓰지 않는다 | M06 |
+| XO | Crystal Oscillator | 수정 발진기 | 온도 보상이 없는 기본 수정 발진기. TCXO·OCXO 의 출발점 | M09 |
 | Z₀ | Characteristic Impedance | 특성 임피던스 | 전송선로가 지닌 고유 임피던스 (보통 50 Ω) | M02 |
 
 ---
@@ -304,6 +369,18 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | 하모닉 | Harmonic | M08 |
 | 회로망 분석기 | VNA | M04 |
 | 효율 | PAE | M08 |
+| 가변 이득 증폭기 | VGA | 캡스톤 |
+| 가시선 | LOS | M10 |
+| 다중 입출력 | MIMO | M10 |
+| 동박 조도 | HVLP / VLP / RTF | M17 |
+| 반전력 빔폭 | HPBW | M10 |
+| 상호변조 차수 | IM2 / IM3 / IM5 | M08 |
+| 수정 발진기 | XO / TCXO / OCXO | M09 |
+| 이미지 억압비 | IRR | M11 |
+| 전력 스펙트럼 밀도 | PSD | M13 |
+| 접지 | GND | M17 |
+| 패킷 오류율 | PER | M12 |
+| 횡전자기파 | TEM | M02 |
 
 ---
 
@@ -403,3 +480,4 @@ S11은 **다른 포트가 모두 기준 임피던스로 종단된 상태**에서
 |---|---|---|
 | v1.0 | 2026-08-20 | 최초 작성. 약 180개 항목, 혼동 짝 10종 |
 | — | 2026-08-20 | **검토 3회 완료.** 1차(사실): VSWR↔반사손실↔반사전력 환산표, EIRP−ERP=2.15 dB, OIP3=IIP3+이득을 계산으로 재검증 → 전부 일치. 2차(교육): §A.4 "혼동하기 쉬운 짝"을 초심자 실수 빈도순으로 재배열. 3차(구조): 설계서 §6.1 개념 소유권과 대조 → **삽입손실(IL)의 정의 모듈이 M07로 잘못 기재된 것을 M02로 정정** |
+| v1.1 | 2026-08-21 | **17단계 전체 구조 정합성 검토 반영.** `scripts/check_abbr.py` 로 본문 18개 모듈·캡스톤·부록을 훑어 **부록 A 에 없는 축약어 63종**을 찾아 §A.2 에 추가(ABCD·AWGN·C0G·CMOS·HPBW·HVLP·IFBW·IRR·LISN·MSPS·OCXO·PSD·RRC·SNDR·TEM·VGA·VRM·X7R 등). §A.3 한글 색인에 12항목 추가. 정의 모듈 칸은 각 축약어가 실제로 처음 쓰이는 문서를 검색해 정했다 |
