@@ -28,6 +28,7 @@ PNG_WIDTH = 1700          # 인쇄해도 뭉개지지 않을 만큼
 MMD_SCALE = "2"           # mermaid 는 2배로 그려야 글자가 선명하다
 
 SOURCES = (sorted((ROOT / "01_모듈").glob("*.md"))
+           + sorted((ROOT / "02_캡스톤").glob("*.md"))
            + sorted((ROOT / "03_부록").glob("*.md"))
            + sorted(ROOT.glob("00_*.md")))
 

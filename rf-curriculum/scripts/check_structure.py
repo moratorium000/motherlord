@@ -211,6 +211,10 @@ def h_body(txt: str) -> str:
                  " ", txt, flags=re.M | re.S)
     txt = re.sub(r"^### 6\.2 rfdh\.com[^\n]*$.*?(?=^#{2,3} )",
                  " ", txt, flags=re.M | re.S)
+    # 변경 이력은 "'스미스차트' → '스미스 차트'" 처럼 고치기 전 표기를 그대로
+    # 인용한다. 그것까지 세면 고칠 때마다 검사가 실패한다.
+    txt = re.sub(r"^#{2,3} [^\n]*변경 이력[^\n]*$.*?(?=^#{2,3} |\Z)",
+                 " ", txt, flags=re.M | re.S)
     return txt
 
 
