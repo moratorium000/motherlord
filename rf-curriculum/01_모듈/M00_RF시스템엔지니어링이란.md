@@ -148,7 +148,7 @@ flowchart TD
 
 출처: [Lockheed Martin — RF Systems Engineer](https://www.lockheedmartinjobs.com/job/huntsville/rf-systems-engineer/694/78970220048), [Velvet Jobs — RF Systems Engineer](https://www.velvetjobs.com/job-descriptions/rf-systems-engineer), [Velvet Jobs — RF Engineer](https://www.velvetjobs.com/job-descriptions/rf-engineer) (등급 D, 교차검증 3건)
 
-> 📌 밑줄 그을 부분은 **"모호한 요구로부터 명세를 만들어 낸다"** 입니다. 고객은 "잘 터지게 해 주세요"라고 말합니다. 이것을 "감도 −95 dBm @ 20 MHz 대역폭, NF ≤ 4 dB"로 번역하는 것이 이 직무의 핵심입니다. 그 번역 기술이 **M12(시스템 예산 설계)** 입니다.
+> 📌 밑줄 그을 부분은 **"모호한 요구로부터 명세를 만들어 낸다"** 입니다. 고객은 "잘 터지게 해 주세요"라고 말합니다. 이것을 "감도 −95 dBm @ 20 MHz 대역폭, NF ≤ 4 dB"로 번역하는 것이 이 직무가 하는 일입니다. 그 번역 기술이 **M12(시스템 예산 설계)** 입니다.
 
 ### 스펙 플로우다운 맛보기
 
