@@ -1,8 +1,13 @@
 # 교재를 한 권의 DOCX 로 묶기
 
-저장소의 마크다운 원본(모듈 M00–M13 · 부록 A/D/E · 커리큘럼 설계서)을
-**워드 문서 한 권**으로 만드는 도구입니다. 결과물은 `_build/` 아래에 나오며
-저장소에는 담지 않습니다 — 14 MB짜리 파생물이라 다시 만드는 편이 낫습니다.
+저장소의 마크다운 원본(모듈 본문 · 부록 A/D/E · 커리큘럼 설계서)을
+**워드 문서 한 권**으로 만드는 도구입니다. 결과물은 `_build/` 아래에 나오고,
+바로 열어 볼 수 있도록 **저장소 최상단에도 DOCX·PDF 를 함께 담아 둡니다**
+(`rf-curriculum/RF_시스템_엔지니어링_교재.docx` · `.pdf`). 모듈이 추가될
+때마다 다시 빌드해 갱신합니다.
+
+수록 모듈은 `build.py` 의 `PARTS` 목록이 정합니다 — **새 모듈을 쓰면 여기에
+한 줄 추가**해야 교재에 들어갑니다.
 
 ## 실행
 
@@ -14,7 +19,13 @@ python3 scripts/docx/render_assets.py            # 그림 -> PNG (한 번만)
 python3 scripts/docx/build.py                    # 본문 조립 -> DOCX
 ```
 
-결과: `_build/RF_시스템_엔지니어링_교재.docx` (A4, 약 364쪽)
+결과: `_build/RF_시스템_엔지니어링_교재.docx` (M16 까지 반영 시 목차 342항목 · 17.9 MB)
+
+PDF 는 LibreOffice 로 변환합니다.
+
+```bash
+soffice --headless --convert-to pdf --outdir _build _build/RF_시스템_엔지니어링_교재.docx
+```
 
 원본 마크다운만 고쳤다면 `build.py` 만 다시 돌리면 됩니다. 그림을 새로
 생성했거나 mermaid 블록을 고쳤다면 `render_assets.py` 부터 다시 돌립니다.
