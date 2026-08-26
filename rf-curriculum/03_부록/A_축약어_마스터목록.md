@@ -57,6 +57,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | ACLR | Adjacent Channel Leakage Ratio | 인접 채널 누설비 | 내 채널 전력 대비 옆 채널로 새는 전력의 비 | M13 |
 | ACPR | Adjacent Channel Power Ratio | 인접 채널 전력비 | ACLR과 사실상 같은 뜻. 규격에 따라 용어가 갈림 | M13 |
 | ADC | Analog-to-Digital Converter | 아날로그-디지털 변환기 | 아날로그 신호를 숫자로 바꾸는 소자 | M11 |
+| ADEV | Allan Deviation | 앨런 편차 | 평균 시간 τ 에 따른 주파수 안정도. 표준편차와 달리 표류가 섞여도 수렴한다 | B06 |
 | ADS | Advanced Design System | (상용 RF 설계 소프트웨어 이름) | Keysight의 회로·시스템 시뮬레이터 | M07 |
 | AFR | Automatic Fixture Removal | 자동 픽스처 제거 | 2x-Thru 쿠폰으로 픽스처를 반으로 갈라 빼내는 표준화된 방법 | 심화 B03 |
 | AGC | Automatic Gain Control | 자동 이득 제어 | 입력 세기에 따라 이득을 자동 조절하는 회로 | M11 |
@@ -262,6 +263,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
+| PSRR | Power Supply Rejection Ratio | 전원 잡음 제거비 | 전원의 리플이 출력으로 얼마나 덜 새는가. 나쁘면 전원 주파수가 스퍼로 선다 | B06 |
 | Q | Quality Factor | 품질 계수 | 공진이 얼마나 날카로운지, 손실이 얼마나 적은지 | M06 |
 | QAM | Quadrature Amplitude Modulation | 직교 진폭 변조 | 진폭과 위상을 함께 써서 정보를 싣는 변조 | M13 |
 | QB | Quiescent Bias | 정지 바이어스점 | 펄스 측정에서 펄스와 펄스 사이에 소자가 머무는 동작점. 트랩·온도 상태를 정한다 | B04 |
