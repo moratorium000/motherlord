@@ -234,6 +234,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | NR | New Radio | 뉴 라디오 (5G 무선 규격) | 3GPP 가 정한 5G 무선접속 규격. FR1·FR2 대역을 쓴다 | M11 |
 | NSD | Noise Spectral Density | 잡음 스펙트럼 밀도 | 1 Hz당 잡음 전력 | M11 |
 | NTN | Non-Terrestrial Network | 비지상 네트워크 | 위성 등을 이용한 통신망 | M10 |
+| NZC | Non-impedance-Corrected | 임피던스 보정 없음 | IEEE 370 의 2x-Thru 디임베딩 중 임피던스 프로파일을 살리지 않는 쪽 | 심화 B03 |
 
 ### O – P
 
@@ -337,6 +338,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | X7R / Y5V | Class 2 Ceramic Dielectric | X7R · Y5V 유전체 | 용량은 크지만 온도·직류 전압에 따라 값이 크게 변하는 등급. RF 정합에는 쓰지 않는다 | M06 |
 | XO | Crystal Oscillator | 수정 발진기 | 온도 보상이 없는 기본 수정 발진기. TCXO·OCXO 의 출발점 | M09 |
 | Z₀ | Characteristic Impedance | 특성 임피던스 | 전송선로가 지닌 고유 임피던스 (보통 50 Ω) | M02 |
+| ZC | Impedance-Corrected | 임피던스 보정 | IEEE 370 의 2x-Thru 디임베딩 중 임피던스 프로파일까지 살리는 쪽 | 심화 B03 |
 
 ---
 
@@ -507,3 +509,4 @@ S11은 **다른 포트가 모두 기준 임피던스로 종단된 상태**에서
 | v1.1 | 2026-08-21 | **17단계 전체 구조 정합성 검토 반영.** `scripts/check_abbr.py` 로 본문 18개 모듈·캡스톤·부록을 훑어 **부록 A 에 없는 축약어 63종**을 찾아 §A.2 에 추가(ABCD·AWGN·C0G·CMOS·HPBW·HVLP·IFBW·IRR·LISN·MSPS·OCXO·PSD·RRC·SNDR·TEM·VGA·VRM·X7R 등). §A.3 한글 색인에 12항목 추가. 정의 모듈 칸은 각 축약어가 실제로 처음 쓰이는 문서를 검색해 정했다 |
 | v1.2 | 2026-08-22 | **심화 과정(벤치 엔지니어) 설계서 반영.** 설계서가 쓰는 축약어 18종을 §A.2 에 추가(AFR·ATE·CMYK·DDJ·DJ·FA·Gage R&R·HALT·MSA·NPR·ndc·PJ·PM·RJ·Rn·SOA·TIS·TRP). 정의 모듈 칸의 '심화 BXX' 는 아직 집필 전인 모듈을 가리키는 앞선 참조다 | `scripts/check_abbr.py` 가 심화 폴더까지 훑도록 넓혀 자동 확인 |
 | v1.3 | 2026-08-22 | **심화 B01·B02 집필 반영.** 시간 영역에서 쓰는 축약어 6종 추가(DCD·GS/s·ISI·SPI·TJ·UI). 표제어에 `&` 가 든 항목(Gage R&R)을 검사기가 못 읽던 것과, 구간 끝 판정이 어긋나 T–Z 행이 §A.3 에 붙던 것을 함께 고쳤다 | `scripts/check_abbr.py` 자동 확인 |
+| v1.4 | 2026-08-22 | **심화 B03 집필 반영.** IEEE 370 의 두 디임베딩 방법 이름(NZC·ZC) 추가 | `scripts/check_abbr.py` 자동 확인 |

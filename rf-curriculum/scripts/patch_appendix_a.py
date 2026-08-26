@@ -252,6 +252,14 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
      "DJ + 2·Q(BER)·RJ. 오류율을 정해야 값이 정해진다", "심화 B02"),
     ("T – Z", "UI", "Unit Interval", "단위 구간",
      "한 비트가 차지하는 시간. 10 Gb/s 면 100 ps", "심화 B02"),
+    # ── B03 (다포트·차동과 픽스처) ────────────────────────────────────
+    ("M – N", "NZC", "Non-impedance-Corrected", "임피던스 보정 없음",
+     "IEEE 370 의 2x-Thru 디임베딩 중 임피던스 프로파일을 살리지 않는 쪽",
+     "심화 B03"),
+
+    ("T – Z", "ZC", "Impedance-Corrected", "임피던스 보정",
+     "IEEE 370 의 2x-Thru 디임베딩 중 임피던스 프로파일까지 살리는 쪽",
+     "심화 B03"),
 ]
 
 
