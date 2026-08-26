@@ -260,6 +260,17 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
     ("T – Z", "ZC", "Impedance-Corrected", "임피던스 보정",
      "IEEE 370 의 2x-Thru 디임베딩 중 임피던스 프로파일까지 살리는 쪽",
      "심화 B03"),
+    # B04 (심화 4단계) 에서 새로 들어온 것
+    ("Q – R", "QB", "Quiescent Bias", "정지 바이어스점",
+     "펄스 측정에서 펄스와 펄스 사이에 소자가 머무는 동작점. 트랩·온도 상태를 정한다",
+     "B04"),
+
+    ("T – Z", "VSA", "Vector Signal Analyzer", "벡터 신호 분석기",
+     "신호의 크기와 위상을 함께 캡처해 성상도·EVM·AM-PM 을 뽑는 분석기", "B04"),
+    ("T – Z", "VSG", "Vector Signal Generator", "벡터 신호 발생기",
+     "규격 변조 파형을 만들어 내보내는 신호원. 대신호 시험의 입력을 담당한다",
+     "B04"),
+
 ]
 
 

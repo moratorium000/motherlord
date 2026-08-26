@@ -264,6 +264,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 |---|---|---|---|---|
 | Q | Quality Factor | 품질 계수 | 공진이 얼마나 날카로운지, 손실이 얼마나 적은지 | M06 |
 | QAM | Quadrature Amplitude Modulation | 직교 진폭 변조 | 진폭과 위상을 함께 써서 정보를 싣는 변조 | M13 |
+| QB | Quiescent Bias | 정지 바이어스점 | 펄스 측정에서 펄스와 펄스 사이에 소자가 머무는 동작점. 트랩·온도 상태를 정한다 | B04 |
 | QPSK | Quadrature Phase Shift Keying | 4위상 편이 변조 | 위상 4개로 2비트씩 싣는 변조 | M13 |
 | RBW | Resolution Bandwidth | 분해능 대역폭 | 스펙트럼 분석기가 두 신호를 구별하는 능력 | M05 |
 | RC | Resistor-Capacitor | 저항-커패시터 | R 과 C 로 만든 회로. 증폭기 저주파 안정화에 쓴다 | M08 |
@@ -334,6 +335,8 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | VLP | Very Low Profile (copper foil) | 저조도 동박 | 표면 거칠기를 낮춘 동박. HVLP 보다는 거칠다 | M17 |
 | VNA | Vector Network Analyzer | 벡터 회로망 분석기 | S-파라미터를 크기와 위상까지 재는 장비 | M04 |
 | VRM | Voltage Regulator Module | 전압 조정 모듈 | 보드에 전원을 공급하는 스위칭 레귤레이터. PDN 의 출발점 | M17 |
+| VSA | Vector Signal Analyzer | 벡터 신호 분석기 | 신호의 크기와 위상을 함께 캡처해 성상도·EVM·AM-PM 을 뽑는 분석기 | B04 |
+| VSG | Vector Signal Generator | 벡터 신호 발생기 | 규격 변조 파형을 만들어 내보내는 신호원. 대신호 시험의 입력을 담당한다 | B04 |
 | VSWR | Voltage Standing Wave Ratio | 전압 정재파비 | 정합이 얼마나 잘 됐는지 나타내는 1 이상의 수 | M02 |
 | X7R / Y5V | Class 2 Ceramic Dielectric | X7R · Y5V 유전체 | 용량은 크지만 온도·직류 전압에 따라 값이 크게 변하는 등급. RF 정합에는 쓰지 않는다 | M06 |
 | XO | Crystal Oscillator | 수정 발진기 | 온도 보상이 없는 기본 수정 발진기. TCXO·OCXO 의 출발점 | M09 |
