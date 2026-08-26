@@ -182,6 +182,59 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
      "RF 정합에는 쓰지 않는다", "M06"),
     ("T – Z", "XO", "Crystal Oscillator", "수정 발진기",
      "온도 보상이 없는 기본 수정 발진기. TCXO·OCXO 의 출발점", "M09"),
+
+    # ── 심화 과정(B01–B12) 설계서에서 새로 쓰이는 축약어 ──────────────
+    # "정의 모듈" 은 아직 집필 전인 심화 모듈을 가리킨다. 앞을 가리키는
+    # 참조지만, 설계서를 읽는 사람에게는 지금 필요한 값이다.
+    ("A", "AFR", "Automatic Fixture Removal", "자동 픽스처 제거",
+     "2x-Thru 쿠폰으로 픽스처를 반으로 갈라 빼내는 표준화된 방법", "심화 B03"),
+    ("A", "ATE", "Automatic Test Equipment", "자동 시험 장비",
+     "양산 라인에서 초 단위로 걸러 내는 시험기. 벤치와 목적이 다르다", "심화 B12"),
+
+    ("C", "CMYK", "Cyan-Magenta-Yellow-Key(black)", "인쇄 4원색",
+     "인쇄용 색 지정 방식. 화면의 RGB 와 다르다", "인쇄"),
+
+    ("D", "DDJ", "Data-Dependent Jitter", "데이터 의존 지터",
+     "앞선 비트 패턴 때문에 생기는 지터. 결정성 지터의 한 갈래", "심화 B02"),
+    ("D", "DJ", "Deterministic Jitter", "결정성 지터",
+     "크기가 한정된 지터. 무작위 지터와 달리 최대값이 있다", "심화 B02"),
+
+    ("F", "FA", "Failure Analysis", "실패 분석",
+     "떨어진 물건이 왜 떨어졌는지 파고 들어가는 절차", "심화 B12"),
+
+    ("G", "GRR / Gage R&R", "Gage Repeatability and Reproducibility",
+     "게이지 반복성·재현성",
+     "측정 시스템 자체가 만드는 산포. %GRR 10 % 미만이면 양호", "심화 B11"),
+
+    ("H – I", "HALT", "Highly Accelerated Life Test", "고가속 수명 시험",
+     "규격보다 가혹한 조건으로 약한 곳을 빨리 드러내는 시험", "심화 B08"),
+
+    ("M – N", "MSA", "Measurement System Analysis", "측정 시스템 분석",
+     "측정값의 산포 중 측정계 몫이 얼마인지 가려내는 방법론", "심화 B11"),
+    ("M – N", "NPR", "Noise Power Ratio", "잡음 전력비",
+     "광대역 신호에 노치를 파고, 비선형이 그 노치를 얼마나 메우는지 보는 시험",
+     "심화 B04"),
+    ("M – N", "ndc", "number of distinct categories", "구별 범주 수",
+     "측정계가 나눌 수 있는 등급의 수. 5 이상이어야 쓸 만하다", "심화 B11"),
+
+    ("O – P", "PJ", "Periodic Jitter", "주기성 지터",
+     "전원·클럭 같은 주기적 원인이 만드는 지터", "심화 B02"),
+    ("O – P", "PM", "Phase Modulation", "위상 변조",
+     "위상잡음 측정에서 AM(진폭) 성분과 갈라 보는 쪽", "심화 B06"),
+
+    ("Q – R", "RJ", "Random Jitter", "무작위 지터",
+     "가우스 분포라 최대값이 없다. 오류율을 낮출수록 커진다", "심화 B02"),
+    ("Q – R", "Rn", "Equivalent Noise Resistance", "등가 잡음저항",
+     "소스 임피던스가 최적점에서 벗어날 때 NF 가 얼마나 빨리 나빠지는가",
+     "심화 B05"),
+
+    ("S", "SOA", "Safe Operating Area", "안전 동작 영역",
+     "전압·전류·시간의 조합 중 부품이 견디는 범위", "심화 B08"),
+
+    ("T – Z", "TIS", "Total Isotropic Sensitivity", "총등방감도",
+     "모든 방향에서 받은 감도를 구면 평균한 값. 측정에 오래 걸린다", "심화 B09"),
+    ("T – Z", "TRP", "Total Radiated Power", "총방사전력",
+     "모든 방향으로 나간 전력을 구면 적분한 값", "심화 B09"),
 ]
 
 
@@ -204,6 +257,56 @@ def main() -> int:
             continue
         row = f"| {abbr} | {eng} | {kor} | {gloss} | {mod} |"
 
+        m = re.search(rf"^### {re.escape(sec)}\s*$(.*?)(?=^#{{2,3}} |\Z)",
+                      text, re.M | re.S)
+        if not m:
+            print(f"[중단] 구간 '### {sec}' 를 찾지 못함")
+            return 1
+        block = m.group(1)
+
+        rows = [(mm.start(), mm.group(0), sort_key(mm.group(1)))
+                for mm in re.finditer(r"^\|\s*([^|]+?)\s*\|[^\n]*$",
+                                      block, re.M)
+                if not mm.group(1).startswith("-")
+                and mm.group(1).strip() != "약어"]
+        if not rows:
+            print(f"[중단] '### {sec}' 안에 표가 없음")
+            return 1
+
+        key = sort_key(abbr)
+        after = None
+        for start, line, k in rows:
+            if k < key:
+                after = (start, line)
+        if after is None:
+            insert_at = m.start(1) + rows[0][0]
+        else:
+            insert_at = m.start(1) + after[0] + len(after[1]) + 1
+
+        text = text[:insert_at] + row + "\n" + text[insert_at:]
+
+
+def sort_key(abbr: str) -> str:
+    return re.sub(r"[^A-Za-z0-9]", "", abbr).upper()
+
+
+def main() -> int:
+    text = PATH.read_text(encoding="utf-8")
+
+    existing = set()
+    for m in re.finditer(r"^\|\s*([^|]+?)\s*\|", text, re.M):
+        for tok in re.split(r"[/·]", m.group(1)):
+            existing.add(sort_key(tok))
+
+    added = 0
+    for sec, abbr, eng, kor, gloss, mod in ROWS:
+        if sort_key(abbr.split("/")[0].split("·")[0]) in existing:
+            print(f"  건너뜀(이미 있음): {abbr}")
+            continue
+        row = f"| {abbr} | {eng} | {kor} | {gloss} | {mod} |"
+
+        # 구간의 끝은 다음 ### 또는 다음 ## 이다. `###` 만 보면 마지막 구간
+        # (T – Z)이 다음 절(## A.3)을 통째로 삼켜, 행이 엉뚱한 표에 붙는다.
         m = re.search(rf"^### {re.escape(sec)}\s*$(.*?)(?=^#{{2,3}} |\Z)",
                       text, re.M | re.S)
         if not m:

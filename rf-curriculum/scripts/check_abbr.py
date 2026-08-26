@@ -31,7 +31,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 
 DOCS: dict[str, Path] = {}
-for sub in ("01_모듈", "02_캡스톤", "03_부록"):
+for sub in ("01_모듈", "02_캡스톤", "03_부록", "05_심화"):
     for p in sorted((ROOT / sub).glob("*.md")):
         DOCS[str(p.relative_to(ROOT))] = p
 for p in sorted(ROOT.glob("00_*.md")):
@@ -55,7 +55,7 @@ NOTE TIP WARN INFO TODO FIXME
 SCPI2 VISA2
 AB AC AN APX BD BSD CAP DD DE DOCX FORMAT FR GB JC MSG OUT RIGHT SR
 STEP SY TP TR VG WRONG XX ASCII OJT OCW
-HUBER SUHNER TDK MIT KRISS AWR CST
+HUBER SUHNER TDK MIT KRISS AWR CST ADV
 """.split())
 
 ABBR = re.compile(r"(?<![A-Za-z0-9])([A-Z][A-Z0-9]{1,7})(?![A-Za-z0-9])")
@@ -91,7 +91,7 @@ def used_in(t: str) -> set[str]:
 def table_terms(t: str) -> set[str]:
     """`| **NF** | Noise Figure | 잡음지수 |` 형태의 첫 칸을 모은다."""
     out: set[str] = set()
-    for m in re.finditer(r"^\|\s*\*{0,2}([A-Za-z][A-Za-z0-9_\-/·\s]{0,60}?)"
+    for m in re.finditer(r"^\|\s*\*{0,2}([A-Za-z][A-Za-z0-9_\-/·&\s]{0,60}?)"
                          r"\*{0,2}\s*\|[^|]*\|[^|]*\|", t, re.M):
         first = m.group(1).replace("_", "")
         toks = re.split(r"[/·\s]+", first)

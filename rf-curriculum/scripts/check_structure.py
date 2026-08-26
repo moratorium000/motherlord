@@ -39,7 +39,7 @@ def bad(kind: str, msg: str) -> None:
 
 def collect() -> dict[str, Path]:
     out: dict[str, Path] = {}
-    for sub in ("01_모듈", "02_캡스톤", "03_부록"):
+    for sub in ("01_모듈", "02_캡스톤", "03_부록", "05_심화"):
         for p in sorted((ROOT / sub).glob("*.md")):
             out[str(p.relative_to(ROOT))] = p
     for name in ("README.md",):
