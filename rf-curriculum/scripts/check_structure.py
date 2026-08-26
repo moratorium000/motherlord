@@ -52,10 +52,10 @@ def collect() -> dict[str, Path]:
 DOCS = collect()
 TEXT = {k: p.read_text(encoding="utf-8") for k, p in DOCS.items()}
 
-# 모듈 코드 → 상대 경로
+# 모듈 코드 → 상대 경로. 기본 과정 M00–M17 과 심화 과정 B01–B12 를 함께 본다.
 MOD_FILE: dict[str, str] = {}
 for key in DOCS:
-    m = re.match(r"01_모듈/(M\d\d)_", key)
+    m = re.match(r"01_모듈/(M\d\d)_", key) or re.match(r"05_심화/(B\d\d)_", key)
     if m:
         MOD_FILE[m.group(1)] = key
 
@@ -79,7 +79,7 @@ for key, txt in TEXT.items():
 # ------------------------------------------------------- A. 상호 참조 검사
 
 # `M12 §5`, `M12 §5.2`, `M08 §5` — 공백/비공백 모두 허용
-REF = re.compile(r"(M\d\d)\s*§\s*(\d+)")
+REF = re.compile(r"((?:M|B)\d\d)\s*§\s*(\d+)")
 
 ref_count = 0
 for key, txt in TEXT.items():
@@ -154,12 +154,12 @@ for code, key in sorted(MOD_FILE.items()):
 dupes = {c: v for c, v in owners.items() if len(set(v)) > 1}
 for c, v in sorted(dupes.items()):
     bad("D", f"개념 '{c}' 를 {', '.join(sorted(set(v)))} 가 함께 소유한다고 선언")
-notes.append(f"D. 소유 개념 {len(owners)}종 확인 ({len(MOD_FILE)}개 모듈)")
+notes.append(f"D. 소유 개념 {len(owners)}종 확인 ({len(MOD_FILE)}개 모듈 · 기본 + 심화)")
 
 
 # --------------------------------------------------------- E. 그림 번호 연속
 
-FIGCAP = re.compile(r"^\*그림\s+(M\d\d|P\d|C)-(\d+)\.", re.M)
+FIGCAP = re.compile(r"^\*그림\s+((?:M|B)\d\d|P\d|C)-(\d+)\.", re.M)
 for code, key in sorted(MOD_FILE.items()):
     nums = [int(m.group(2)) for m in FIGCAP.finditer(TEXT[key])
             if m.group(1) == code]
@@ -234,19 +234,30 @@ DESIGN = TEXT["00_커리큘럼_설계서_v1.2.md"]
 
 # 설계서에는 모듈별 시간표가 없고 트랙별 주당 시간만 있다(§8). 그래서
 # 여기서는 모듈이 분량을 빠짐없이 밝히는지와 총합만 본다.
-decl: dict[str, tuple[float, float]] = {}
+#
+# 기본 과정(M)과 심화 과정(B)은 트랙이 다르므로 **따로 센다.** 섞으면
+# 아래 J 검사가 기본 트랙 주차표를 심화 분량까지 포함해 대조하게 된다.
+decl: dict[str, tuple[float, float]] = {}       # 기본 과정만
+decl_adv: dict[str, tuple[float, float]] = {}   # 심화 과정만
 for code, key in sorted(MOD_FILE.items()):
     m = re.search(r"\*\*분량\*\*:\s*이론\s*([\d.]+)\s*h\s*\+\s*실습\s*([\d.]+)\s*h",
                   TEXT[key])
     if not m:
         bad("I", f"{key}: 머리말에 '이론 N h + 실습 N h' 표기가 없음")
         continue
-    decl[code] = (float(m.group(1)), float(m.group(2)))
+    (decl_adv if code.startswith("B") else decl)[code] = (float(m.group(1)),
+                                                          float(m.group(2)))
 
 th = sum(a for a, _ in decl.values())
 pr = sum(b for _, b in decl.values())
-notes.append(f"I. 모듈 {len(decl)}편 분량 표기 확인 · "
-             f"이론 {th:.0f} h + 실습 {pr:.0f} h = {th + pr:.0f} h")
+notes.append(f"I. 기본 모듈 {len(decl)}편 · 이론 {th:.0f} h + 실습 {pr:.0f} h "
+             f"= {th + pr:.0f} h")
+if decl_adv:
+    ta = sum(a for a, _ in decl_adv.values())
+    pa = sum(b for _, b in decl_adv.values())
+    notes.append(f"I. 심화 모듈 {len(decl_adv)}편 · 이론 {ta:.0f} h + "
+                 f"실습 {pa:.0f} h = {ta + pa:.0f} h "
+                 f"(계획 156 h 중 {(ta + pa) / 156 * 100:.0f} %)")
 
 
 # --------------------------------------------------- J. 주차표와 분량 대조

@@ -107,6 +107,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | dBμV | Decibel-microvolt | 데시벨마이크로볼트 | 1 μV 기준 전압. EMC 규격에서 자주 쓰임 | M01 |
 | DAC | Digital-to-Analog Converter | 디지털-아날로그 변환기 | 숫자를 아날로그 신호로 바꾸는 소자 | M11 |
 | DC | Direct Current | 직류 | 시간에 따라 변하지 않는 전류/전압 | M01 |
+| DCD | Duty Cycle Distortion | 듀티비 왜곡 | 1 과 0 의 폭이 달라 생기는 결정성 지터 | 심화 B02 |
 | DDJ | Data-Dependent Jitter | 데이터 의존 지터 | 앞선 비트 패턴 때문에 생기는 지터. 결정성 지터의 한 갈래 | 심화 B02 |
 | DFM | Design for Manufacturability | 제조 용이성 설계 | 실제로 만들 수 있게 설계하는 일 | M17 |
 | Df | Dissipation Factor | 손실 탄젠트 | 기판 재료가 에너지를 얼마나 까먹는지 | M02 |
@@ -165,6 +166,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | GND | Ground | 접지 | 회로도·보드에서 기준 전위. RF 에서는 '기준면'이자 '귀환 경로' | M17 |
 | GPIB | General Purpose Interface Bus | 범용 인터페이스 버스 | 옛날부터 쓰던 계측기 연결 규격 | M16 |
 | GRR / Gage R&R | Gage Repeatability and Reproducibility | 게이지 반복성·재현성 | 측정 시스템 자체가 만드는 산포. %GRR 10 % 미만이면 양호 | 심화 B11 |
+| GS/s | Giga-Samples per second | 초당 십억 표본 | 오실로스코프의 표본화 속도 단위. 대역폭과는 다른 사양이다 | 심화 B02 |
 | GUM | Guide to the Expression of Uncertainty in Measurement | 측정 불확도 표현 지침 | 불확도를 계산·표기하는 국제 지침 | M14 |
 
 ### H – I
@@ -189,6 +191,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | IP2 / IP3 | 2nd / 3rd-order Intercept Point | 2차 · 3차 교차점 | 입력 기준이면 IIP2·IIP3, 출력 기준이면 OIP2·OIP3 | M08 |
 | IRM | Image Reject Mixer | 이미지 제거 믹서 | 이미지 주파수를 구조적으로 없애는 믹서 | M09 |
 | IRR | Image Rejection Ratio | 이미지 억압비 | 원하는 신호 대비 이미지 성분이 얼마나 작은가 (dB) | M11 |
+| ISI | Inter-Symbol Interference | 부호 간 간섭 | 채널 대역이 좁아 앞 심볼이 다음 심볼에 남는 현상 | M13 |
 | ISM | Industrial, Scientific and Medical | 산업·과학·의료 (대역) | 면허 없이 쓸 수 있는 주파수 대역 | M13 |
 | ITU | International Telecommunication Union | 국제전기통신연합 | 주파수 국제 배분을 담당하는 UN 기구 | M13 |
 
@@ -298,6 +301,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | SOLR | Short-Open-Load-Reciprocal | (교정 방식 이름) | 스루 표준을 정확히 몰라도 되는 교정법 | M14 |
 | SOLT | Short-Open-Load-Thru | (교정 방식 이름) | 표준기 4종으로 하는 가장 흔한 VNA 교정 | M14 |
 | SPDT | Single Pole Double Throw | 단극쌍투 | 한 입력을 두 출력 중 하나로 보내는 스위치 | M07 |
+| SPI | Serial Peripheral Interface | 직렬 주변장치 인터페이스 | RF 모듈의 레지스터를 읽고 쓰는 데 흔히 쓰는 4선 버스 | 심화 B02 |
 | SRF | Self-Resonant Frequency | 자기공진주파수 | 이 위에서는 커패시터가 인덕터처럼 행동하는 경계 | M06 |
 | SWR | Standing Wave Ratio | 정재파비 | VSWR과 같은 말 | M02 |
 
@@ -311,12 +315,14 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | TDR | Time Domain Reflectometry | 시간 영역 반사 측정 | 반사가 **어느 위치**에서 생겼는지 찾는 기법 | M14 |
 | TEM | Transverse Electromagnetic | 횡전자기파 | 전기장·자기장이 모두 진행 방향에 수직인 모드. 동축선의 기본 모드 | M02 |
 | TIS | Total Isotropic Sensitivity | 총등방감도 | 모든 방향에서 받은 감도를 구면 평균한 값. 측정에 오래 걸린다 | 심화 B09 |
+| TJ | Total Jitter | 총 지터 | DJ + 2·Q(BER)·RJ. 오류율을 정해야 값이 정해진다 | 심화 B02 |
 | TNC | Threaded Neill-Concelman | (나사식 커넥터 계열) | BNC 를 나사식으로 바꾼 커넥터. 진동에 강하다 | M04 |
 | TRL | Thru-Reflect-Line | (교정 방식 이름) | 기판 위 측정에 유리한 VNA 교정법 | M14 |
 | TRP | Total Radiated Power | 총방사전력 | 모든 방향으로 나간 전력을 구면 적분한 값 | 심화 B09 |
 | TS | Technical Specification | 기술 규격서 | 3GPP 문서 종류. TS 는 규격, TR 은 기술 보고서 | M13 |
 | UE | User Equipment | 사용자 단말 | 3GPP 용어로 휴대폰 등 단말기 | M13 |
 | UHF | Ultra High Frequency | 극초단파 (300 MHz~3 GHz) | ITU 대역 구분의 하나. 셀룰러 저대역이 여기 든다 | M00 |
+| UI | Unit Interval | 단위 구간 | 한 비트가 차지하는 시간. 10 Gb/s 면 100 ps | 심화 B02 |
 | USB | Universal Serial Bus | 범용 직렬 버스 | 장비 제어·데이터 내보내기에 쓰는 연결. VISA 가 지원한다 | M03 |
 | VBW | Video Bandwidth | 비디오 대역폭 | 트레이스를 매끄럽게 다듬는 필터 설정 | M05 |
 | VCO | Voltage Controlled Oscillator | 전압제어 발진기 | 전압으로 주파수를 바꾸는 발진기 | M09 |
@@ -500,3 +506,4 @@ S11은 **다른 포트가 모두 기준 임피던스로 종단된 상태**에서
 | — | 2026-08-20 | **검토 3회 완료.** 1차(사실): VSWR↔반사손실↔반사전력 환산표, EIRP−ERP=2.15 dB, OIP3=IIP3+이득을 계산으로 재검증 → 전부 일치. 2차(교육): §A.4 "혼동하기 쉬운 짝"을 초심자 실수 빈도순으로 재배열. 3차(구조): 설계서 §6.1 개념 소유권과 대조 → **삽입손실(IL)의 정의 모듈이 M07로 잘못 기재된 것을 M02로 정정** |
 | v1.1 | 2026-08-21 | **17단계 전체 구조 정합성 검토 반영.** `scripts/check_abbr.py` 로 본문 18개 모듈·캡스톤·부록을 훑어 **부록 A 에 없는 축약어 63종**을 찾아 §A.2 에 추가(ABCD·AWGN·C0G·CMOS·HPBW·HVLP·IFBW·IRR·LISN·MSPS·OCXO·PSD·RRC·SNDR·TEM·VGA·VRM·X7R 등). §A.3 한글 색인에 12항목 추가. 정의 모듈 칸은 각 축약어가 실제로 처음 쓰이는 문서를 검색해 정했다 |
 | v1.2 | 2026-08-22 | **심화 과정(벤치 엔지니어) 설계서 반영.** 설계서가 쓰는 축약어 18종을 §A.2 에 추가(AFR·ATE·CMYK·DDJ·DJ·FA·Gage R&R·HALT·MSA·NPR·ndc·PJ·PM·RJ·Rn·SOA·TIS·TRP). 정의 모듈 칸의 '심화 BXX' 는 아직 집필 전인 모듈을 가리키는 앞선 참조다 | `scripts/check_abbr.py` 가 심화 폴더까지 훑도록 넓혀 자동 확인 |
+| v1.3 | 2026-08-22 | **심화 B01·B02 집필 반영.** 시간 영역에서 쓰는 축약어 6종 추가(DCD·GS/s·ISI·SPI·TJ·UI). 표제어에 `&` 가 든 항목(Gage R&R)을 검사기가 못 읽던 것과, 구간 끝 판정이 어긋나 T–Z 행이 §A.3 에 붙던 것을 함께 고쳤다 | `scripts/check_abbr.py` 자동 확인 |

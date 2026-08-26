@@ -235,6 +235,23 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
      "모든 방향에서 받은 감도를 구면 평균한 값. 측정에 오래 걸린다", "심화 B09"),
     ("T – Z", "TRP", "Total Radiated Power", "총방사전력",
      "모든 방향으로 나간 전력을 구면 적분한 값", "심화 B09"),
+    # ── B01·B02 (심화 1~2단계) 에서 새로 쓰이는 축약어 ────────────────
+    ("D", "DCD", "Duty Cycle Distortion", "듀티비 왜곡",
+     "1 과 0 의 폭이 달라 생기는 결정성 지터", "심화 B02"),
+
+    ("G", "GS/s", "Giga-Samples per second", "초당 십억 표본",
+     "오실로스코프의 표본화 속도 단위. 대역폭과는 다른 사양이다", "심화 B02"),
+
+    ("H – I", "ISI", "Inter-Symbol Interference", "부호 간 간섭",
+     "채널 대역이 좁아 앞 심볼이 다음 심볼에 남는 현상", "M13"),
+
+    ("S", "SPI", "Serial Peripheral Interface", "직렬 주변장치 인터페이스",
+     "RF 모듈의 레지스터를 읽고 쓰는 데 흔히 쓰는 4선 버스", "심화 B02"),
+
+    ("T – Z", "TJ", "Total Jitter", "총 지터",
+     "DJ + 2·Q(BER)·RJ. 오류율을 정해야 값이 정해진다", "심화 B02"),
+    ("T – Z", "UI", "Unit Interval", "단위 구간",
+     "한 비트가 차지하는 시간. 10 Gb/s 면 100 ps", "심화 B02"),
 ]
 
 

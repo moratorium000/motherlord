@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # 번호를 바꿀 대상 문서. _build 는 빌드 산출물이라 제외한다.
 TARGETS: list[Path] = []
-for sub in ("01_모듈", "02_캡스톤", "03_부록"):
+for sub in ("01_모듈", "02_캡스톤", "03_부록", "05_심화"):
     TARGETS += sorted((ROOT / sub).glob("*.md"))
 TARGETS += sorted(ROOT.glob("00_*.md"))
 TARGETS.append(ROOT / "README.md")
@@ -42,8 +42,10 @@ def caption_order(code: str, text: str) -> list[int]:
 def main() -> int:
     plans: dict[str, dict[int, int]] = {}
 
-    for p in sorted((ROOT / "01_모듈").glob("M*.md")):
-        code = re.match(r"(M\d\d)", p.name).group(1)
+    mods = (sorted((ROOT / "01_모듈").glob("M*.md"))
+            + sorted((ROOT / "05_심화").glob("B*.md")))
+    for p in mods:
+        code = re.match(r"([MB]\d\d)", p.name).group(1)
         old = caption_order(code, p.read_text(encoding="utf-8"))
         if not old:
             continue

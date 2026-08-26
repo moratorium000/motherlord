@@ -64,7 +64,7 @@ ABBR = re.compile(r"(?<![A-Za-z0-9])([A-Z][A-Z0-9]{1,7})(?![A-Za-z0-9])")
 # C1, R2, U3), 로마 숫자, 밴드 번호(B7) 따위.
 NAMEISH = re.compile(
     r"^(?:M\d\d|L\d\d|P\d|Q\d+|S\d\d|B\d+|[A-Z]\d+|"
-    r"I{1,3}|IV|VI{0,3}|IX|XI{0,3}|CUR|AN\d+|SNAA\d+|WP\d+)$")
+    r"I{1,3}|IV|VI{0,3}|IX|XI{0,3}|CUR|AN\d+|SNAA\d+|WP\d+|SN\d+)$")
 
 
 def strip_code(t: str) -> str:
