@@ -327,6 +327,47 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
     ("Q – R", "RSSI", "Received Signal Strength Indicator", "수신 신호 세기 표시",
      "수신기가 스스로 보고하는 입력 세기. 감도 판정의 보조 지표", "B09"),
 
+    # B11 · B12 (심화 8단계) 에서 새로 들어온 것
+    ("A", "AIAG", "Automotive Industry Action Group",
+     "(미국 자동차 산업 협의체)",
+     "측정 시스템 분석(MSA) 편람을 펴내는 단체. %GRR·ndc 판정 기준의 출처",
+     "B11"),
+    ("A", "ANOVA", "Analysis of Variance", "분산분석",
+     "관측된 산포를 여러 원인의 몫으로 갈라내는 통계 방법", "B11"),
+    ("A", "ATE", "Automatic Test Equipment", "자동 시험 장비",
+     "양산 라인에서 초 단위로 걸러 내는 시험기. 벤치와 목적이 다르다", "B12"),
+    ("A", "AV", "Appraiser Variation", "측정자 산포",
+     "게이지 R&R 의 재현성 성분. 사람이나 장비가 바뀔 때 생기는 흔들림", "B11"),
+
+    ("E", "EV", "Equipment Variation", "장비 산포",
+     "게이지 R&R 의 반복성 성분. 같은 사람이 같은 것을 두 번 잴 때의 흔들림",
+     "B11"),
+
+    ("J – L", "LSL", "Lower Specification Limit", "규격 하한",
+     "합격으로 인정하는 값의 아래 끝. USL 과 짝을 이룬다", "B11"),
+
+    ("M – N", "MS", "Mean Square", "평균제곱",
+     "분산분석에서 제곱합을 자유도로 나눈 값. 분산 성분 계산의 재료", "B11"),
+
+    ("O – P", "PV", "Part Variation", "부품 산포",
+     "부품이 실제로 서로 다른 몫. 측정계가 만든 산포와 구별해야 한다", "B11"),
+
+    ("S", "SPC", "Statistical Process Control", "통계적 공정 관리",
+     "관리도로 공정의 변화를 감시하는 방법론. 이 커리큘럼의 범위 밖", "B11"),
+
+    ("T – Z", "TUR", "Test Uncertainty Ratio", "시험 불확도비",
+     "공차 폭을 확장 불확도의 2배로 나눈 값. 4:1 이면 가드밴드 없이도 "
+     "오수락 2 % 이하로 본다", "B12"),
+    ("T – Z", "TV", "Total Variation", "전체 산포",
+     "게이지 R&R 과 부품 산포를 제곱합으로 더한 것. 산포 대비 %GRR 의 분모",
+     "B11"),
+    ("T – Z", "USL", "Upper Specification Limit", "규격 상한",
+     "합격으로 인정하는 값의 위 끝. LSL 과 짝을 이룬다", "B11"),
+    ("T – Z", "UPH", "Units Per Hour", "시간당 처리량",
+     "시험 라인이 한 시간에 내보내는 개수. 양산 시험 원가의 분모", "B12"),
+    ("T – Z", "UTC", "Coordinated Universal Time", "협정 세계시",
+     "시각 기록의 기준. 라인 데이터의 시각 형식을 정할 때 정해 둔다", "B12"),
+
 ]
 
 

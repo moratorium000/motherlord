@@ -61,8 +61,11 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | ADS | Advanced Design System | (상용 RF 설계 소프트웨어 이름) | Keysight의 회로·시스템 시뮬레이터 | M07 |
 | AFR | Automatic Fixture Removal | 자동 픽스처 제거 | 2x-Thru 쿠폰으로 픽스처를 반으로 갈라 빼내는 표준화된 방법 | 심화 B03 |
 | AGC | Automatic Gain Control | 자동 이득 제어 | 입력 세기에 따라 이득을 자동 조절하는 회로 | M11 |
+| AIAG | Automotive Industry Action Group | (미국 자동차 산업 협의체) | 측정 시스템 분석(MSA) 편람을 펴내는 단체. %GRR·ndc 판정 기준의 출처 | B11 |
 | AM | Amplitude Modulation | 진폭 변조 | 진폭에 정보를 싣는 변조 | M13 |
+| ANOVA | Analysis of Variance | 분산분석 | 관측된 산포를 여러 원인의 몫으로 갈라내는 통계 방법 | B11 |
 | ATE | Automatic Test Equipment | 자동 시험 장비 | 양산 라인에서 초 단위로 걸러 내는 시험기. 벤치와 목적이 다르다 | 심화 B12 |
+| AV | Appraiser Variation | 측정자 산포 | 게이지 R&R 의 재현성 성분. 사람이나 장비가 바뀔 때 생기는 흔들림 | B11 |
 | AWGN | Additive White Gaussian Noise | 가산 백색 가우스 잡음 | 모든 주파수에 고르게 퍼진 이론적 잡음 모형. 링크 해석의 기본 가정 | M13 |
 | AWR | (Microwave Office 계열 도구 이름) | — | Cadence의 RF 설계 소프트웨어 | M07 |
 
@@ -143,6 +146,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | ESR | Equivalent Series Resistance | 등가 직렬 저항 | 부품에 딸려 오는 기생 저항 | M06 |
 | ET | Envelope Tracking | 포락선 추종 | 신호 세기에 맞춰 전력 증폭기 전원을 실시간으로 낮춰 효율을 올리는 기법 | M08 |
 | ETSI | European Telecommunications Standards Institute | 유럽 전기통신 표준화 기구 | 유럽 무선 규격을 만드는 단체 | M13 |
+| EV | Equipment Variation | 장비 산포 | 게이지 R&R 의 반복성 성분. 같은 사람이 같은 것을 두 번 잴 때의 흔들림 | B11 |
 | EVM | Error Vector Magnitude | 오차 벡터 크기 | 받은 신호가 이상적 위치에서 얼마나 벗어났는지 | M13 |
 
 ### F
@@ -220,6 +224,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | LO | Local Oscillator | 국부 발진기 | 주파수를 옮기기 위해 믹서에 넣는 자체 신호 | M09 |
 | LOS | Line of Sight | 가시선 | 송수신 사이에 가로막는 것이 없는 경로 | M10 |
 | LPF | Low Pass Filter | 저역 통과 필터 | 낮은 주파수만 통과시키는 필터 | M07 |
+| LSL | Lower Specification Limit | 규격 하한 | 합격으로 인정하는 값의 아래 끝. USL 과 짝을 이룬다 | B11 |
 | LTCC | Low Temperature Co-fired Ceramic | 저온 동시소성 세라믹 | 세라믹 층을 겹쳐 구운 소형 필터·정합 부품 공정 | 캡스톤 |
 | LTE | Long Term Evolution | (4세대 이동통신 규격 이름) | 4G 이동통신 표준 | M13 |
 | LXI | LAN eXtensions for Instrumentation | 계측기용 LAN 확장 | 이더넷으로 계측기를 연결하는 규격 | M16 |
@@ -234,6 +239,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | MIMO | Multiple-Input Multiple-Output | 다중 입출력 | 안테나를 여러 개 써서 같은 대역에 여러 신호를 동시에 보내는 방식 | M10 |
 | MIPI | Mobile Industry Processor Interface | 모바일 산업 프로세서 인터페이스 | 카메라·디스플레이를 잇는 고속 직렬 규격. 하모닉이 수신 대역을 자주 친다 | B10 |
 | MMIC | Monolithic Microwave Integrated Circuit | 단일칩 마이크로파 집적회로 | RF 회로를 통째로 집적한 칩 | M08 |
+| MS | Mean Square | 평균제곱 | 분산분석에서 제곱합을 자유도로 나눈 값. 분산 성분 계산의 재료 | B11 |
 | MSA | Measurement System Analysis | 측정 시스템 분석 | 측정값의 산포 중 측정계 몫이 얼마인지 가려내는 방법론 | 심화 B11 |
 | MSPS | Mega-Samples Per Second | 초당 백만 표본 | ADC·DAC 의 표본화 속도 단위 | M11 |
 | ndc | number of distinct categories | 구별 범주 수 | 측정계가 나눌 수 있는 등급의 수. 5 이상이어야 쓸 만하다 | 심화 B11 |
@@ -267,6 +273,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | PM | Phase Modulation | 위상 변조 | 위상잡음 측정에서 AM(진폭) 성분과 갈라 보는 쪽 | 심화 B06 |
 | PSD | Power Spectral Density | 전력 스펙트럼 밀도 | 주파수 1 Hz 당 전력. 단위는 보통 dBm/Hz | M13 |
 | PTFE | Polytetrafluoroethylene | 폴리테트라플루오로에틸렌 | 손실이 매우 낮은 고급 기판 재료(테프론) | M17 |
+| PV | Part Variation | 부품 산포 | 부품이 실제로 서로 다른 몫. 측정계가 만든 산포와 구별해야 한다 | B11 |
 
 ### Q – R
 
@@ -315,6 +322,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | SOL | Short-Open-Load | 단락-개방-부하 | 1포트 교정 표준 세 개. OSL 과 같은 말 | M14 |
 | SOLR | Short-Open-Load-Reciprocal | (교정 방식 이름) | 스루 표준을 정확히 몰라도 되는 교정법 | M14 |
 | SOLT | Short-Open-Load-Thru | (교정 방식 이름) | 표준기 4종으로 하는 가장 흔한 VNA 교정 | M14 |
+| SPC | Statistical Process Control | 통계적 공정 관리 | 관리도로 공정의 변화를 감시하는 방법론. 이 커리큘럼의 범위 밖 | B11 |
 | SPDT | Single Pole Double Throw | 단극쌍투 | 한 입력을 두 출력 중 하나로 보내는 스위치 | M07 |
 | SPI | Serial Peripheral Interface | 직렬 주변장치 인터페이스 | RF 모듈의 레지스터를 읽고 쓰는 데 흔히 쓰는 4선 버스 | 심화 B02 |
 | SRF | Self-Resonant Frequency | 자기공진주파수 | 이 위에서는 커패시터가 인덕터처럼 행동하는 경계 | M06 |
@@ -336,10 +344,15 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | TRL | Thru-Reflect-Line | (교정 방식 이름) | 기판 위 측정에 유리한 VNA 교정법 | M14 |
 | TRP | Total Radiated Power | 총방사전력 | 모든 방향으로 나간 전력을 구면 적분한 값 | 심화 B09 |
 | TS | Technical Specification | 기술 규격서 | 3GPP 문서 종류. TS 는 규격, TR 은 기술 보고서 | M13 |
+| TUR | Test Uncertainty Ratio | 시험 불확도비 | 공차 폭을 확장 불확도의 2배로 나눈 값. 4:1 이면 가드밴드 없이도 오수락 2 % 이하로 본다 | B12 |
+| TV | Total Variation | 전체 산포 | 게이지 R&R 과 부품 산포를 제곱합으로 더한 것. 산포 대비 %GRR 의 분모 | B11 |
 | UE | User Equipment | 사용자 단말 | 3GPP 용어로 휴대폰 등 단말기 | M13 |
 | UHF | Ultra High Frequency | 극초단파 (300 MHz~3 GHz) | ITU 대역 구분의 하나. 셀룰러 저대역이 여기 든다 | M00 |
 | UI | Unit Interval | 단위 구간 | 한 비트가 차지하는 시간. 10 Gb/s 면 100 ps | 심화 B02 |
+| UPH | Units Per Hour | 시간당 처리량 | 시험 라인이 한 시간에 내보내는 개수. 양산 시험 원가의 분모 | B12 |
 | USB | Universal Serial Bus | 범용 직렬 버스 | 장비 제어·데이터 내보내기에 쓰는 연결. VISA 가 지원한다 | M03 |
+| USL | Upper Specification Limit | 규격 상한 | 합격으로 인정하는 값의 위 끝. LSL 과 짝을 이룬다 | B11 |
+| UTC | Coordinated Universal Time | 협정 세계시 | 시각 기록의 기준. 라인 데이터의 시각 형식을 정할 때 정해 둔다 | B12 |
 | VBW | Video Bandwidth | 비디오 대역폭 | 트레이스를 매끄럽게 다듬는 필터 설정 | M05 |
 | VCO | Voltage Controlled Oscillator | 전압제어 발진기 | 전압으로 주파수를 바꾸는 발진기 | M09 |
 | VDD | Drain Supply Voltage | 드레인 공급 전압 | 전계효과 트랜지스터의 드레인에 거는 직류 전원 | M08 |
