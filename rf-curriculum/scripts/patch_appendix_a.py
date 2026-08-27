@@ -88,20 +88,20 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
     ("H – I", "IRR", "Image Rejection Ratio", "이미지 억압비",
      "원하는 신호 대비 이미지 성분이 얼마나 작은가 (dB)", "M11"),
 
-    ("K – L", "LAN", "Local Area Network", "근거리 통신망",
+    ("J – L", "LAN", "Local Area Network", "근거리 통신망",
      "장비 자동화에서 LXI 장비를 잇는 이더넷 연결", "M16"),
-    ("K – L", "LC", "Inductor-Capacitor", "인덕터-커패시터",
+    ("J – L", "LC", "Inductor-Capacitor", "인덕터-커패시터",
      "L 과 C 만으로 만든 회로. LC 정합, LC 필터", "M02"),
-    ("K – L", "LDO", "Low-Dropout Regulator", "저전압강하 레귤레이터",
+    ("J – L", "LDO", "Low-Dropout Regulator", "저전압강하 레귤레이터",
      "입출력 전압 차가 작아도 동작하는 선형 전원. 잡음이 낮다", "M16"),
-    ("K – L", "LEO", "Low Earth Orbit", "저궤도",
+    ("J – L", "LEO", "Low Earth Orbit", "저궤도",
      "고도 수백 km 위성 궤도. 링크 버짓 예제에 쓴다", "M10"),
-    ("K – L", "LISN", "Line Impedance Stabilization Network",
+    ("J – L", "LISN", "Line Impedance Stabilization Network",
      "선로 임피던스 안정화 회로망",
      "전도 방사 시험에서 전원선 임피던스를 규격값으로 고정하는 장치", "M17"),
-    ("K – L", "LOS", "Line of Sight", "가시선",
+    ("J – L", "LOS", "Line of Sight", "가시선",
      "송수신 사이에 가로막는 것이 없는 경로", "M10"),
-    ("K – L", "LTCC", "Low Temperature Co-fired Ceramic",
+    ("J – L", "LTCC", "Low Temperature Co-fired Ceramic",
      "저온 동시소성 세라믹",
      "세라믹 층을 겹쳐 구운 소형 필터·정합 부품 공정", "캡스톤"),
 
@@ -296,55 +296,38 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
      "클럭 주파수를 조금씩 흔들어 하모닉 봉우리를 퍼뜨리는 기법. "
      "총 에너지는 그대로다", "B07"),
 
+    # B09 · B10 (심화 7단계) 에서 새로 들어온 것
+    ("B", "BLE", "Bluetooth Low Energy", "저전력 블루투스",
+     "2.4 GHz 근거리 무선 규격. 디센스 시험에서 흔한 공존 상대다", "B10"),
+
+    ("D", "DDR", "Double Data Rate (SDRAM)", "양단 구동 메모리 인터페이스",
+     "클럭의 오르내림 양쪽에서 데이터를 실어 나르는 메모리 버스. "
+     "하모닉이 넓게 퍼져 디센스의 단골 발생원이다", "B10"),
+
+    ("E", "EIS", "Effective Isotropic Sensitivity", "유효 등방 감도",
+     "한 방향에서 규격 오류율을 겨우 맞추는 입사 전력. TIS 는 이것의 구면 평균",
+     "B09"),
+
+    ("G", "GNSS", "Global Navigation Satellite System", "전 지구 위성 항법 시스템",
+     "GPS·갈릴레오·베이더우를 아우르는 이름. 수신 전력이 낮아 디센스에 가장 약하다",
+     "B10"),
+
+    ("H – I", "IM", "Intermodulation", "상호변조",
+     "둘 이상의 신호가 비선형을 지나며 m·f1 ± n·f2 자리에 만드는 새 성분", "M08"),
+
+    ("J – L", "JTAG", "Joint Test Action Group", "(경계 주사 디버그 인터페이스)",
+     "칩·보드를 디버그하는 직렬 인터페이스. 켜 두면 그 자체가 간섭원이 된다",
+     "B10"),
+
+    ("M – N", "MIPI", "Mobile Industry Processor Interface",
+     "모바일 산업 프로세서 인터페이스",
+     "카메라·디스플레이를 잇는 고속 직렬 규격. 하모닉이 수신 대역을 자주 친다",
+     "B10"),
+
+    ("Q – R", "RSSI", "Received Signal Strength Indicator", "수신 신호 세기 표시",
+     "수신기가 스스로 보고하는 입력 세기. 감도 판정의 보조 지표", "B09"),
+
 ]
-
-
-def sort_key(abbr: str) -> str:
-    return re.sub(r"[^A-Za-z0-9]", "", abbr).upper()
-
-
-def main() -> int:
-    text = PATH.read_text(encoding="utf-8")
-
-    existing = set()
-    for m in re.finditer(r"^\|\s*([^|]+?)\s*\|", text, re.M):
-        for tok in re.split(r"[/·]", m.group(1)):
-            existing.add(sort_key(tok))
-
-    added = 0
-    for sec, abbr, eng, kor, gloss, mod in ROWS:
-        if sort_key(abbr.split("/")[0].split("·")[0]) in existing:
-            print(f"  건너뜀(이미 있음): {abbr}")
-            continue
-        row = f"| {abbr} | {eng} | {kor} | {gloss} | {mod} |"
-
-        m = re.search(rf"^### {re.escape(sec)}\s*$(.*?)(?=^#{{2,3}} |\Z)",
-                      text, re.M | re.S)
-        if not m:
-            print(f"[중단] 구간 '### {sec}' 를 찾지 못함")
-            return 1
-        block = m.group(1)
-
-        rows = [(mm.start(), mm.group(0), sort_key(mm.group(1)))
-                for mm in re.finditer(r"^\|\s*([^|]+?)\s*\|[^\n]*$",
-                                      block, re.M)
-                if not mm.group(1).startswith("-")
-                and mm.group(1).strip() != "약어"]
-        if not rows:
-            print(f"[중단] '### {sec}' 안에 표가 없음")
-            return 1
-
-        key = sort_key(abbr)
-        after = None
-        for start, line, k in rows:
-            if k < key:
-                after = (start, line)
-        if after is None:
-            insert_at = m.start(1) + rows[0][0]
-        else:
-            insert_at = m.start(1) + after[0] + len(after[1]) + 1
-
-        text = text[:insert_at] + row + "\n" + text[insert_at:]
 
 
 def sort_key(abbr: str) -> str:

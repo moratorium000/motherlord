@@ -73,6 +73,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | BAW | Bulk Acoustic Wave | 체적 탄성파 | 결정 내부를 통과하는 음향파를 쓰는 필터 기술 | M07 |
 | BER | Bit Error Rate | 비트 오류율 | 전송한 비트 중 틀린 비트의 비율 | M13 |
 | BJT | Bipolar Junction Transistor | 양극성 접합 트랜지스터 | 전류로 제어하는 트랜지스터 | M08 |
+| BLE | Bluetooth Low Energy | 저전력 블루투스 | 2.4 GHz 근거리 무선 규격. 디센스 시험에서 흔한 공존 상대다 | B10 |
 | BNC | Bayonet Neill–Concelman | (커넥터 이름) | 돌려 끼우는 방식의 저주파용 동축 커넥터 | M04 |
 | BPF | Band Pass Filter | 대역 통과 필터 | 원하는 주파수 대역만 통과시키는 필터 | M07 |
 | BPSK | Binary Phase Shift Keying | 2진 위상 편이 변조 | 위상 두 개(0°, 180°)만 쓰는 가장 단순한 디지털 변조 | M13 |
@@ -111,6 +112,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | DC | Direct Current | 직류 | 시간에 따라 변하지 않는 전류/전압 | M01 |
 | DCD | Duty Cycle Distortion | 듀티비 왜곡 | 1 과 0 의 폭이 달라 생기는 결정성 지터 | 심화 B02 |
 | DDJ | Data-Dependent Jitter | 데이터 의존 지터 | 앞선 비트 패턴 때문에 생기는 지터. 결정성 지터의 한 갈래 | 심화 B02 |
+| DDR | Double Data Rate (SDRAM) | 양단 구동 메모리 인터페이스 | 클럭의 오르내림 양쪽에서 데이터를 실어 나르는 메모리 버스. 하모닉이 넓게 퍼져 디센스의 단골 발생원이다 | B10 |
 | DFM | Design for Manufacturability | 제조 용이성 설계 | 실제로 만들 수 있게 설계하는 일 | M17 |
 | Df | Dissipation Factor | 손실 탄젠트 | 기판 재료가 에너지를 얼마나 까먹는지 | M02 |
 | DIN | Deutsches Institut für Normung | 독일 표준화 기구 | 7/16 DIN 커넥터처럼 규격 이름 앞에 붙는다 | M04 |
@@ -129,6 +131,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | ECal | Electronic Calibration | 전자식 교정 | 표준기를 손으로 바꿔 끼우지 않는 자동 교정 모듈 | M14 |
 | EHF | Extremely High Frequency | 초고주파 (30~300 GHz) | ITU 대역 구분의 하나. 밀리미터파 영역 | M00 |
 | EIRP | Effective Isotropic Radiated Power | 등가 등방성 복사 전력 | 송신 전력 × 안테나 이득. 규제가 이 값을 제한함 | M10 |
+| EIS | Effective Isotropic Sensitivity | 유효 등방 감도 | 한 방향에서 규격 오류율을 겨우 맞추는 입사 전력. TIS 는 이것의 구면 평균 | B09 |
 | EM | Electromagnetic | 전자기 | EM 시뮬레이션 = 맥스웰 방정식을 직접 푸는 구조 해석 | M17 |
 | EMC | Electromagnetic Compatibility | 전자파 적합성 | 남에게 방해 안 하고 남의 방해도 견디는 성질 | M17 |
 | EMI | Electromagnetic Interference | 전자파 간섭 | 원치 않는 전자파 방해 | M17 |
@@ -166,6 +169,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 |---|---|---|---|---|
 | GCPW | Grounded Coplanar Waveguide | 접지형 코플래너 도파관 | 신호선 양옆에도 접지를 둔 기판 전송선 | M02 |
 | GND | Ground | 접지 | 회로도·보드에서 기준 전위. RF 에서는 '기준면'이자 '귀환 경로' | M17 |
+| GNSS | Global Navigation Satellite System | 전 지구 위성 항법 시스템 | GPS·갈릴레오·베이더우를 아우르는 이름. 수신 전력이 낮아 디센스에 가장 약하다 | B10 |
 | GPIB | General Purpose Interface Bus | 범용 인터페이스 버스 | 옛날부터 쓰던 계측기 연결 규격 | M16 |
 | GRR / Gage R&R | Gage Repeatability and Reproducibility | 게이지 반복성·재현성 | 측정 시스템 자체가 만드는 산포. %GRR 10 % 미만이면 양호 | 심화 B11 |
 | GS/s | Giga-Samples per second | 초당 십억 표본 | 오실로스코프의 표본화 속도 단위. 대역폭과는 다른 사양이다 | 심화 B02 |
@@ -188,6 +192,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | IFBW | IF Bandwidth | 중간주파 대역폭 | VNA 수신부의 필터 폭. 좁힐수록 잡음은 줄고 측정은 느려진다 | M05 |
 | IIP2 / IIP3 | Input second/third-order Intercept Point | 입력 2차/3차 교차점 | 입력 기준으로 본 선형성 지표 | M08 |
 | IL | Insertion Loss | 삽입 손실 | 부품을 끼웠을 때 줄어드는 신호량 | M02 |
+| IM | Intermodulation | 상호변조 | 둘 이상의 신호가 비선형을 지나며 m·f1 ± n·f2 자리에 만드는 새 성분 | M08 |
 | IM2 / IM5 | 2nd / 5th-order Intermodulation | 2차 · 5차 상호변조 | IM3 말고도 생기는 상호변조 성분. 차수마다 나타나는 위치가 다르다 | M08 |
 | IMD | Intermodulation Distortion | 상호변조 왜곡 | 두 신호가 섞여 새 주파수를 만드는 왜곡 | M08 |
 | IM3 | Third-order Intermodulation | 3차 상호변조 | 대역 안에 떨어져 특히 골치 아픈 왜곡 성분 | M08 |
@@ -198,10 +203,11 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | ISM | Industrial, Scientific and Medical | 산업·과학·의료 (대역) | 면허 없이 쓸 수 있는 주파수 대역 | M13 |
 | ITU | International Telecommunication Union | 국제전기통신연합 | 주파수 국제 배분을 담당하는 UN 기구 | M13 |
 
-### K – L
+### J – L
 
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
+| JTAG | Joint Test Action Group | (경계 주사 디버그 인터페이스) | 칩·보드를 디버그하는 직렬 인터페이스. 켜 두면 그 자체가 간섭원이 된다 | B10 |
 | K-factor | Rollett Stability Factor | 롤렛 안정도 계수 | 증폭기가 발진하지 않을 조건을 판정하는 값 | M08 |
 | KC | Korea Certification | 국가통합인증마크 | 한국의 제품 인증 제도 | M17 |
 | kTB | — | 열잡음 전력 | 온도와 대역폭만으로 정해지는 잡음의 바닥 | M01 |
@@ -226,6 +232,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | MCU | Microcontroller Unit | 마이크로컨트롤러 | 보드를 제어하는 작은 프로세서. 클록 하모닉의 발생원이기도 하다 | M17 |
 | MDS | Minimum Detectable Signal | 최소 검출 신호 | 겨우 알아볼 수 있는 가장 작은 신호 | M12 |
 | MIMO | Multiple-Input Multiple-Output | 다중 입출력 | 안테나를 여러 개 써서 같은 대역에 여러 신호를 동시에 보내는 방식 | M10 |
+| MIPI | Mobile Industry Processor Interface | 모바일 산업 프로세서 인터페이스 | 카메라·디스플레이를 잇는 고속 직렬 규격. 하모닉이 수신 대역을 자주 친다 | B10 |
 | MMIC | Monolithic Microwave Integrated Circuit | 단일칩 마이크로파 집적회로 | RF 회로를 통째로 집적한 칩 | M08 |
 | MSA | Measurement System Analysis | 측정 시스템 분석 | 측정값의 산포 중 측정계 몫이 얼마인지 가려내는 방법론 | 심화 B11 |
 | MSPS | Mega-Samples Per Second | 초당 백만 표본 | ADC·DAC 의 표본화 속도 단위 | M11 |
@@ -283,6 +290,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | RO3000 / RO4000 / RO4350B | Rogers RO4000 Series | (고주파 기판 재료 이름) | FR-4 보다 손실이 낮고 Dk 산포가 작은 기판. RO4350B 는 Dk 3.66 | M02 |
 | RRC | Root Raised Cosine | 제곱근 상승 코사인 | 송수신에 나눠 거는 대역 제한 필터. 심볼 간 간섭을 없앤다 | M15 |
 | RSS | Root Sum Square | 제곱합근 | 독립적인 오차들을 합치는 방법 | M12 |
+| RSSI | Received Signal Strength Indicator | 수신 신호 세기 표시 | 수신기가 스스로 보고하는 입력 세기. 감도 판정의 보조 지표 | B09 |
 | RTF | Reverse Treated Foil | 역처리 동박 | 거친 면을 바깥으로 돌린 동박. 조도와 접착력의 절충 | M17 |
 | RTL-SDR | Realtek RTL2832U-based SDR | (저가 소프트웨어 정의 무선 수신기) | TV 튜너 칩을 쓴 2만 원대 수신기. T0 등급 실습 장비 | M11 |
 | RX / TX | Receive / Transmit | 수신 / 송신 | 블록도에서 수신 경로와 송신 경로를 가리키는 표시 | M00 |
