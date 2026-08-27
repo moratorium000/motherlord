@@ -78,6 +78,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | BJT | Bipolar Junction Transistor | 양극성 접합 트랜지스터 | 전류로 제어하는 트랜지스터 | M08 |
 | BLE | Bluetooth Low Energy | 저전력 블루투스 | 2.4 GHz 근거리 무선 규격. 디센스 시험에서 흔한 공존 상대다 | B10 |
 | BNC | Bayonet Neill–Concelman | (커넥터 이름) | 돌려 끼우는 방식의 저주파용 동축 커넥터 | M04 |
+| BOM | Bill of Materials | 자재 명세서 | 보드에 들어가는 부품의 목록과 수량. 받은 보드를 검증할 때 실물과 대조한다 | M17 |
 | BPF | Band Pass Filter | 대역 통과 필터 | 원하는 주파수 대역만 통과시키는 필터 | M07 |
 | BPSK | Binary Phase Shift Keying | 2진 위상 편이 변조 | 위상 두 개(0°, 180°)만 쓰는 가장 단순한 디지털 변조 | M13 |
 | BW | Bandwidth | 대역폭 | 신호나 회로가 차지하는 주파수 폭 | M01 |

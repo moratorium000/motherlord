@@ -368,6 +368,11 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
     ("T – Z", "UTC", "Coordinated Universal Time", "협정 세계시",
      "시각 기록의 기준. 라인 데이터의 시각 형식을 정할 때 정해 둔다", "B12"),
 
+    # 심화 캡스톤에서 새로 쓰이는 것
+    ("B", "BOM", "Bill of Materials", "자재 명세서",
+     "보드에 들어가는 부품의 목록과 수량. 받은 보드를 검증할 때 실물과 "
+     "대조한다", "M17"),
+
 ]
 
 
