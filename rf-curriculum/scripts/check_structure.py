@@ -255,9 +255,35 @@ notes.append(f"I. 기본 모듈 {len(decl)}편 · 이론 {th:.0f} h + 실습 {pr
 if decl_adv:
     ta = sum(a for a, _ in decl_adv.values())
     pa = sum(b for _, b in decl_adv.values())
+
+    # 심화 설계서 §5 의 계획표와 **모듈마다** 대조한다. 전에는 총합만 보고
+    # 넘어가 다섯 편이 ±1 h 씩 어긋난 채로 남아 있었다 — 총합은 서로
+    # 상쇄되어 2 h 밖에 안 벌어졌기 때문이다.
+    ADV = TEXT.get("05_심화/00_심화과정_설계서.md", "")
+    plan_adv: dict[str, tuple[float, float]] = {}
+    for m in re.finditer(r"^\|\s*\*\*(B\d\d)\*\*\s*\|[^|]*\|\s*([\d.]+)\s*h"
+                         r"\s*\|\s*([\d.]+)\s*h\s*\|", ADV, re.M):
+        plan_adv[m.group(1)] = (float(m.group(2)), float(m.group(3)))
+    if not plan_adv:
+        bad("I", "심화 설계서 §5 의 모듈 시간표를 못 읽었다")
+    for code, got in sorted(decl_adv.items()):
+        want = plan_adv.get(code)
+        if want is None:
+            bad("I", f"{code}: 심화 설계서 §5 계획표에 없다")
+        elif want != got:
+            bad("I", f"{code}: 머리표 이론 {got[0]:g} h + 실습 {got[1]:g} h 인데 "
+                     f"계획표는 {want[0]:g} h + {want[1]:g} h")
+    ms = re.search(r"^\|\s*\|\s*\*\*합계\*\*\s*\|\s*\*\*([\d.]+) h\*\*"
+                   r"\s*\|\s*\*\*([\d.]+) h\*\*", ADV, re.M)
+    if not ms:
+        bad("I", "심화 설계서 §5 의 합계 행을 못 읽었다")
+    elif (float(ms.group(1)), float(ms.group(2))) != (ta, pa):
+        bad("I", f"심화 설계서 §5 합계가 {ms.group(1)} h + {ms.group(2)} h 인데 "
+                 f"모듈 선언 합은 {ta:.0f} h + {pa:.0f} h")
+    plan_total = ta + pa if not ms else float(ms.group(1)) + float(ms.group(2))
     notes.append(f"I. 심화 모듈 {len(decl_adv)}편 · 이론 {ta:.0f} h + "
                  f"실습 {pa:.0f} h = {ta + pa:.0f} h "
-                 f"(계획 156 h 중 {(ta + pa) / 156 * 100:.0f} %)")
+                 f"(설계서 §5 계획표 {plan_total:.0f} h 와 모듈별 대조)")
 
 
 # --------------------------------------------------- J. 주차표와 분량 대조

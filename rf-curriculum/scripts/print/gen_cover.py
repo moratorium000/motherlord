@@ -29,7 +29,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import spec  # noqa: E402
 
 ROOT = spec.ROOT
-OUT = ROOT / "04_인쇄" / "표지_전개도.pdf"
+# 출력 이름은 권마다 다르다. main() 에서 spec.use() 뒤에 정한다.
 MM = spec.MM
 
 MARK_M = 10.0             # 재단선을 그릴 바깥 여백(mm)
@@ -156,10 +156,13 @@ def front(c, x0, y0, w, h, info):
 
     rule(c, x0 + 20 * MM, y0 + h - 80 * MM, x0 + 80 * MM)
 
+    cp = spec.copy()
+    text(c, x0 + 20 * MM, y0 + h - 38 * MM, cp["vol_tag"],
+         font="NB", size=12, color=CYAN, track=0.8)
     text(c, x0 + 20 * MM, y0 + h - 90 * MM,
-         "전기전자 초심자에서 실무자까지", font="N", size=13, color=WHITE)
+         cp["sub1"], font="N", size=13, color=WHITE)
     text(c, x0 + 20 * MM, y0 + h - 99 * MM,
-         "커리큘럼과 교육자료", font="NL", size=11, color=CYAN)
+         cp["sub2"], font="NL", size=11, color=CYAN)
 
     # 스미스 차트
     smith(c, cxm, y0 + 122 * MM, 46 * MM)
@@ -169,10 +172,10 @@ def front(c, x0, y0, w, h, info):
 
     # 아래 정보
     rule(c, x0 + 20 * MM, y0 + 42 * MM, x0 + w - 20 * MM, color=DIM, w=0.4)
-    text(c, x0 + 20 * MM, y0 + 33 * MM,
-         "본문 18개 모듈 · 캡스톤 · 부록 A–E", font="NB", size=10)
+    text(c, x0 + 20 * MM, y0 + 33 * MM, cp["contents"], font="NB", size=10)
+    n_fig, n_src = spec.count_figures_and_sources()
     text(c, x0 + 20 * MM, y0 + 25 * MM,
-         f"A4 {info['final_pages']}쪽 · 그림 139개 · 출처 166개",
+         f"A4 {info['final_pages']}쪽 · 그림 {n_fig}개 · 출처 {n_src}개",
          font="NL", size=9, color=PALE)
     text(c, x0 + w - 20 * MM, y0 + 25 * MM, spec.VERSION,
          font="NL", size=9, color=PALE, align="r")
@@ -190,12 +193,13 @@ def spine_panel(c, x0, y0, w, h):
     # 책등 한가운데에 맞추려면 기준선을 몸통 높이의 절반만큼 내려야 한다.
     # 이걸 빼먹으면 제목이 책등 한쪽으로 쏠린다 (처음에 실제로 그랬다).
     cap = 14 * 0.72 / 72 * 25.4        # 14 pt 글자의 대략적 몸통 높이(mm)
-    text(c, 0, -cap / 2 * MM, "RF 시스템 엔지니어링",
+    text(c, 0, -cap / 2 * MM,
+         f"RF 시스템 엔지니어링  {spec.copy()['vol_tag'].split(' ·')[0]}",
          font="NX", size=14, align="c")
 
     cap2 = 8 * 0.72 / 72 * 25.4
     text(c, h / 2 - 20 * MM, -cap2 / 2 * MM,
-         "M00–M17 · 캡스톤 · 부록", font="NL", size=8,
+         spec.copy()["spine_sub"], font="NL", size=8,
          color=PALE, align="r")
     c.restoreState()
 
@@ -216,13 +220,8 @@ def back(c, x0, y0, w, h, info):
     y = y0 + h - 30 * MM
     text(c, L, y, "무엇을 하는 책인가", font="NB", size=12, color=GOLD)
     y -= 10 * MM
-    y = para(c, L, y, [
-        "\"잘 터지게 해 주세요\" 라는 말을 받아",
-        "\"LNA 는 잡음지수 1.5 dB 이하\" 라는 숫자로 바꾸고,",
-        "그 숫자가 맞는지 장비로 재서 판정하는 일 — 그것이",
-        "RF 시스템 엔지니어의 일입니다. 이 책은 데시벨부터",
-        "시작해 거기까지 갑니다.",
-    ], font="N", size=9.5, lead=5.4)
+    cp = spec.copy()
+    y = para(c, L, y, cp["blurb"], font="N", size=9.5, lead=5.4)
 
     y -= 5 * MM
     rule(c, L, y, Rr, color=GREY, w=0.4)
@@ -230,17 +229,7 @@ def back(c, x0, y0, w, h, info):
 
     text(c, L, y, "차례", font="NB", size=11, color=GOLD)
     y -= 8 * MM
-    parts = [
-        ("Part 0", "RF 시스템 엔지니어링이란"),
-        ("Part I", "데시벨 · 전송선로 · S-파라미터"),
-        ("Part II", "RF 실험실 입문 · 첫 측정"),
-        ("Part III", "수동소자 · 필터 · 증폭기 · 주파수 변환"),
-        ("Part IV", "안테나 · 트랜시버 · 예산 설계 · 변조"),
-        ("Part V", "교정과 불확도 · 정밀 측정 · 검증과 튜닝 · 보드 설계"),
-        ("Part VI", "캡스톤 — 2.4 GHz 송수신 트랜시버"),
-        ("부록", "축약어 · 공식 치트시트 · 출처 · 장비 · 수학 보충"),
-    ]
-    for tag, body in parts:
+    for tag, body in cp["toc"]:
         text(c, L, y, tag, font="NB", size=8.5, color=CYAN)
         text(c, L + 20 * MM, y, body, font="NL", size=8.5, color=WHITE)
         y -= 5.6 * MM
@@ -251,12 +240,7 @@ def back(c, x0, y0, w, h, info):
 
     text(c, L, y, "이 책의 약속", font="NB", size=11, color=GOLD)
     y -= 8 * MM
-    para(c, L, y, [
-        "① 축약어는 처음 나올 때 원어와 우리말을 함께 적는다",
-        "② 개념마다 주인이 되는 모듈이 하나씩 있다",
-        "③ 모든 수치는 계산으로 확인했고 스크립트로 재현된다",
-        "④ 모든 사실에 출처와 신뢰 등급을 붙였다",
-    ], font="NL", size=8.5, lead=5.2)
+    para(c, L, y, cp["promises"], font="NL", size=8.5, lead=5.2)
 
     # 비는 자리에는 책이 실제로 내놓는 숫자를 넣는다. 표지의 빈 칸을
     # 장식으로 채우는 것보다 이쪽이 고르는 사람에게 쓸모가 있다.
@@ -264,12 +248,7 @@ def back(c, x0, y0, w, h, info):
     rule(c, L, y + 8 * MM, Rr, color=DIM, w=0.4)
     text(c, L, y, "이런 것을 계산합니다", font="NB", size=11, color=GOLD)
     y -= 8 * MM
-    for num, what in [
-        ("77 dB", "26 MHz 클럭을 대역 밖으로 못 옮길 때 필요한 격리"),
-        ("34.6배", "커패시터 한 종을 빼면 전원망 반공진이 넘는 배수"),
-        ("2.50 GHz", "100 × 75 mm 실드 캔이 공진하는 주파수"),
-        ("52 %", "확장불확도만큼 가드밴드를 두면 버리는 양품 비율"),
-    ]:
+    for num, what in cp["numbers"]:
         text(c, L, y, num, font="NB", size=9, color=CYAN)
         text(c, L + 22 * MM, y, what, font="NL", size=8.5, color=WHITE)
         y -= 5.6 * MM
@@ -295,7 +274,8 @@ def back(c, x0, y0, w, h, info):
     text(c, bx + bw / 2, by + bh / 2 - 1 * MM, "ISBN 바코드 자리",
          font="NL", size=7, color=CMYKColor(0, 0, 0, 0.55), align="c")
 
-    text(c, L, y0 + 20 * MM, "RF 시스템 엔지니어링 커리큘럼",
+    text(c, L, y0 + 20 * MM,
+         f"RF 시스템 엔지니어링 커리큘럼 · {cp['vol_tag']}",
          font="NB", size=8.5, color=WHITE)
     text(c, L, y0 + 15 * MM, spec.VERSION, font="NL", size=7.5, color=PALE)
 
@@ -322,6 +302,10 @@ def marks(c, tx0, ty0, tw, th, folds):
 
 
 def main() -> int:
+    global OUT
+    vol = int(next((a for a in sys.argv[1:] if a.isdigit()), "1"))
+    cp = spec.use(vol)
+    OUT = ROOT / "04_인쇄" / cp["cover_out"]
     register_fonts()
     info = spec.report()
     pages = info["final_pages"]
@@ -334,7 +318,7 @@ def main() -> int:
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     c = canvas.Canvas(str(OUT), pagesize=(media_w, media_h))
-    c.setTitle("RF 시스템 엔지니어링 — 표지 전개도")
+    c.setTitle(f"RF 시스템 엔지니어링 {cp['vol_tag']} — 표지 전개도")
     c.setAuthor("RF 시스템 엔지니어링 커리큘럼")
 
     tx0 = (spec.BLEED_MM + MARK_M) * MM

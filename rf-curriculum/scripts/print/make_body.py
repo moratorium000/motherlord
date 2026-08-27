@@ -33,6 +33,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import spec  # noqa: E402
 
 ROOT = spec.ROOT
+# 권마다 다르다. main() 에서 spec.use() 뒤에 정한다.
 SRC = spec.BODY_PDF
 OUT = ROOT / "04_인쇄" / "본문_인쇄용.pdf"
 MM = spec.MM
@@ -130,6 +131,10 @@ def blank(path: Path) -> None:
 
 # ─────────────────────────────────────────────────────────── 본체
 def main() -> int:
+    global SRC, OUT
+    vol = int(next((a for a in sys.argv[1:] if a.isdigit()), "1"))
+    cp = spec.use(vol)
+    SRC, OUT = spec.BODY_PDF, ROOT / "04_인쇄" / cp["body_out"]
     if not SRC.exists():
         sys.exit(f"본문 PDF 가 없습니다: {SRC}")
     register_fonts()
@@ -231,7 +236,7 @@ def verify(expect_pages: int) -> None:
             (f"{spec.GUTTER_MM:.0f} mm", "접지 여백"),
         ]:
             chk(want in txt, f"발주서의 {what} 표기 '{want}' 가 계산값과 같음")
-        cov = ROOT / "04_인쇄" / "표지_전개도.pdf"
+        cov = ROOT / "04_인쇄" / spec.copy()["cover_out"]
         if cov.exists():
             from pypdf import PdfReader
             box = PdfReader(str(cov)).pages[0]["/TrimBox"]

@@ -519,11 +519,11 @@ TIS 를 실제로 좋게 하는 것은 이것들입니다.
 
 | 주장 | 등급 | 출처 |
 |---|---|---|
-| TRP(TIS)는 적분 구면 위의 지정된 (θ, φ) 점에서 잰 EIRP(EIS⁻¹)의 가중합이다 | A | [CTIA 01.20 — 무선 기기 OTA 성능 시험 방법](https://ctiacertification.org/wp-content/uploads/2021/02/CTIA-01.20-Test-Methodology-SISO-Anechoic-Chamber-V4.0.0.pdf) · [CTIA OTA 시험계획서 Rev 3.4.1](https://api.ctia.org/docs/default-source/default-document-library/ctia_ota_test_plan_rev_3_4_1.pdf) |
-| TRP 시험에는 θ·φ 두 축 모두 15° 간격이 권고되며, 감도(TIS) 측정은 같은 구면 절차를 쓰되 각도 간격이 다르다 | A | [CTIA 01.20 시험 방법](https://ctiacertification.org/wp-content/uploads/2021/02/CTIA-01.20-Test-Methodology-SISO-Anechoic-Chamber-V4.0.0.pdf) · [Sensors — 5G 스마트워치 OTA 측정 격자 최적화](https://doi.org/10.3390/s25103185) |
-| 수신 감도 측정의 데이터 점은 θ·φ 축에서 30° 간격으로 취한다 | B | [WRC — CTIA/Verizon 인증 OTA 시험소](https://wrc-nc.org/our-services/ctia-verizon-authorized-ota-testing-lab/) · [CTIA OTA 시험계획서 Rev 3.3.2](https://api.ctia.org/docs/default-source/default-document-library/ctia_ota_test_plan_rev-3-3-2.pdf) |
-| TIS 는 시험 시간이 길어 이를 줄이는 대체 절차와 빠른 측정법이 연구·특허의 대상이 되어 왔다 | B | [CN107817391B — TIS 고속 측정법](https://patents.google.com/patent/CN107817391B/en) · [Toyotech — IoT 무선 기기의 OTA 측정: 과제와 해법](https://toyotechus.com/wp-content/uploads/OTA-Measurement-for-IoT-Wireless-Device-Performance-Evaluation-Challenges-and-Solutions.pdf) |
-| 측정 점을 무작위로 조정하거나 격자를 최적화해 OTA 시험 시간을 줄이는 방식이 제안되어 왔다 | C | [US10393786 — 무작위 조정 측정점 기반 OTA 시험](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/10393786) · [Sensors — 측정 격자 최적화](https://doi.org/10.3390/s25103185) |
+| TRP(TIS)는 적분 구면 위의 지정된 (θ, φ) 점에서 잰 EIRP(EIS⁻¹)의 가중합이다 | A, A | [CTIA 01.20 — 무선 기기 OTA 성능 시험 방법](https://ctiacertification.org/wp-content/uploads/2021/02/CTIA-01.20-Test-Methodology-SISO-Anechoic-Chamber-V4.0.0.pdf) · [CTIA OTA 시험계획서 Rev 3.4.1](https://api.ctia.org/docs/default-source/default-document-library/ctia_ota_test_plan_rev_3_4_1.pdf) |
+| TRP 시험에는 θ·φ 두 축 모두 15° 간격이 권고되며, 감도(TIS) 측정은 같은 구면 절차를 쓰되 각도 간격이 다르다 | A, B | [CTIA 01.20 시험 방법](https://ctiacertification.org/wp-content/uploads/2021/02/CTIA-01.20-Test-Methodology-SISO-Anechoic-Chamber-V4.0.0.pdf) · [Sensors — 5G 스마트워치 OTA 측정 격자 최적화](https://doi.org/10.3390/s25103185) |
+| 수신 감도 측정의 데이터 점은 θ·φ 축에서 30° 간격으로 취한다 | B, A | [WRC — CTIA/Verizon 인증 OTA 시험소](https://wrc-nc.org/our-services/ctia-verizon-authorized-ota-testing-lab/) · [CTIA OTA 시험계획서 Rev 3.3.2](https://api.ctia.org/docs/default-source/default-document-library/ctia_ota_test_plan_rev-3-3-2.pdf) |
+| TIS 는 시험 시간이 길어 이를 줄이는 대체 절차와 빠른 측정법이 연구·특허의 대상이 되어 왔다 | B, B | [CN107817391B — TIS 고속 측정법](https://patents.google.com/patent/CN107817391B/en) · [Toyotech — IoT 무선 기기의 OTA 측정: 과제와 해법](https://toyotechus.com/wp-content/uploads/OTA-Measurement-for-IoT-Wireless-Device-Performance-Evaluation-Challenges-and-Solutions.pdf) |
+| 측정 점을 무작위로 조정하거나 격자를 최적화해 OTA 시험 시간을 줄이는 방식이 제안되어 왔다 | B, B | [US10393786 — 무작위 조정 측정점 기반 OTA 시험](https://image-ppubs.uspto.gov/dirsearch-public/print/downloadPdf/10393786) · [Sensors — 측정 격자 최적화](https://doi.org/10.3390/s25103185) |
 
 **본문의 숫자는 전부 계산입니다.** `python3 scripts/gen_fig_b09.py` 를 실행하면 인용값이 출력되고 자체 검산 30항목이 함께 돕니다. 교차검증은 네 갈래입니다.
 

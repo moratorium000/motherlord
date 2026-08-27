@@ -13,7 +13,6 @@ sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import prep  # noqa: E402
 
 ROOT, BUILD, HERE = prep.ROOT, prep.BUILD, prep.HERE
-OUT_NAME = "RF_시스템_엔지니어링_교재.docx"
 
 
 def find_pandoc():
@@ -28,8 +27,20 @@ def find_pandoc():
         sys.exit("pandoc 이 없습니다.  pip install pypandoc_binary  후 다시 실행하십시오.")
 
 TITLE = "RF 시스템 엔지니어링"
-SUBTITLE = "전기전자 초심자에서 실무자까지 — 커리큘럼과 교육자료"
-DATE = "2026년 8월 21일 · v1.3 (본문 M00–M17 · 캡스톤 P1–P4 · 부록 A~E 전편)"
+
+# 두 권으로 나눈다. 기본 과정만으로도 A4 556쪽·책등 28.7 mm 라 심화를 얹으면
+# 한 권으로는 무선제본이 버티지 못한다. 나누는 자리는 독자가 갈리는 자리와
+# 같다 — 1권은 "배우는 사람", 2권은 "이미 보드를 받아 든 사람" 이다.
+VOL_META = {
+    1: dict(
+        subtitle="1권 · 기본 과정 — 전기전자 초심자에서 실무자까지",
+        date="2026년 8월 27일 · v1.4 (본문 M00–M17 · 캡스톤 P1–P4 · 부록 A~E)",
+        out="RF_시스템_엔지니어링_교재_1권_기본.docx"),
+    2: dict(
+        subtitle="2권 · 심화 과정 — 벤치 엔지니어",
+        date="2026년 8월 27일 · v1.0 (본문 B01–B12 · 심화 캡스톤 P1–P4 · 부록 A)",
+        out="RF_시스템_엔지니어링_교재_2권_심화.docx"),
+}
 
 # (Part 제목, 원본 폴더, 파일 이름들)
 PARTS = [
@@ -55,6 +66,24 @@ PARTS = [
 ]
 APPENDIX = ["A_축약어_마스터목록", "B_공식_치트시트", "C_출처_통합목록",
             "D_장비_소프트웨어_준비가이드", "E_수학_회로_보충"]
+
+# ── 2권 (심화 과정) ─────────────────────────────────────────────────────
+ADV_PARTS = [
+    ("Part A — 재는 법을 더 깊게", "05_심화",
+     ["B01_벤치방법론", "B02_시간영역", "B03_다포트차동과픽스처",
+      "B04_대신호", "B05_잡음파라미터", "B06_위상잡음심화"]),
+    ("Part B — 시스템에서 벌어지는 일", "05_심화",
+     ["B07_EMC벤치디버그", "B08_전원바이어스열",
+      "B09_안테나와OTA", "B10_시스템디버그"]),
+    ("Part C — 숫자를 믿게 만들기", "05_심화",
+     ["B11_측정시스템분석", "B12_양산이관"]),
+    ("Part D — 심화 캡스톤: 받은 보드를 양산으로", "05_심화",
+     ["AC00_심화캡스톤_과제정의서", "AC1_살려내기", "AC2_특성화",
+      "AC3_시스템시험과디버그", "AC4_신뢰확보와이관"]),
+]
+# 2권에는 부록 A(축약어)만 다시 싣는다. 약어는 읽는 중에 찾아야 하므로 손이
+# 닿는 곳에 있어야 하고, 나머지 부록은 1권을 가리키는 편이 지면에 맞는다.
+ADV_APPENDIX = ["A_축약어_마스터목록"]
 
 PAGEBREAK = prep.PAGEBREAK
 
@@ -232,28 +261,104 @@ def front_matter():
 
 전체 설계 — 모듈의 순서를 왜 그렇게 정했는지, 개념의 소유권을 어떻게 나눴는지 —
 는 이 책 끝의 **별첨 — 커리큘럼 설계서**에 있습니다.
+
+> 📖 **2권이 따로 있습니다.** 이 책을 마치고 **완성된 보드를 받아 살려내고,
+> 재고, 고쳐서, 양산으로 넘기는** 일을 하게 되면 *2권 · 심화 과정 — 벤치
+> 엔지니어* 로 이어집니다. B01–B12 열두 편과 심화 캡스톤이 들어 있습니다.
 """
 
 
-def assemble():
-    chunks = [front_matter()]
-    for part_title, folder, mods in PARTS:
+def front_matter_adv():
+    return f"""# 일러두기 — 2권
+
+이 책은 **1권(기본 과정 M00–M17 + 캡스톤)을 마친 사람**을 위한 것입니다.
+1권이 "이 값을 어떻게 재는가" 였다면 2권은 **"이 값을 믿어도 되는가, 아니면
+무엇을 더 해야 하는가"** 입니다. 완성된 보드를 받아 **살려내고, 재고,
+판정하고, 고쳐서, 양산으로 넘기는** 일 — 벤치 엔지니어의 일입니다.
+
+**범위**: 커넥터·보드·모듈·시스템 수준. **집적회로(Integrated Circuit, IC)
+내부는 다루지 않습니다.** 손에 인두와 프로브를 들고 할 수 있는 일까지입니다.
+
+**읽는 법** — 표시의 뜻은 1권과 같습니다.
+
+| 표시 | 뜻 |
+|---|---|
+| 📌 | 밑줄 그을 곳 |
+| ⚠️ | 틀리기 쉬운 곳, 함정 |
+| 💡 | 알아 두면 좋은 것 |
+| 📖 | 용어·문서 안내 |
+| **Lab** | 직접 해 보는 실습. T0은 소프트웨어만, T1은 저가 장비, T2는 실무 장비 |
+
+**이 책이 1권과 다른 점**
+
+1. **T2(실무 장비) 비중이 높습니다.** 그래서 모든 모듈에 **T0 대체 실습**을
+   함께 두고, **그 대체로는 무엇을 못 얻는지**도 함께 적었습니다.
+2. **모든 모듈이 자체 검산이 붙은 생성 스크립트를 가집니다.** `scripts/`
+   아래의 `gen_fig_b01.py` ~ `gen_fig_b12.py` 를 실행하면 본문의 수치가
+   그대로 재현되고, 검산 항목이 함께 출력됩니다.
+3. **검산이 실패한 자리를 지우지 않았습니다.** 기준을 늦추는 대신 방법을
+   고쳤고, 고칠 수 없는 실패는 **본문의 교육 내용으로** 실었습니다. 각 모듈
+   끝의 변경 이력에 무엇이 어떻게 실패했는지 그대로 적혀 있습니다.
+
+> ⚠️ **출처에 대하여.** 1권과 같습니다 — 외부 웹 접속이 막힌 환경에서
+> 집필되어 원문을 직접 열어 보지 못했습니다. 각 모듈 끝의 출처 표에 주소와
+> 신뢰 등급(A~D)을 **출처마다** 적어 두었습니다.
+
+**어디로 가야 하나**
+
+| 벤치에서 나오는 말 | 어디로 |
+|---|---|
+| "데이터시트 NF 와 우리 보드가 다릅니다" | **B05** 잡음 파라미터 |
+| "50 Ω 은 통과인데 실제 파형에서 떨어집니다" | **B04** 대신호 |
+| "사전 시험 통과, 시험소 탈락입니다" | **B07** EMC 벤치 디버그 |
+| "Wi-Fi 를 켜면 감도가 떨어집니다" | **B10** 시스템 디버그 |
+| "제가 재면 통과, 옆자리가 재면 탈락입니다" | **B11** 측정 시스템 분석 |
+| "벤치에서는 되는데 시험기에서 떨어집니다" | **B12** 양산 이관 |
+| 배운 것을 한 번에 써 본다 | **Part D 심화 캡스톤** |
+
+> 📖 **부록은 A(축약어)만 다시 실었습니다.** 약어는 읽는 중에 찾아야 하므로
+> 손이 닿는 곳에 두었습니다. **공식 치트시트(부록 B)·출처 통합목록(부록 C)·
+> 장비 준비 가이드(부록 D)·수학 보충(부록 E)은 1권**에 있습니다. 부록 C 에는
+> 이 책이 인용한 주소도 함께 실려 있습니다.
+"""
+
+
+def _body(parts, appendix):
+    """Part 들과 부록을 쪽 나눔과 함께 이어 붙인다."""
+    chunks = []
+    for part_title, folder, mods in parts:
         chunks.append(f"# {part_title}")
         for i, stem in enumerate(mods):
             if i:
                 chunks.append(PAGEBREAK)
             chunks.append(fix_math(prep.convert(ROOT / folder / f"{stem}.md")))
-    chunks.append("# 부록")
-    for i, stem in enumerate(APPENDIX):
-        if i:
-            chunks.append(PAGEBREAK)
-        chunks.append(fix_math(prep.convert(ROOT / "03_부록" / f"{stem}.md")))
-    chunks.append("# 별첨 — 커리큘럼 설계서")
-    chunks.append(
-        "*이 책이 어떤 계획 아래 쓰였는지를 담은 설계 문서입니다. 모듈의 순서,\n"
-        "개념의 소유권, 검토 규칙, 남은 집필 계획이 여기에 있습니다.*\n")
-    chunks.append(fix_math(prep.convert(ROOT / "00_커리큘럼_설계서_v1.2.md",
-                                        drop_title=True)))
+    if appendix:
+        chunks.append("# 부록")
+        for i, stem in enumerate(appendix):
+            if i:
+                chunks.append(PAGEBREAK)
+            chunks.append(fix_math(prep.convert(ROOT / "03_부록"
+                                                / f"{stem}.md")))
+    return chunks
+
+
+def assemble(vol=1):
+    if vol == 1:
+        chunks = [front_matter(), *_body(PARTS, APPENDIX)]
+        chunks.append("# 별첨 — 커리큘럼 설계서")
+        chunks.append(
+            "*이 책이 어떤 계획 아래 쓰였는지를 담은 설계 문서입니다. 모듈의 순서,\n"
+            "개념의 소유권, 검토 규칙, 남은 집필 계획이 여기에 있습니다.*\n")
+        chunks.append(fix_math(prep.convert(ROOT / "00_커리큘럼_설계서_v1.2.md",
+                                            drop_title=True)))
+    else:
+        chunks = [front_matter_adv(), *_body(ADV_PARTS, ADV_APPENDIX)]
+        chunks.append("# 별첨 — 심화 과정 설계서")
+        chunks.append(
+            "*심화 열두 편을 왜 그 순서로 두었는지, 기본 과정과 개념의 소유권을\n"
+            "어떻게 나눴는지가 여기에 있습니다.*\n")
+        chunks.append(fix_math(prep.convert(
+            ROOT / "05_심화/00_심화과정_설계서.md", drop_title=True)))
     return "\n\n".join(chunks)
 
 
@@ -317,37 +422,48 @@ def polish_tables(docx):
     return len(rows)
 
 
-def main():
-    BUILD.mkdir(parents=True, exist_ok=True)
-    if not (BUILD / "img_meta.json").exists():
-        sys.exit("먼저 scripts/docx/render_assets.py 를 실행해 그림을 만드십시오.")
-    md = assemble()
-    src = BUILD / "book.md"
+def build_one(vol: int):
+    meta = VOL_META[vol]
+    md = assemble(vol)
+    src = BUILD / f"book_vol{vol}.md"
     src.write_text(md)
-    print(f"원고 {len(md):,}자")
+    print(f"\n[{vol}권] 원고 {len(md):,}자 · {meta['subtitle']}")
 
-    if not (BUILD / "reference.docx").exists():
-        import make_ref
-        make_ref.main()
-
-    out = BUILD / OUT_NAME
+    out = BUILD / meta["out"]
     cmd = [find_pandoc(), str(src), "-o", str(out),
            "--reference-doc", str(BUILD / "reference.docx"),
            "--from", "markdown+raw_attribute+pipe_tables+tex_math_dollars",
            "--toc", "--toc-depth=3", "--resource-path", str(BUILD),
            "--metadata", f"title={TITLE}",
-           "--metadata", f"subtitle={SUBTITLE}",
-           "--metadata", f"date={DATE}",
+           "--metadata", f"subtitle={meta['subtitle']}",
+           "--metadata", f"date={meta['date']}",
            "--metadata", "toc-title=목차"]
     subprocess.run(cmd, check=True)
     n = polish_tables(out)
-    print(f"표 {n}개 다듬음 · {out.name} {out.stat().st_size/1024/1024:.1f} MB")
+    print(f"[{vol}권] 표 {n}개 다듬음 · {out.name} "
+          f"{out.stat().st_size/1024/1024:.1f} MB")
 
     import toc
-    print("목차 쪽번호 계산")
     entries = toc.fill(out)
-    print(f"목차 {sum(1 for e in entries if e[3])}항목 완성 · "
+    print(f"[{vol}권] 목차 {sum(1 for e in entries if e[3])}항목 완성 · "
           f"{out.stat().st_size/1024/1024:.1f} MB")
+    return out
+
+
+def main():
+    BUILD.mkdir(parents=True, exist_ok=True)
+    if not (BUILD / "img_meta.json").exists():
+        sys.exit("먼저 scripts/docx/render_assets.py 를 실행해 그림을 만드십시오.")
+    if not (BUILD / "reference.docx").exists():
+        import make_ref
+        make_ref.main()
+
+    arg = next((a for a in sys.argv[1:] if not a.startswith("-")), "all")
+    vols = [1, 2] if arg == "all" else [int(arg)]
+    for v in vols:
+        if v not in VOL_META:
+            sys.exit(f"권 번호는 {sorted(VOL_META)} 중 하나여야 합니다.")
+        build_one(v)
 
 
 if __name__ == "__main__":
