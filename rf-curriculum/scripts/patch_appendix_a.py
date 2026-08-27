@@ -280,6 +280,22 @@ ROWS: list[tuple[str, str, str, str, str, str]] = [
      "전원의 리플이 출력으로 얼마나 덜 새는가. 나쁘면 전원 주파수가 스퍼로 선다",
      "B06"),
 
+    # B07 · B08 (심화 6단계) 에서 새로 들어온 것
+    ("C", "CISPR", "Comité International Spécial des Perturbations Radioélectriques",
+     "국제 무선장해 특별위원회",
+     "전자파 장해 시험 규격을 만드는 국제 기구. CISPR 11·22·32 등", "M17"),
+
+    ("H – I", "HEMT", "High Electron Mobility Transistor",
+     "고전자이동도 트랜지스터",
+     "이종접합으로 전자 이동도를 높인 소자. GaN·GaAs RF 전력소자의 주류", "M08"),
+
+    ("S", "SE", "Shielding Effectiveness", "차폐 효과",
+     "차폐가 있을 때와 없을 때의 전계 비. 구멍의 길이가 사실상 이것을 정한다",
+     "B07"),
+    ("S", "SSC", "Spread Spectrum Clocking", "스프레드 스펙트럼 클럭",
+     "클럭 주파수를 조금씩 흔들어 하모닉 봉우리를 퍼뜨리는 기법. "
+     "총 에너지는 그대로다", "B07"),
+
 ]
 
 

@@ -87,6 +87,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | CATV | Cable Television | 케이블 텔레비전 | 동축 케이블 방송망. 50 Ω이 아니라 75 Ω 계를 쓴다 | M02 |
 | CCDF | Complementary Cumulative Distribution Function | 상보 누적 분포 함수 | 첨두가 평균보다 얼마나 큰지 확률로 보는 그래프 | M13 |
 | CFR | Crest Factor Reduction | 첨두 저감 | 신호의 뾰족한 첨두를 깎아 PAPR을 줄이는 처리 | M13 |
+| CISPR | Comité International Spécial des Perturbations Radioélectriques | 국제 무선장해 특별위원회 | 전자파 장해 시험 규격을 만드는 국제 기구. CISPR 11·22·32 등 | M17 |
 | CMOS | Complementary Metal-Oxide-Semiconductor | 상보형 금속 산화막 반도체 | 디지털·아날로그를 한 칩에 넣는 대표 반도체 공정 | M09 |
 | CMYK | Cyan-Magenta-Yellow-Key(black) | 인쇄 4원색 | 인쇄용 색 지정 방식. 화면의 RGB 와 다르다 | 인쇄 |
 | CP | Compression Point | 압축점 | 이득이 줄어들기 시작하는 지점 | M08 |
@@ -175,6 +176,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | 약어 | 영문 원어 | 한글 | 한 줄 뜻 | 정의 모듈 |
 |---|---|---|---|---|
 | HALT | Highly Accelerated Life Test | 고가속 수명 시험 | 규격보다 가혹한 조건으로 약한 곳을 빨리 드러내는 시험 | 심화 B08 |
+| HEMT | High Electron Mobility Transistor | 고전자이동도 트랜지스터 | 이종접합으로 전자 이동도를 높인 소자. GaN·GaAs RF 전력소자의 주류 | M08 |
 | HFSS | High Frequency Structure Simulator | (상용 전자기 해석 소프트웨어 이름) | Ansys의 3차원 전자기장 시뮬레이터 | 부록 D |
 | HPBW | Half-Power Beamwidth | 반전력 빔폭 | 방사 패턴에서 최대값보다 3 dB 낮아지는 두 각도 사이의 폭 | M10 |
 | HF | High Frequency | 단파 (3~30 MHz) | ITU 대역 구분의 하나. 지구 반대편까지 닿는 전리층 반사로 유명 | M00 |
@@ -293,6 +295,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | SAW | Surface Acoustic Wave | 표면 탄성파 | 결정 표면의 음향파를 쓰는 필터 기술 | M07 |
 | SCPI | Standard Commands for Programmable Instruments | 프로그래머블 계측기 표준 명령 | 계측기를 글자 명령으로 제어하는 공통 규격 | M16 |
 | SDR | Software Defined Radio | 소프트웨어 정의 무선 | 기능 대부분을 소프트웨어로 처리하는 무선기 | M11 |
+| SE | Shielding Effectiveness | 차폐 효과 | 차폐가 있을 때와 없을 때의 전계 비. 구멍의 길이가 사실상 이것을 정한다 | B07 |
 | SEM | Spectrum Emission Mask | 스펙트럼 방출 마스크 | 주파수별로 넘으면 안 되는 전력 한계선 | M13 |
 | SFDR | Spurious-Free Dynamic Range | 무스퓨리어스 동적 범위 | 가짜 신호에 묻히지 않고 볼 수 있는 범위 | M11 |
 | SHF | Super High Frequency | 초고주파 (3~30 GHz) | ITU 대역 구분의 하나. Wi-Fi·위성이 여기 든다 | M00 |
@@ -307,6 +310,7 @@ NF                             ← 그 모듈 안에서 두 번째부터
 | SPDT | Single Pole Double Throw | 단극쌍투 | 한 입력을 두 출력 중 하나로 보내는 스위치 | M07 |
 | SPI | Serial Peripheral Interface | 직렬 주변장치 인터페이스 | RF 모듈의 레지스터를 읽고 쓰는 데 흔히 쓰는 4선 버스 | 심화 B02 |
 | SRF | Self-Resonant Frequency | 자기공진주파수 | 이 위에서는 커패시터가 인덕터처럼 행동하는 경계 | M06 |
+| SSC | Spread Spectrum Clocking | 스프레드 스펙트럼 클럭 | 클럭 주파수를 조금씩 흔들어 하모닉 봉우리를 퍼뜨리는 기법. 총 에너지는 그대로다 | B07 |
 | SWR | Standing Wave Ratio | 정재파비 | VSWR과 같은 말 | M02 |
 
 ### T – Z
